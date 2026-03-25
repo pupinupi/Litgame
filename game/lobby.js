@@ -1,4 +1,4 @@
-const socket = io("https://your-render-url-here"); // ЗАМЕНИМ ПОТОМ
+const socket = io("https://litgame.onrender.com"); // ЗАМЕНИМ ПОТОМ
 
 let myColor = null;
 let myName = "Игрок";
