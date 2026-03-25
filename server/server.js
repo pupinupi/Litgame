@@ -1,4 +1,3 @@
-// ----------- НАСТРОЙКА СЕРВЕРА -----------
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -6,50 +5,44 @@ import { nanoid } from "nanoid";
 
 const app = express();
 const server = createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*"
-  }
-});
+const io = new Server(server, { cors: { origin: "*" } });
 
 const PORT = process.env.PORT || 10000;
 
-// Статика (папка game)
+// Отдаём папку /game
 app.use(express.static("game"));
 
-// Главная страница → index.html
+// Главная страница
 app.get("/", (req, res) => {
   res.sendFile(process.cwd() + "/game/index.html");
 });
 
-// ----------- ЛОГИКА ИГРЫ И КОМНАТ -----------
-
-const rooms = {}; // { roomCode: { players:[], state:{} } }
+// --- Комнаты и игроки ---
+const rooms = {};
 
 // Создать комнату
 function createRoom() {
   let code = nanoid(4).toUpperCase();
   rooms[code] = {
     players: [],
-    turn: 0,
-    state: {},
+    turn: 0
   };
   return code;
 }
 
-// ----------- SOCKET.IO -----------
+// --- Socket.IO ---
 io.on("connection", (socket) => {
   console.log("Игрок подключился:", socket.id);
 
-  // Создание комнаты
-  socket.on("createRoom", () => {
-    const code = createRoom();
+  // СОЗДАНИЕ КОМНАТЫ
+  socket.on("createRoom", ({ name, color }) => {
+    let code = createRoom();
     socket.join(code);
 
     rooms[code].players.push({
       id: socket.id,
-      name: "Игрок",
-      color: "red",
+      name,
+      color,
       hype: 0,
       pos: 0,
       skip: false
@@ -59,8 +52,8 @@ io.on("connection", (socket) => {
     io.to(code).emit("playersUpdate", rooms[code].players);
   });
 
-  // Подключение к комнате
-  socket.on("joinRoom", (code) => {
+  // ПРИСОЕДИНЕНИЕ КОМНАТЕ
+  socket.on("joinRoom", ({ code, name, color }) => {
     code = code.toUpperCase();
 
     if (!rooms[code]) {
@@ -75,29 +68,29 @@ io.on("connection", (socket) => {
     socket.join(code);
     rooms[code].players.push({
       id: socket.id,
-      name: "Игрок",
-      color: "red",
+      name,
+      color,
       hype: 0,
       pos: 0,
       skip: false
     });
 
-    io.to(code).emit("playersUpdate", rooms[code].players);
     socket.emit("joinedRoom", code);
+    io.to(code).emit("playersUpdate", rooms[code].players);
   });
 
-  // Выбор фишки
+  // ВЫБОР ФИШКИ
   socket.on("choosePiece", ({ room, color }) => {
     let r = rooms[room];
     if (!r) return;
 
-    let p = r.players.find((p) => p.id === socket.id);
+    let p = r.players.find((x) => x.id === socket.id);
     if (p) p.color = color;
 
     io.to(room).emit("playersUpdate", r.players);
   });
 
-  // Старт игры
+  // СТАРТ ИГРЫ
   socket.on("startGame", (room) => {
     let r = rooms[room];
     if (!r) return;
@@ -106,32 +99,32 @@ io.on("connection", (socket) => {
     io.to(room).emit("gameStarted", r);
   });
 
-  // Бросок кубика
+  // БРОСОК КУБИКА
   socket.on("roll", (room) => {
     let r = rooms[room];
     if (!r) return;
 
-    let currentPlayer = r.players[r.turn];
-    if (!currentPlayer) return;
+    let player = r.players[r.turn];
+    if (!player) return;
 
-    if (currentPlayer.id !== socket.id) return;
+    if (player.id !== socket.id) return;
 
-    if (currentPlayer.skip) {
-      currentPlayer.skip = false;
+    if (player.skip) {
+      player.skip = false;
       r.turn = (r.turn + 1) % r.players.length;
       io.to(room).emit("nextTurn", r.turn);
       return;
     }
 
-    const roll = Math.floor(Math.random() * 6) + 1;
+    const dice = Math.floor(Math.random() * 6) + 1;
 
     io.to(room).emit("rolled", {
       player: socket.id,
-      number: roll
+      dice
     });
   });
 
-  // Обновление позиции/хайпа
+  // СОХРАНИТЬ СОСТОЯНИЕ
   socket.on("updateState", ({ room, player }) => {
     let r = rooms[room];
     if (!r) return;
@@ -146,7 +139,7 @@ io.on("connection", (socket) => {
     io.to(room).emit("playersUpdate", r.players);
   });
 
-  // Конец хода — след. игрок
+  // КОНЕЦ ХОДА
   socket.on("endTurn", (room) => {
     let r = rooms[room];
     if (!r) return;
@@ -155,26 +148,23 @@ io.on("connection", (socket) => {
     io.to(room).emit("nextTurn", r.turn);
   });
 
-  // Отключение
+  // ВЫХОД ИГРОКА
   socket.on("disconnect", () => {
-    console.log("Игрок вышел:", socket.id);
-
-    for (let code in rooms) {
+    Object.keys(rooms).forEach((code) => {
       rooms[code].players = rooms[code].players.filter(
         (p) => p.id !== socket.id
       );
 
       io.to(code).emit("playersUpdate", rooms[code].players);
 
-      // Если комната пустая — удалить
       if (rooms[code].players.length === 0) {
         delete rooms[code];
       }
-    }
+    });
   });
 });
 
-// ----------- СТАРТ СЕРВЕРА -----------
+// СТАРТ
 server.listen(PORT, () => {
-  console.log("Сервер запущен на порту " + PORT);
+  console.log("Сервер запущен на порту", PORT);
 });
