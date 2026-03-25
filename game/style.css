@@ -1,1 +1,219 @@
+/* ─────────────────────────────────────────────
+   ОБЩЕЕ
+────────────────────────────────────────────── */
+body {
+    margin: 0;
+    padding: 0;
+    background: #0d0d0d;
+    font-family: Arial, sans-serif;
+    color: white;
+    overflow: hidden;
+}
 
+.screen {
+    width: 100vw;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.hidden {
+    display: none !important;
+}
+
+button {
+    padding: 12px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    border: none;
+    background: #ff8c00;
+    color: black;
+    border-radius: 6px;
+    margin-top: 12px;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #ffb347;
+}
+
+/* ─────────────────────────────────────────────
+   ЛОББИ
+────────────────────────────────────────────── */
+#lobbyScreen h1 {
+    font-size: 42px;
+    margin-bottom: 20px;
+}
+
+.choose-piece {
+    margin: 20px 0;
+}
+
+.pieces {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.piece {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: 0.2s;
+}
+
+.piece:hover {
+    transform: scale(1.1);
+}
+
+.piece.selected {
+    border-color: #fff;
+    box-shadow: 0 0 15px #fff;
+}
+
+#playersList {
+    margin-top: 20px;
+    font-size: 20px;
+}
+
+/* ─────────────────────────────────────────────
+   ИГРА
+────────────────────────────────────────────── */
+
+.top-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.board-container {
+    position: relative;
+    width: 800px;
+    height: 800px;
+    margin: 20px auto;
+}
+
+.board {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 20px #ff4500);
+}
+
+/* Фишки игроков */
+#tokens {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.token {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    position: absolute;
+    border: 3px solid #fff;
+    box-shadow: 0 0 10px #fff;
+    transition: top 0.5s linear, left 0.5s linear;
+}
+
+/* ─────────────────────────────────────────────
+   КНОПКА КУБИКА
+────────────────────────────────────────────── */
+#rollBtn {
+    display: block;
+    margin: 20px auto;
+    font-size: 26px;
+    padding: 14px 35px;
+    background: #ffd86b;
+    color: black;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #ffd86b;
+}
+
+#diceNumber {
+    text-align: center;
+    font-size: 32px;
+    margin-top: 10px;
+}
+
+/* ─────────────────────────────────────────────
+   ШКАЛА ХАЙПА
+────────────────────────────────────────────── */
+.hypeBar {
+    width: 300px;
+    height: 25px;
+    background: #222;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 15px #00bfff;
+}
+
+#hypeFill {
+    width: 0%;
+    height: 100%;
+    background: #00bfff;
+    transition: width 0.4s;
+    box-shadow: 0 0 10px #00bfff;
+}
+
+.totalHype {
+    font-size: 20px;
+}
+
+/* ─────────────────────────────────────────────
+   POPUP ОКНА
+────────────────────────────────────────────── */
+.popup {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+.popup-inner {
+    background: #1e1e1e;
+    padding: 25px;
+    width: 350px;
+    border-radius: 10px;
+    text-align: center;
+    border: 2px solid #ff4d4d;
+    box-shadow: 0 0 25px #ff4d4d;
+}
+
+.popup h2 {
+    margin-bottom: 12px;
+    font-size: 32px;
+}
+
+#riskResult {
+    font-size: 28px;
+    margin-top: 10px;
+}
+
+/* ─────────────────────────────────────────────
+   ХАЙП ПОДСВЕТКА
+────────────────────────────────────────────── */
+.flashPlus {
+    animation: plusFlash 0.5s ease;
+}
+
+.flashMinus {
+    animation: minusFlash 0.5s ease;
+}
+
+@keyframes plusFlash {
+    0% { background: #00ff3c; }
+    100% { background: transparent; }
+}
+
+@keyframes minusFlash {
+    0% { background: #ff3c3c; }
+    100% { background: transparent; }
+}
