@@ -1,69 +1,93 @@
-const socket = io("https://litgame.onrender.com"); // ЗАМЕНИМ ПОТОМ
+const socket = io("https://litgame.onrender.com");
 
-let myColor = null;
-let myName = "Игрок";
-let roomId = null;
-let players = [];
-
+// Элементы
 const lobbyScreen = document.getElementById("lobbyScreen");
 const gameScreen = document.getElementById("gameScreen");
 
-const pieces = document.querySelectorAll(".piece");
-pieces.forEach(p => {
+const nameInput = document.getElementById("nameInput");
+const roomCodeInput = document.getElementById("roomCodeInput");
+const playersList = document.getElementById("playersList");
+
+const selectedPieceDisplay = document.getElementById("selectedPieceDisplay");
+
+let myName = "";
+let myPiece = "";
+let roomCode = "";
+let isHost = false;
+
+// Выбор фишки
+document.querySelectorAll(".piece").forEach(p => {
     p.addEventListener("click", () => {
-        pieces.forEach(x => x.classList.remove("selected"));
+        document.querySelectorAll(".piece").forEach(x => x.classList.remove("selected"));
         p.classList.add("selected");
-        myColor = p.dataset.color;
+        myPiece = p.style.background;
     });
 });
 
-document.getElementById("createRoom").onclick = () => {
-    socket.emit("createRoom", (res) => {
-        roomId = res.roomId;
-        document.getElementById("roomCode").innerText = "Код комнаты: " + roomId;
-    });
+// Создание комнаты
+document.getElementById("createBtn").onclick = () => {
+    if (!nameInput.value) return alert("Введите имя!");
+
+    if (!myPiece) return alert("Выберите фишку!");
+
+    myName = nameInput.value;
+    isHost = true;
+
+    socket.emit("createRoom", { name: myName, piece: myPiece });
 };
 
-document.getElementById("joinRoom").onclick = () => {
-    const input = document.getElementById("joinInput").value.trim();
-    if (!input || !myColor) return alert("Введите код и выберите фишку!");
-    joinRoom(input);
+// Вход в комнату
+document.getElementById("joinBtn").onclick = () => {
+    if (!nameInput.value) return alert("Введите имя!");
+    if (!myPiece) return alert("Выберите фишку!");
+    if (!roomCodeInput.value) return alert("Введите код комнаты!");
+
+    myName = nameInput.value;
+    roomCode = roomCodeInput.value;
+
+    socket.emit("joinRoom", { name: myName, piece: myPiece, room: roomCode });
 };
 
-function joinRoom(id) {
-    socket.emit("joinRoom", {
-        roomId: id,
-        name: myName,
-        color: myColor
-    }, res => {
-        if (res.error) return alert(res.error);
-        roomId = id;
-        updatePlayers(res.players);
-    });
-}
-
-socket.on("roomUpdate", (playersList) => {
-    updatePlayers(playersList);
+// Комната создана — показываем код
+socket.on("roomCreated", code => {
+    roomCode = code;
+    selectedPieceDisplay.style.background = myPiece;
+    alert("Комната создана! Код: " + code);
 });
 
-function updatePlayers(p) {
-    players = p;
-    const list = document.getElementById("playersList");
-    list.innerHTML = "<b>Игроки:</b><br>" + p.map(x =>
-        `<div style="color:${x.color}">● ${x.name}</div>`
-    ).join("");
+// Ошибки
+socket.on("roomError", msg => {
+    alert(msg);
+});
 
-    if (players.length >= 2) {
-        document.getElementById("startGame").classList.remove("hidden");
+// Обновление игроков
+socket.on("roomPlayers", players => {
+    playersList.innerHTML = "";
+    players.forEach(p => {
+        let div = document.createElement("div");
+        div.innerText = p.name + " — ✔";
+        playersList.appendChild(div);
+    });
+});
+
+// Попали в комнату успешно
+socket.on("roomJoined", () => {
+    selectedPieceDisplay.style.background = myPiece;
+});
+
+// Кнопка «Начать игру» — только у хоста
+document.getElementById("startGameBtn").onclick = () => {
+    if (isHost) {
+        socket.emit("startGame", roomCode);
     }
-}
-
-document.getElementById("startGame").onclick = () => {
-    socket.emit("startGame", roomId);
 };
 
+// Сервер сказал начать игру
 socket.on("gameStarted", () => {
+
     lobbyScreen.classList.add("hidden");
     gameScreen.classList.remove("hidden");
-    Game.init(socket, players, roomId);
+
+    // Передаём данные в игровую логику
+    window.initGame(socket, myName, myPiece, roomCode);
 });
