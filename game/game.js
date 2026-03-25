@@ -1,121 +1,232 @@
-const Game = {
-    socket: null,
-    players: [],
-    me: null,
-    roomId: null,
-    turn: 0,
+window.initGame = function (socket, myName, myPiece, roomCode) {
 
-    tokenPositions: [
-        {x: 380, y: 730}, // 1
-        {x: 380, y: 610}, // 2
-        {x: 380, y: 490}, // 3
-        {x: 380, y: 370}, // 4
-        {x: 500, y: 370}, // 5
-        {x: 620, y: 370}, // 6
-        {x: 740, y: 370}, // 7
-        {x: 860, y: 370}, // 8
-        {x: 980, y: 370}, // 9
-        {x: 1100, y: 370},// 10
-        {x: 1100, y: 490},// 11
-        {x: 1100, y: 610},// 12
-        {x: 1100, y: 730},// 13
-        {x: 980, y: 730}, // 14
-        {x: 860, y: 730}, // 15
-        {x: 740, y: 730}, // 16
-        {x: 620, y: 730}, // 17
-        {x: 500, y: 730}, // 18
-        {x: 380, y: 730}, // 19
-        {x: 260, y: 730}  // 20
-    ],
+    const rollBtn = document.getElementById("rollBtn");
+    const diceNumber = document.getElementById("diceNumber");
+    const hypeFill = document.getElementById("hypeFill");
+    const tokensBox = document.getElementById("tokens");
 
-    init(socket, players, roomId) {
-        this.socket = socket;
-        this.players = players;
-        this.roomId = roomId;
+    const scandalPopup = document.getElementById("scandalPopup");
+    const scandalText = document.getElementById("scandalText");
+    const closeScandal = document.getElementById("closeScandal");
 
-        this.me = players.find(x => x.id === socket.id);
+    const riskPopup = document.getElementById("riskPopup");
+    const riskResult = document.getElementById("riskResult");
+    const closeRisk = document.getElementById("closeRisk");
 
-        this.createTokens();
-        this.bindSocketEvents();
+    let players = {};
+    let myTurn = false;
+    let positions = {};
+    let hype = {};
 
-        document.getElementById("rollBtn").onclick = () => {
-            socket.emit("rollDice", roomId);
-        };
-    },
+    // ---- ПОЛЕ 20 КЛЕТОК ----
+    const boardCells = [
+        { type: "start" },
+        { type: "+", value: 3 },
+        { type: "+", value: 2 },
+        { type: "scandal" },
+        { type: "risk" },
+        { type: "+", value: 2 },
+        { type: "scandal" },
+        { type: "+", value: 3 },
+        { type: "+", value: 5 },
+        { type: "block", value: -10 },
+        { type: "minusSkip", value: -8 },
+        { type: "+", value: 3 },
+        { type: "risk" },
+        { type: "+", value: 3 },
+        { type: "skip" },
+        { type: "+", value: 2 },
+        { type: "scandal" },
+        { type: "+", value: 8 },
+        { type: "block", value: -10 },
+        { type: "+", value: 4 }
+    ];
 
-    bindSocketEvents() {
-        this.socket.on("diceRolled", ({playerId, roll}) => {
-            document.getElementById("diceNumber").innerText = "Выпало: " + roll;
+    // Координаты фишек по полю
+    const coords = [];
+
+    // Старт → 4 вверх
+    for (let i = 0; i < 4; i++) coords.push({ x: 250, y: 400 - i * 80 });
+
+    // 6 вправо
+    for (let i = 0; i < 6; i++) coords.push({ x: 250 + (i + 1) * 55, y: 80 });
+
+    // 4 вниз
+    for (let i = 0; i < 4; i++) coords.push({ x: 580, y: 80 + (i + 1) * 80 });
+
+    // 6 влево
+    for (let i = 0; i < 6; i++) coords.push({ x: 580 - (i + 1) * 55, y: 400 });
+
+    // ---- Получили список игроков ----
+    socket.on("gamePlayers", (serverPlayers) => {
+        players = serverPlayers;
+
+        tokensBox.innerHTML = "";
+        Object.keys(players).forEach(id => {
+            hype[id] = 0;
+            positions[id] = 0;
+
+            let token = document.createElement("div");
+            token.id = "token_" + id;
+            token.style.background = players[id].piece;
+            tokensBox.appendChild(token);
+
+            updateTokenPosition(id);
         });
+    });
 
-        this.socket.on("updateGame", (players) => {
-            this.players = players;
-            this.updateTokens();
-            this.updateHypeBar();
-        });
+    // ---- СИГНАЛ НАЧАЛА ХОДА ----
+    socket.on("yourTurn", () => {
+        myTurn = true;
+        rollBtn.disabled = false;
+        rollBtn.style.opacity = 1;
+    });
 
-        this.socket.on("turnChange", (turnIndex) => {
-            this.turn = turnIndex;
-            const p = this.players[turnIndex];
-            document.getElementById("turnName").innerText = p.name;
+    // ---- БРОСОК КУБИКА ----
+    rollBtn.onclick = () => {
+        if (!myTurn) return;
 
-            // блокировка кнопки
-            document.getElementById("rollBtn").disabled = (p.id !== this.socket.id);
-        });
+        socket.emit("rollDice", roomCode);
+        rollBtn.disabled = true;
+        rollBtn.style.opacity = 0.5;
+    };
 
-        this.socket.on("scandalCard", ({card}) => {
-            UI.showScandal(`${card.text} (${card.value})`);
-        });
+    // ---- РЕЗУЛЬТАТ КУБИКА ----
+    socket.on("diceResult", ({ player, number }) => {
+        diceNumber.innerText = number;
+        movePlayer(player, number);
+    });
 
-        this.socket.on("riskPopup", () => {
-            UI.showRisk();
-            document.getElementById("riskRollBtn").onclick = () => {
-                let roll = Math.floor(Math.random() * 6) + 1;
-                let res = roll <= 3 ? "-5 хайпа" : "+5 хайпа";
-                UI.riskResult("Выпало " + roll + " → " + res);
-                setTimeout(() => {
-                    UI.closeRisk();
-                }, 1500);
-            };
-        });
+    // ---- ДВИЖЕНИЕ ----
+    function movePlayer(id, steps) {
+        let stepsDone = 0;
 
-        this.socket.on("hypeFlash", ({type}) => {
-            UI.flashHype(type);
-        });
-    },
+        function moveStep() {
+            positions[id] = (positions[id] + 1) % 20;
+            updateTokenPosition(id);
 
-    createTokens() {
-        const wrap = document.getElementById("tokens");
-        wrap.innerHTML = "";
+            stepsDone++;
+            if (stepsDone < steps) {
+                setTimeout(moveStep, 300);
+            } else {
+                applyCellEffect(id);
+            }
+        }
 
-        this.players.forEach(p => {
-            const t = document.createElement("div");
-            t.className = "token";
-            t.id = "token_" + p.id;
-            t.style.background = p.color;
-            wrap.appendChild(t);
-        });
-
-        this.updateTokens();
-    },
-
-    updateTokens() {
-        this.players.forEach(p => {
-            const t = document.getElementById("token_" + p.id);
-            if (!t) return;
-
-            const pos = this.tokenPositions[p.pos - 1];
-            t.style.left = pos.x + "px";
-            t.style.top = pos.y + "px";
-        });
-    },
-
-    updateHypeBar() {
-        const mePlayer = this.players.find(x => x.id === this.socket.id);
-        if (!mePlayer) return;
-
-        let percent = Math.min(100, (mePlayer.hype / 70) * 100);
-        document.getElementById("hypeFill").style.width = percent + "%";
-        document.getElementById("myHype").innerText = mePlayer.hype;
+        moveStep();
     }
+
+    function updateTokenPosition(id) {
+        const el = document.getElementById("token_" + id);
+        const c = coords[positions[id]];
+        el.style.left = c.x + "px";
+        el.style.top = c.y + "px";
+    }
+
+    // ---- ПРИМЕНЕНИЕ КЛЕТКИ ----
+    function applyCellEffect(id) {
+        let cell = boardCells[positions[id]];
+
+        if (cell.type === "+") {
+            changeHype(id, cell.value);
+        }
+
+        if (cell.type === "block") {
+            changeHype(id, -10);
+        }
+
+        if (cell.type === "minusSkip") {
+            changeHype(id, -8);
+            socket.emit("skipTurn", { room: roomCode, id });
+        }
+
+        if (cell.type === "skip") {
+            socket.emit("skipTurn", { room: roomCode, id });
+        }
+
+        if (cell.type === "scandal") showScandal(id);
+
+        if (cell.type === "risk") showRisk(id);
+
+        socket.emit("endTurn", roomCode);
+    }
+
+    // ---- СКАНДАЛ ----
+    function showScandal(id) {
+
+        const cards = [
+            { text: "Перегрел аудиторию🔥", v: -1 },
+            { text: "Громкий заголовок🫣", v: -2 },
+            { text: "Это монтаж 😱", v: -3 },
+            { text: "Меня взломали #️⃣ (всем -3)", all: true, v: -3 },
+            { text: "Подписчики в шоке 😮", v: -4 },
+            { text: "Удаляй пока не поздно🤫", v: -5 },
+            { text: "Это контент. Пропусти ход 🙄", v: -5, skip: true }
+        ];
+
+        let picked = cards[Math.floor(Math.random() * cards.length)];
+
+        scandalText.innerText = picked.text;
+
+        scandalPopup.classList.remove("hidden");
+        scandalPopup.classList.add("scandal-card");
+
+        closeScandal.onclick = () => {
+            scandalPopup.classList.add("hidden");
+
+            if (picked.all) {
+                Object.keys(hype).forEach(p => changeHype(p, picked.v));
+            } else {
+                changeHype(id, picked.v);
+            }
+
+            if (picked.skip) {
+                socket.emit("skipTurn", { room: roomCode, id });
+            }
+        };
+    }
+
+    // ---- РИСК ----
+    function showRisk(id) {
+        riskPopup.classList.remove("hidden");
+
+        closeRisk.onclick = () => {
+            let dice = Math.floor(Math.random() * 6) + 1;
+
+            if (dice <= 3) {
+                riskResult.innerText = "1–3 выпало! -5 хайпа";
+                changeHype(id, -5);
+            } else {
+                riskResult.innerText = "4–6 выпало! +5 хайпа";
+                changeHype(id, 5);
+            }
+
+            setTimeout(() => {
+                riskPopup.classList.add("hidden");
+                riskResult.innerText = "";
+            }, 1500);
+        };
+    }
+
+    // ---- ИЗМЕНЕНИЕ ХАЙПА ----
+    function changeHype(id, amount) {
+        hype[id] += amount;
+        if (hype[id] < 0) hype[id] = 0;
+
+        if (id === socket.id) {
+            hypeFill.style.width = hype[id] + "%";
+            hypeFill.classList.remove("hypePlus", "hypeMinus");
+
+            if (amount > 0) hypeFill.classList.add("hypePlus");
+            else hypeFill.classList.add("hypeMinus");
+        }
+
+        if (hype[id] >= 70) socket.emit("win", { room: roomCode, id });
+    }
+
+    // ---- ПОБЕДА ----
+    socket.on("gameWin", (playerId) => {
+        alert(players[playerId].name + " победил! Набрал 70 хайпа!");
+        location.reload();
+    });
 };
