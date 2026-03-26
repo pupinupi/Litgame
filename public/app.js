@@ -229,15 +229,22 @@ function renderLobbyPlayers(){
   l.innerHTML=players.map(p=>`<div style="color:${p.color}">${p.username}</div>`).join("");
 }
 
-function glow(cell,color){
-  const d=document.createElement('div');
-  d.style.position='absolute';
-  d.style.left=cell.x+'px';
-  d.style.top=cell.y+'px';
-  d.style.width='30px';
-  d.style.height='30px';
-  d.style.border='2px solid '+color;
-  d.style.borderRadius='50%';
+function glow(cell, type){
+
+  let colorClass = 'green';
+
+  if(type === 'minus' || type === 'minusSkip') colorClass = 'red';
+  if(type === 'scandal') colorClass = 'red';
+  if(type === 'risk') colorClass = 'blue';
+  if(type === 'start') colorClass = 'yellow';
+
+  const d = document.createElement('div');
+  d.className = `cellGlow ${colorClass}`;
+
+  d.style.left = (cell.x - 10) + 'px';
+  d.style.top = (cell.y - 10) + 'px';
+
   document.getElementById('gameBoard').appendChild(d);
-  setTimeout(()=>d.remove(),500);
+
+  setTimeout(()=>d.remove(),600);
 }
