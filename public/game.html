@@ -1,1 +1,21 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Игра</title>
+<link rel="stylesheet" href="style.css">
+<script src="/socket.io/socket.io.js"></script>
+<script defer src="gameClient.js"></script>
+</head>
+<body>
+<h1>Литвин. Путь к хайпу</h1>
+<div id="gameBoard">
+  <img src="board.jpg" id="board" width="1024" height="1024">
+</div>
 
+<div id="controls">
+  <button id="rollBtn">Бросить кубик</button>
+</div>
+
+<div id="hypeBars"></div>
+<div id="log"></div>
