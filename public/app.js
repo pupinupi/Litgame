@@ -79,11 +79,25 @@ const cells=[
 // --- движение ---
 function movePlayer(id,steps){
   const p=players.find(p=>p.id===id);
+
   for(let i=0;i<steps;i++){
     setTimeout(()=>{
-      p.position=(p.position+1)%cells.length;
+
+      let prevPos = p.position;
+      p.position = (p.position + 1) % cells.length;
+
+      // 🎁 ПРОХОД КРУГА
+      if(prevPos === cells.length - 1){
+        p.hype += 5;
+        showModal("+5 хайпа за круг 🔁");
+      }
+
       renderPlayers();
-      if(i===steps-1) handleCell(p,cells[p.position]);
+
+      if(i===steps-1){
+        handleCell(p,cells[p.position]);
+      }
+
     },i*400);
   }
 }
