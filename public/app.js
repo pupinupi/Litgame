@@ -147,3 +147,36 @@ function renderLobbyPlayers(){
   const list=document.getElementById('playersList');
   list.innerHTML='<h3>Игроки:</h3>'+players.map(p=>`<div style="color:${p.color}">${p.username}</div>`).join('');
 }
+
+let coordMode = false;
+let coordList = [];
+
+// Кнопки
+document.getElementById('startCoord').onclick = ()=>{
+  coordMode = true;
+  alert("Режим сбора координат включен. Кликайте по клеткам на поле.");
+};
+
+document.getElementById('stopCoord').onclick = ()=>{
+  coordMode = false;
+  alert("Режим сбора координат выключен.");
+};
+
+document.getElementById('showCoord').onclick = ()=>{
+  const output = JSON.stringify(coordList, null, 2);
+  console.log(output);
+  document.getElementById('coordList').innerText = output;
+  alert("Координаты выведены в консоль и в блок ниже.");
+};
+
+// Сбор координат кликом по полю
+document.getElementById('gameBoard').addEventListener('click', (e)=>{
+  if(!coordMode) return;
+  const rect = e.target.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  coordList.push({x: Math.round(x), y: Math.round(y)});
+  
+  // Показываем текущий список на странице
+  document.getElementById('coordList').innerText = JSON.stringify(coordList, null, 2);
+});
