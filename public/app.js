@@ -138,23 +138,44 @@ function animateMove(p, fromIndex, toIndex, callback){
 }
 
 // --- логика клеток ---
-function handleCell(p,cell){
-
-  if(cell.type==='start'){
-    p.hype += 10;
-    showModal("🚀 +10 за старт");
-  }
-
-  if(cell.type==='plus'){ p.hype+=cell.value; glow(cell,'green'); }
-  if(cell.type==='minus'){ p.hype=Math.max(0,p.hype-cell.value); glow(cell,'red'); }
-  if(cell.type==='skip'){ p.skipNext=true; showModal("Пропуск хода"); }
-  if(cell.type==='minusSkip'){ p.hype=Math.max(0,p.hype-cell.value); p.skipNext=true; showModal("-8 и пропуск"); }
-  if(cell.type==='scandal'){ showScandal(p); }
-  if(cell.type==='risk'){ showRisk(p); }
-
-  renderHype();
+if(cell.type==='start'){
+  p.hype += 10;
+  glow(cell,'start');
+  showModal("🚀 +10 за старт");
 }
 
+if(cell.type==='plus'){
+  p.hype+=cell.value;
+  glow(cell,'plus');
+}
+
+if(cell.type==='minus'){
+  p.hype=Math.max(0,p.hype-cell.value);
+  glow(cell,'minus');
+}
+
+if(cell.type==='skip'){
+  p.skipNext=true;
+  glow(cell,'minus');
+  showModal("Пропуск хода");
+}
+
+if(cell.type==='minusSkip'){
+  p.hype=Math.max(0,p.hype-cell.value);
+  p.skipNext=true;
+  glow(cell,'minusSkip');
+  showModal("-8 и пропуск");
+}
+
+if(cell.type==='scandal'){
+  glow(cell,'scandal');
+  showScandal(p);
+}
+
+if(cell.type==='risk'){
+  glow(cell,'risk');
+  showRisk(p);
+}
 // --- остальной код (без изменений) ---
 
 function showModal(text){
