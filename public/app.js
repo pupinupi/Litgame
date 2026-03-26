@@ -97,16 +97,31 @@ function handleCell(p,cell){
 // --- карточки ---
 function showScandal(p){
   const cards=[
-    "-1 хайп 🔥",
-    "-2 хайп 🫣",
-    "-3 хайп 😱",
-    "-3 всем #️⃣",
-    "-4 хайп 😮",
-    "-5 хайп 🤫",
-    "-5 хайп и пропуск 🙄"
+    {text:"Перегрел аудиторию 🔥", value:-1},
+    {text:"Громкий заголовок 🫣", value:-2},
+    {text:"Это монтаж 😱", value:-3},
+    {text:"Меня взломали #️⃣", value:-3, all:true},
+    {text:"Подписчики в шоке 😮", value:-4},
+    {text:"Удаляй пока не поздно 🤫", value:-5},
+    {text:"Это контент, вы не понимаете 🙄", value:-5, skip:true}
   ];
-  const card=cards[Math.floor(Math.random()*cards.length)];
-  showModal("Скандал: "+card);
+
+  const card = cards[Math.floor(Math.random()*cards.length)];
+
+  // применяем эффект
+  if(card.all){
+    players.forEach(pl=>pl.hype=Math.max(0,pl.hype+card.value));
+  }else{
+    p.hype=Math.max(0,p.hype+card.value);
+  }
+
+  if(card.skip){
+    p.skipNext=true;
+  }
+
+  renderHype();
+
+  showScandalCard(card.text, card.value, card.skip);
 }
 
 function showRisk(p){
