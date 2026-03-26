@@ -145,9 +145,13 @@ function showScandalCard(text, value, skip){
 
 function showRisk(p){
   const dice=Math.floor(Math.random()*6)+1;
-  const res=dice<=3?-5:5;
-  p.hype=Math.max(0,p.hype+res);
-  showModal(`Риск: ${dice} → ${res>0?'+':'-'}${Math.abs(res)}`);
+  const result = dice<=3 ? -5 : 5;
+
+  p.hype = Math.max(0, p.hype + result);
+
+  renderHype();
+
+  showRiskCard(dice, result);
 }
 
 // --- UI ---
