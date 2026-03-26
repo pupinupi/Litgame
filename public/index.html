@@ -2,25 +2,40 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Литвин. Путь к хайпу — Лобби</title>
+<title>Литвин. Путь к хайпу</title>
 <link rel="stylesheet" href="style.css">
 <script src="/socket.io/socket.io.js"></script>
-<script defer src="client.js"></script>
+<script defer src="app.js"></script>
 </head>
 <body>
-<h1>Литвин. Путь к хайпу</h1>
 
+<!-- Лобби -->
 <div id="lobby">
+  <h1>Лобби</h1>
   <input type="text" id="username" placeholder="Ваше имя">
   <input type="text" id="roomCode" placeholder="Код комнаты">
-  <label>Выберите фишку:</label>
-  <select id="colorSelect">
-    <option value="yellow">Желтая</option>
-    <option value="red">Красная</option>
-    <option value="blue">Синяя</option>
-    <option value="purple">Фиолетовая</option>
-  </select>
+  <div>
+    <span>Выберите фишку:</span>
+    <button class="chip" data-color="red" style="background:red"></button>
+    <button class="chip" data-color="blue" style="background:blue"></button>
+    <button class="chip" data-color="yellow" style="background:yellow"></button>
+    <button class="chip" data-color="purple" style="background:purple"></button>
+  </div>
   <button id="joinBtn">Войти</button>
+  <button id="startBtn">Начать игру</button>
+  <div id="playersList"></div>
 </div>
 
-<div id="playersList"></div>
+<!-- Игровое поле -->
+<div id="game" style="display:none">
+  <h2>Поле</h2>
+  <div id="gameBoard">
+    <img src="board.jpg" width="1024" height="1024">
+  </div>
+  <button id="rollBtn">Бросить кубик</button>
+  <div id="hypeBars"></div>
+  <div id="log"></div>
+</div>
+
+</body>
+</html>
