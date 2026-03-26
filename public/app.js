@@ -124,6 +124,25 @@ function showScandal(p){
   showScandalCard(card.text, card.value, card.skip);
 }
 
+function showScandalCard(text, value, skip){
+  const m=document.getElementById('modal');
+
+  m.innerHTML=`
+    <div class="scandalCard">
+      <div class="scandalTitle">СКАНДАЛ</div>
+      <div class="scandalText">${text}</div>
+      <div class="scandalValue">${value} хайпа</div>
+      ${skip ? '<div class="scandalSkip">Пропуск хода!</div>' : ''}
+    </div>
+  `;
+
+  m.classList.add('active');
+
+  setTimeout(()=>{
+    m.classList.remove('active');
+  },4000);
+}
+
 function showRisk(p){
   const dice=Math.floor(Math.random()*6)+1;
   const res=dice<=3?-5:5;
