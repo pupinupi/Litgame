@@ -1,165 +1,161 @@
 const socket = io();
 let players=[], username, roomCode, color, currentTurnId=null;
-let coordMode=false, coordList=[];
 
 // --- Лобби ---
-document.querySelectorAll('.chip').forEach(btn=>{ btn.onclick=()=>color=btn.dataset.color; });
-document.getElementById('joinBtn').onclick = ()=>{
-  username = document.getElementById('username').value;
-  roomCode = document.getElementById('roomCode').value;
-  if(!username || !roomCode || !color){ alert("Заполните все поля!"); return;}
-  socket.emit('joinRoom',{username,roomCode,color});
-};
-document.getElementById('startBtn').onclick = ()=>socket.emit('startGame', roomCode);
-
-// --- Игровое поле ---
-document.getElementById('rollBtn').onclick = ()=>{ if(currentTurnId===socket.id) socket.emit('rollDice',roomCode); };
-
-// --- Координаты ---
-document.getElementById('startCoord').onclick = ()=>{ coordMode=true; alert("Режим координат включен"); };
-document.getElementById('stopCoord').onclick = ()=>{ coordMode=false; alert("Режим координат выключен"); };
-document.getElementById('showCoord').onclick = ()=>{
-  const output=JSON.stringify(coordList,null,2);
-  console.log(output);
-  document.getElementById('coordList').innerText=output;
-  alert("Координаты в консоль и блоке");
-};
-document.getElementById('gameBoard').addEventListener('click', (e)=>{
-  if(!coordMode) return;
-  const rect=e.target.getBoundingClientRect();
-  const x=e.clientX-rect.left;
-  const y=e.clientY-rect.top;
-  coordList.push({x:Math.round(x),y:Math.round(y)});
-  document.getElementById('coordList').innerText=JSON.stringify(coordList,null,2);
+document.querySelectorAll('.chip').forEach(btn=>{
+  btn.onclick=()=>color=btn.dataset.color;
 });
 
-// --- Socket events ---
-socket.on('updatePlayers', pl=>{ players=pl; renderPlayers(); renderHype(); renderLobbyPlayers(); });
-socket.on('roomFull', ()=>alert("Комната полная!"));
-socket.on('gameStarted', ()=>{ document.getElementById('lobby').style.display='none'; document.getElementById('game').style.display='block'; });
-socket.on('nextTurn', id=>currentTurnId=id);
-socket.on('diceRolled', ({playerId,dice})=>{ log(`${players.find(p=>p.id===playerId).username} бросил кубик: ${dice}`); movePlayer(playerId,dice); });
+document.getElementById('joinBtn').onclick=()=>{
+  username=document.getElementById('username').value;
+  roomCode=document.getElementById('roomCode').value;
+  if(!username||!roomCode||!color){alert("Заполни всё");return;}
+  socket.emit('joinRoom',{username,roomCode,color});
+};
 
-// --- Клетки с твоими координатами ---
+document.getElementById('startBtn').onclick=()=>{
+  socket.emit('startGame',roomCode);
+};
+
+// --- Игра ---
+document.getElementById('rollBtn').onclick=()=>{
+  if(currentTurnId===socket.id){
+    socket.emit('rollDice',roomCode);
+  }
+};
+
+socket.on('updatePlayers', pl=>{
+  players=pl;
+  renderPlayers();
+  renderHype();
+  renderLobbyPlayers();
+});
+
+socket.on('gameStarted', ()=>{
+  document.getElementById('lobby').style.display='none';
+  document.getElementById('game').style.display='block';
+});
+
+socket.on('nextTurn', id=>{
+  currentTurnId=id;
+  const p=players.find(p=>p.id===id);
+  document.getElementById('turnText').innerText=`Ходит: ${p.username}`;
+});
+
+socket.on('diceRolled', ({playerId,dice})=>{
+  document.getElementById('diceResult').innerText=`Выпало: ${dice}`;
+  movePlayer(playerId,dice);
+});
+
+// --- клетки ---
 const cells=[
   {name:"Старт",x:82,y:587,type:'start'},
-  {name:"+3 хайп",x:97,y:464,type:'plus',value:3},
-  {name:"+2 хайп",x:86,y:348,type:'plus',value:2},
+  {name:"+3",x:97,y:464,type:'plus',value:3},
+  {name:"+2",x:86,y:348,type:'plus',value:2},
   {name:"Скандал",x:93,y:224,type:'scandal'},
   {name:"Риск",x:87,y:129,type:'risk'},
-  {name:"+2 хайп",x:219,y:101,type:'plus',value:2},
+  {name:"+2",x:219,y:101,type:'plus',value:2},
   {name:"Скандал",x:364,y:107,type:'scandal'},
-  {name:"+3 хайп",x:494,y:95,type:'plus',value:3},
-  {name:"+5 хайп",x:652,y:96,type:'plus',value:5},
-  {name:"Блокировка канала",x:815,y:89,type:'minus',value:10},
-  {name:"-8 хайп, пропуск хода",x:930,y:135,type:'minusSkip',value:8},
-  {name:"+3 хайп",x:936,y:247,type:'plus',value:3},
+  {name:"+3",x:494,y:95,type:'plus',value:3},
+  {name:"+5",x:652,y:96,type:'plus',value:5},
+  {name:"-10",x:815,y:89,type:'minus',value:10},
+  {name:"-8 skip",x:930,y:135,type:'minusSkip',value:8},
+  {name:"+3",x:936,y:247,type:'plus',value:3},
   {name:"Риск",x:936,y:357,type:'risk'},
-  {name:"+3 хайп",x:941,y:480,type:'plus',value:3},
-  {name:"Пропусти ход",x:937,y:610,type:'skip'},
-  {name:"+2 хайп",x:794,y:624,type:'plus',value:2},
+  {name:"+3",x:941,y:480,type:'plus',value:3},
+  {name:"skip",x:937,y:610,type:'skip'},
+  {name:"+2",x:794,y:624,type:'plus',value:2},
   {name:"Скандал",x:636,y:635,type:'scandal'},
-  {name:"+8 хайп",x:517,y:627,type:'plus',value:8},
-  {name:"Блокировка канала",x:355,y:619,type:'minus',value:10},
-  {name:"+4 хайп",x:210,y:626,type:'plus',value:4}
+  {name:"+8",x:517,y:627,type:'plus',value:8},
+  {name:"-10",x:355,y:619,type:'minus',value:10},
+  {name:"+4",x:210,y:626,type:'plus',value:4}
 ];
 
+// --- движение ---
+function movePlayer(id,steps){
+  const p=players.find(p=>p.id===id);
+  for(let i=0;i<steps;i++){
+    setTimeout(()=>{
+      p.position=(p.position+1)%cells.length;
+      renderPlayers();
+      if(i===steps-1) handleCell(p,cells[p.position]);
+    },i*400);
+  }
+}
+
+// --- логика клеток ---
+function handleCell(p,cell){
+  if(cell.type==='plus'){ p.hype+=cell.value; glow(cell,'green'); }
+  if(cell.type==='minus'){ p.hype=Math.max(0,p.hype-cell.value); glow(cell,'red'); }
+  if(cell.type==='skip'){ p.skipNext=true; showModal("Пропуск хода"); }
+  if(cell.type==='minusSkip'){ p.hype-=cell.value; p.skipNext=true; showModal("-8 и пропуск"); }
+  if(cell.type==='scandal'){ showScandal(p); }
+  if(cell.type==='risk'){ showRisk(p); }
+  renderHype();
+}
+
+// --- карточки ---
+function showScandal(p){
+  const cards=[
+    "-1 хайп 🔥",
+    "-2 хайп 🫣",
+    "-3 хайп 😱",
+    "-3 всем #️⃣",
+    "-4 хайп 😮",
+    "-5 хайп 🤫",
+    "-5 хайп и пропуск 🙄"
+  ];
+  const card=cards[Math.floor(Math.random()*cards.length)];
+  showModal("Скандал: "+card);
+}
+
+function showRisk(p){
+  const dice=Math.floor(Math.random()*6)+1;
+  const res=dice<=3?-5:5;
+  p.hype=Math.max(0,p.hype+res);
+  showModal(`Риск: ${dice} → ${res>0?'+':'-'}${Math.abs(res)}`);
+}
+
+// --- UI ---
+function showModal(text){
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modalContent">${text}</div>`;
+  m.classList.remove('hidden');
+  setTimeout(()=>m.classList.add('hidden'),3000);
+}
+
 function renderPlayers(){
-  const board=document.getElementById('gameBoard');
-  board.querySelectorAll('.player').forEach(e=>e.remove());
+  const b=document.getElementById('gameBoard');
+  b.querySelectorAll('.player').forEach(e=>e.remove());
   players.forEach((p,i)=>{
     const el=document.createElement('div');
     el.className='player';
     el.style.background=p.color;
-    el.style.left=`${cells[p.position].x + i*35}px`;
+    el.style.left=`${cells[p.position].x+i*30}px`;
     el.style.top=`${cells[p.position].y}px`;
-    board.appendChild(el);
+    b.appendChild(el);
   });
-}
-
-function movePlayer(playerId,steps){
-  const player=players.find(p=>p.id===playerId);
-  if(!player) return;
-  for(let i=0;i<steps;i++){
-    setTimeout(()=>{
-      player.position=(player.position+1)%cells.length;
-      renderPlayers();
-      handleCell(player,cells[player.position]);
-    }, i*500);
-  }
-}
-
-function handleCell(player,cell){
-  switch(cell.type){
-    case 'plus':
-      player.hype+=cell.value;
-      highlightCell(cell.x,cell.y,'green');
-      log(`${player.username} получил +${cell.value} хайпа`);
-      break;
-    case 'minus':
-      player.hype=Math.max(0,player.hype-cell.value);
-      highlightCell(cell.x,cell.y,'red');
-      log(`${player.username} потерял ${cell.value} хайпа`);
-      break;
-    case 'minusSkip':
-      player.hype=Math.max(0,player.hype-cell.value);
-      player.skipNext=true;
-      highlightCell(cell.x,cell.y,'red');
-      log(`${player.username} потерял ${cell.value} хайпа и пропускает ход`);
-      break;
-    case 'scandal':
-      player.hype=Math.max(0,player.hype-2);
-      highlightCell(cell.x,cell.y,'red');
-      log(`${player.username} попал на скандал -2 хайпа`);
-      break;
-    case 'risk':
-      const dice=Math.floor(Math.random()*6)+1;
-      const val=dice<=3?-5:5;
-      player.hype=Math.max(0,player.hype+val);
-      highlightCell(cell.x,cell.y,val>0?'green':'red');
-      log(`${player.username} риск: выпало ${dice}, ${val>0?'+':'-'}${Math.abs(val)} хайпа`);
-      break;
-    case 'skip':
-      player.skipNext=true;
-      highlightCell(cell.x,cell.y,'orange');
-      log(`${player.username} пропускает ход`);
-      break;
-  }
-  renderHype();
 }
 
 function renderHype(){
-  const container=document.getElementById('hypeBars');
-  container.innerHTML='';
-  players.forEach(p=>{
-    const bar=document.createElement('div');
-    bar.style.margin='5px';
-    bar.innerHTML=`${p.username}: ${p.hype}/70`;
-    container.appendChild(bar);
-  });
-}
-
-function highlightCell(x,y,color){
-  const mark=document.createElement('div');
-  mark.style.width='30px';
-  mark.style.height='30px';
-  mark.style.position='absolute';
-  mark.style.left=`${x}px`;
-  mark.style.top=`${y}px`;
-  mark.style.border='2px solid '+color;
-  mark.style.borderRadius='50%';
-  mark.style.pointerEvents='none';
-  document.getElementById('gameBoard').appendChild(mark);
-  setTimeout(()=>mark.remove(),500);
-}
-
-function log(msg){
-  const logDiv=document.getElementById('log');
-  logDiv.innerHTML+=`<div>${msg}</div>`;
-  logDiv.scrollTop=logDiv.scrollHeight;
+  const h=document.getElementById('hypeBars');
+  h.innerHTML=players.map(p=>`${p.username}: ${p.hype}/70`).join("<br>");
 }
 
 function renderLobbyPlayers(){
-  const list=document.getElementById('playersList');
-  list.innerHTML='<h3>Игроки:</h3>'+players.map(p=>`<div style="color:${p.color}">${p.username}</div>`).join('');
+  const l=document.getElementById('playersList');
+  l.innerHTML=players.map(p=>`<div style="color:${p.color}">${p.username}</div>`).join("");
+}
+
+function glow(cell,color){
+  const d=document.createElement('div');
+  d.style.position='absolute';
+  d.style.left=cell.x+'px';
+  d.style.top=cell.y+'px';
+  d.style.width='30px';
+  d.style.height='30px';
+  d.style.border='2px solid '+color;
+  d.style.borderRadius='50%';
+  document.getElementById('gameBoard').appendChild(d);
+  setTimeout(()=>d.remove(),500);
 }
