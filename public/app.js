@@ -141,8 +141,38 @@ function renderPlayers(){
 }
 
 function renderHype(){
-  const h=document.getElementById('hypeBars');
-  h.innerHTML=players.map(p=>`${p.username}: ${p.hype}/70`).join("<br>");
+  const container=document.getElementById('hypeBars');
+  container.innerHTML='';
+
+  // ищем лидера
+  let maxHype=Math.max(...players.map(p=>p.hype));
+
+  players.forEach(p=>{
+    const percent=Math.min((p.hype/70)*100,100);
+
+    const div=document.createElement('div');
+    div.className='hypeContainer';
+
+    if(p.hype===maxHype && maxHype>0){
+      div.classList.add('leader');
+    }
+
+    div.innerHTML=`
+      <div class="hypeLabel" style="color:${p.color}">
+        ${p.username}: ${p.hype}/70
+      </div>
+      <div class="hypeBar">
+        <div class="hypeFill" style="width:${percent}%"></div>
+      </div>
+    `;
+
+    container.appendChild(div);
+
+    // 🏆 Победа
+    if(p.hype>=70){
+      showModal(`🏆 ${p.username} победил!`);
+    }
+  });
 }
 
 function renderLobbyPlayers(){
