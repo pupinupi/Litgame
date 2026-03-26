@@ -154,6 +154,26 @@ function showRisk(p){
   showRiskCard(dice, result);
 }
 
+function showRiskCard(dice, result){
+  const m=document.getElementById('modal');
+
+  m.innerHTML=`
+    <div class="riskCard">
+      <div class="riskTitle">РИСК</div>
+      <div class="riskDice">🎲 ${dice}</div>
+      <div class="riskResult">
+        ${result > 0 ? '+' : '-'}${Math.abs(result)} хайпа
+      </div>
+    </div>
+  `;
+
+  m.classList.add('active');
+
+  setTimeout(()=>{
+    m.classList.remove('active');
+  },3500);
+}
+
 // --- UI ---
 function showModal(text){
   const m=document.getElementById('modal');
