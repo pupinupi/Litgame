@@ -104,6 +104,10 @@ function movePlayer(id,steps){
 
 // --- логика клеток ---
 function handleCell(p,cell){
+  if(cell.type==='start'){
+  p.hype += 10;
+  showModal("+10 хайпа за старт 🚀");
+}
   if(cell.type==='plus'){ p.hype+=cell.value; glow(cell,'green'); }
   if(cell.type==='minus'){ p.hype=Math.max(0,p.hype-cell.value); glow(cell,'red'); }
   if(cell.type==='skip'){ p.skipNext=true; showModal("Пропуск хода"); }
