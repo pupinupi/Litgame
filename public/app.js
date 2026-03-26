@@ -79,6 +79,7 @@ const cells=[
 // --- ПЛАВНОЕ ДВИЖЕНИЕ ---
 function movePlayerSmooth(id, steps){
   const p=players.find(p=>p.id===id);
+  glow(cells[p.position], 'plus');
 
   let stepIndex = 0;
 
