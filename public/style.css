@@ -1,74 +1,113 @@
 body{
-  background:#0f0f1a;
-  color:white;
+  background:#0a0a12;
+  color:#ffffff;
   font-family:sans-serif;
   text-align:center;
 }
 
+/* Заголовки */
+h1, h2{
+  color:#00eaff;
+  text-shadow:0 0 10px #00eaff;
+}
+
+/* Поля ввода */
 input{
   padding:10px;
   margin:5px;
-  background:#1e1e2e;
+  background:#111827;
   color:white;
-  border:1px solid #444;
+  border:1px solid #00eaff;
+  box-shadow:0 0 10px rgba(0,234,255,0.3);
 }
 
+/* Кнопки */
 button{
-  padding:10px;
+  padding:10px 15px;
   margin:5px;
-  background:#2a2a40;
-  color:white;
-  border:none;
+  background:#1f2937;
+  color:#fff;
+  border:1px solid #00eaff;
+  box-shadow:0 0 10px rgba(0,234,255,0.4);
   cursor:pointer;
 }
 
 button:hover{
-  background:#3a3a60;
+  background:#00eaff;
+  color:black;
 }
 
+/* Фишки */
 .chip{
   width:35px;
   height:35px;
   border-radius:50%;
   margin:5px;
   border:2px solid white;
+  box-shadow:0 0 10px white;
 }
 .chip[data-color="red"]{background:red;}
 .chip[data-color="blue"]{background:blue;}
 .chip[data-color="yellow"]{background:yellow;}
 .chip[data-color="purple"]{background:purple;}
 
+/* Поле */
 #gameBoard{
   position:relative;
   width:1024px;
   height:1024px;
   margin:auto;
-  box-shadow:0 0 30px rgba(0,200,255,0.5);
+  box-shadow:0 0 40px rgba(0,234,255,0.6);
 }
 
+/* Игроки */
 .player{
   width:28px;
   height:28px;
   border-radius:50%;
   position:absolute;
   border:2px solid white;
+  box-shadow:0 0 10px white;
 }
 
+/* Хайп */
+#hypeBars{
+  margin-top:10px;
+  font-size:18px;
+  text-shadow:0 0 5px #00eaff;
+}
+
+/* Лог */
+#log{
+  max-height:150px;
+  overflow:auto;
+  margin-top:10px;
+  border-top:1px solid #00eaff;
+}
+
+/* Модалка */
 #modal{
   position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  background:rgba(0,0,0,0.7);
-  display:flex;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display:none;
   justify-content:center;
   align-items:center;
+  background:rgba(0,0,0,0.7);
+  z-index:1000;
 }
 
-.hidden{display:none;}
+#modal.active{
+  display:flex;
+}
 
 .modalContent{
-  background:#1e1e2e;
-  padding:20px;
+  background:#111827;
+  padding:25px;
   border-radius:10px;
-  box-shadow:0 0 20px red;
+  box-shadow:0 0 30px red;
+  font-size:22px;
+  color:#fff;
 }
