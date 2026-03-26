@@ -37,6 +37,20 @@ button:hover{
   color:black;
 }
 
+#rollBtn{
+  font-size:24px;
+  padding:20px 40px;
+  border-radius:15px;
+  background:linear-gradient(45deg,#00eaff,#0077ff);
+  color:black;
+  font-weight:bold;
+  box-shadow:0 0 20px #00eaff;
+}
+
+#rollBtn:hover{
+  transform:scale(1.1);
+}
+
 /* Фишки */
 .chip{
   width:35px;
@@ -146,4 +160,48 @@ button:hover{
 .leader{
   box-shadow:0 0 20px gold;
   border:1px solid gold;
+}
+
+/* --- СКАНДАЛ КАРТОЧКА --- */
+
+.scandalCard{
+  background:linear-gradient(180deg,#2b0000,#000);
+  padding:40px;
+  border-radius:20px;
+  text-align:center;
+  box-shadow:0 0 40px red;
+  animation:pop 0.3s ease;
+  max-width:400px;
+}
+
+.scandalTitle{
+  font-size:32px;
+  font-weight:bold;
+  color:red;
+  text-shadow:0 0 15px red;
+  margin-bottom:20px;
+}
+
+.scandalText{
+  font-size:24px;
+  font-weight:bold;
+  margin-bottom:20px;
+}
+
+.scandalValue{
+  font-size:22px;
+  color:#ff4d4d;
+  text-shadow:0 0 10px red;
+}
+
+.scandalSkip{
+  margin-top:15px;
+  font-size:20px;
+  color:orange;
+  text-shadow:0 0 10px orange;
+}
+
+@keyframes pop{
+  from{transform:scale(0.7);opacity:0;}
+  to{transform:scale(1);opacity:1;}
 }
