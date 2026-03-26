@@ -1,3 +1,4 @@
+window.gameEnded = false;
 const socket = io();
 let players=[], username, roomCode, color, currentTurnId=null;
 
@@ -227,11 +228,24 @@ function renderHype(){
     container.appendChild(div);
 
     // 🏆 Победа
-    if(p.hype>=70){
-      showModal(`🏆 ${p.username} победил!`);
-    }
-  });
-}
+   if(p.hype>=70 && !window.gameEnded){
+  window.gameEnded = true;
+  showWinScreen(p.username);
+} 
+
+   function showWinScreen(name){
+  const m=document.getElementById('modal');
+
+  m.innerHTML=`
+    <div class="winScreen">
+      <div class="winTitle">🏆 ПОБЕДА</div>
+      <div class="winPlayer">${name}</div>
+      <div class="winText">набрал 70 хайпа!</div>
+    </div>
+  `;
+
+  m.classList.add('active');
+} 
 
 function renderLobbyPlayers(){
   const l=document.getElementById('playersList');
