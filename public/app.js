@@ -40,13 +40,28 @@ socket.on('gameStarted', ()=>{ document.getElementById('lobby').style.display='n
 socket.on('nextTurn', id=>currentTurnId=id);
 socket.on('diceRolled', ({playerId,dice})=>{ log(`${players.find(p=>p.id===playerId).username} бросил кубик: ${dice}`); movePlayer(playerId,dice); });
 
-// --- Клетки (пример) ---
+// --- Клетки с твоими координатами ---
 const cells=[
-  {name:"Старт",x:91,y:583,type:'start'},
-  {name:"+3 хайп",x:91,y:442,type:'plus',value:3},
-  {name:"+2 хайп",x:86,y:329,type:'plus',value:2},
-  {name:"Скандал",x:86,y:218,type:'scandal'},
-  {name:"Риск",x:88,y:119,type:'risk'}
+  {name:"Старт",x:82,y:587,type:'start'},
+  {name:"+3 хайп",x:97,y:464,type:'plus',value:3},
+  {name:"+2 хайп",x:86,y:348,type:'plus',value:2},
+  {name:"Скандал",x:93,y:224,type:'scandal'},
+  {name:"Риск",x:87,y:129,type:'risk'},
+  {name:"+2 хайп",x:219,y:101,type:'plus',value:2},
+  {name:"Скандал",x:364,y:107,type:'scandal'},
+  {name:"+3 хайп",x:494,y:95,type:'plus',value:3},
+  {name:"+5 хайп",x:652,y:96,type:'plus',value:5},
+  {name:"Блокировка канала",x:815,y:89,type:'minus',value:10},
+  {name:"-8 хайп, пропуск хода",x:930,y:135,type:'minusSkip',value:8},
+  {name:"+3 хайп",x:936,y:247,type:'plus',value:3},
+  {name:"Риск",x:936,y:357,type:'risk'},
+  {name:"+3 хайп",x:941,y:480,type:'plus',value:3},
+  {name:"Пропусти ход",x:937,y:610,type:'skip'},
+  {name:"+2 хайп",x:794,y:624,type:'plus',value:2},
+  {name:"Скандал",x:636,y:635,type:'scandal'},
+  {name:"+8 хайп",x:517,y:627,type:'plus',value:8},
+  {name:"Блокировка канала",x:355,y:619,type:'minus',value:10},
+  {name:"+4 хайп",x:210,y:626,type:'plus',value:4}
 ];
 
 function renderPlayers(){
@@ -81,6 +96,17 @@ function handleCell(player,cell){
       highlightCell(cell.x,cell.y,'green');
       log(`${player.username} получил +${cell.value} хайпа`);
       break;
+    case 'minus':
+      player.hype=Math.max(0,player.hype-cell.value);
+      highlightCell(cell.x,cell.y,'red');
+      log(`${player.username} потерял ${cell.value} хайпа`);
+      break;
+    case 'minusSkip':
+      player.hype=Math.max(0,player.hype-cell.value);
+      player.skipNext=true;
+      highlightCell(cell.x,cell.y,'red');
+      log(`${player.username} потерял ${cell.value} хайпа и пропускает ход`);
+      break;
     case 'scandal':
       player.hype=Math.max(0,player.hype-2);
       highlightCell(cell.x,cell.y,'red');
@@ -92,6 +118,11 @@ function handleCell(player,cell){
       player.hype=Math.max(0,player.hype+val);
       highlightCell(cell.x,cell.y,val>0?'green':'red');
       log(`${player.username} риск: выпало ${dice}, ${val>0?'+':'-'}${Math.abs(val)} хайпа`);
+      break;
+    case 'skip':
+      player.skipNext=true;
+      highlightCell(cell.x,cell.y,'orange');
+      log(`${player.username} пропускает ход`);
       break;
   }
   renderHype();
