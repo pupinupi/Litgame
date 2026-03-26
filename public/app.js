@@ -3,7 +3,7 @@ window.gameEnded = false;
 const socket = io();
 let players=[], username, roomCode, color, currentTurnId=null;
 
-// --- Лобби ---
+// --- ЛОББИ ---
 document.querySelectorAll('.chip').forEach(btn=>{
   btn.onclick=()=>color=btn.dataset.color;
 });
@@ -19,7 +19,7 @@ document.getElementById('startBtn').onclick=()=>{
   socket.emit('startGame',roomCode);
 };
 
-// --- Игра ---
+// --- ИГРА ---
 document.getElementById('rollBtn').onclick=()=>{
   if(window.gameEnded) return;
   if(currentTurnId===socket.id){
@@ -27,7 +27,7 @@ document.getElementById('rollBtn').onclick=()=>{
   }
 };
 
-// --- Socket ---
+// --- SOCKET ---
 socket.on('updatePlayers', pl=>{
   players=pl;
   renderPlayers();
@@ -52,7 +52,7 @@ socket.on('diceRolled', ({playerId,dice})=>{
   movePlayerSmooth(playerId,dice);
 });
 
-// --- клетки ---
+// --- КЛЕТКИ ---
 const cells=[
   {name:"Старт",x:82,y:587,type:'start'},
   {name:"+3",x:97,y:464,type:'plus',value:3},
@@ -76,11 +76,9 @@ const cells=[
   {name:"+4",x:210,y:626,type:'plus',value:4}
 ];
 
-// --- ПЛАВНОЕ ДВИЖЕНИЕ ---
+// --- ДВИЖЕНИЕ ---
 function movePlayerSmooth(id, steps){
   const p=players.find(p=>p.id===id);
-  glow(cells[p.position], 'plus');
-
   let stepIndex = 0;
 
   function step(){
@@ -92,13 +90,15 @@ function movePlayerSmooth(id, steps){
     let prev = p.position;
     p.position = (p.position + 1) % cells.length;
 
-    // бонус за круг
+    // круг
     if(prev === cells.length - 1){
       p.hype += 5;
       showModal("🔥 +5 за круг");
     }
 
-    animateMove(p, prev, p.position, () => {
+    glow(cells[p.position], 'step');
+
+    animateMove(p, prev, p.position, ()=>{
       stepIndex++;
       step();
     });
@@ -109,8 +109,7 @@ function movePlayerSmooth(id, steps){
 
 // --- АНИМАЦИЯ ---
 function animateMove(p, fromIndex, toIndex, callback){
-  const board=document.getElementById('gameBoard');
-  const el=[...board.querySelectorAll('.player')]
+  const el=[...document.querySelectorAll('.player')]
     .find(e=>e.style.background===p.color);
 
   if(!el){ callback(); return; }
@@ -121,7 +120,7 @@ function animateMove(p, fromIndex, toIndex, callback){
   let progress = 0;
 
   const anim = setInterval(()=>{
-    progress += 0.1;
+    progress += 0.08;
 
     const x = from.x + (to.x - from.x) * progress;
     const y = from.y + (to.y - from.y) * progress;
@@ -138,47 +137,117 @@ function animateMove(p, fromIndex, toIndex, callback){
   }, 20);
 }
 
-// --- логика клеток ---
-if(cell.type==='start'){
-  p.hype += 10;
-  glow(cell,'start');
-  showModal("🚀 +10 за старт");
+// --- ЛОГИКА ---
+function handleCell(p,cell){
+
+  if(cell.type==='start'){
+    p.hype += 10;
+    glow(cell,'start');
+    showModal("🚀 +10 за старт");
+  }
+
+  if(cell.type==='plus'){
+    p.hype+=cell.value;
+    glow(cell,'plus');
+  }
+
+  if(cell.type==='minus'){
+    p.hype=Math.max(0,p.hype-cell.value);
+    glow(cell,'minus');
+  }
+
+  if(cell.type==='skip'){
+    p.skipNext=true;
+    glow(cell,'minus');
+    showModal("Пропуск хода");
+  }
+
+  if(cell.type==='minusSkip'){
+    p.hype=Math.max(0,p.hype-cell.value);
+    p.skipNext=true;
+    glow(cell,'minus');
+    showModal("-8 и пропуск");
+  }
+
+  if(cell.type==='scandal'){
+    glow(cell,'scandal');
+    showScandal(p);
+  }
+
+  if(cell.type==='risk'){
+    glow(cell,'risk');
+    showRisk(p);
+  }
+
+  renderHype();
 }
 
-if(cell.type==='plus'){
-  p.hype+=cell.value;
-  glow(cell,'plus');
+// --- ЭФФЕКТЫ ---
+function glow(cell,type){
+
+  let color='#00ff88';
+
+  if(type==='minus') color='#ff3b3b';
+  if(type==='scandal') color='#ff0000';
+  if(type==='risk') color='#00eaff';
+  if(type==='start') color='#ffe600';
+  if(type==='step') color='#ffffff';
+
+  const d=document.createElement('div');
+
+  d.style.position='absolute';
+  d.style.left=(cell.x-10)+'px';
+  d.style.top=(cell.y-10)+'px';
+  d.style.width='50px';
+  d.style.height='50px';
+  d.style.borderRadius='50%';
+  d.style.boxShadow=`0 0 30px ${color}`;
+  d.style.animation='pulse 0.6s';
+  d.style.pointerEvents='none';
+
+  document.getElementById('gameBoard').appendChild(d);
+
+  setTimeout(()=>d.remove(),600);
 }
 
-if(cell.type==='minus'){
-  p.hype=Math.max(0,p.hype-cell.value);
-  glow(cell,'minus');
+// --- КАРТОЧКИ ---
+function showScandal(p){
+  const cards=[
+    {text:"Перегрел аудиторию 🔥", value:-1},
+    {text:"Громкий заголовок 🫣", value:-2},
+    {text:"Это монтаж 😱", value:-3},
+    {text:"Меня взломали #️⃣", value:-3, all:true},
+    {text:"Подписчики в шоке 😮", value:-4},
+    {text:"Удаляй пока не поздно 🤫", value:-5},
+    {text:"Это контент 🙄", value:-5, skip:true}
+  ];
+
+  const card=cards[Math.floor(Math.random()*cards.length)];
+
+  if(card.all){
+    players.forEach(pl=>pl.hype=Math.max(0,pl.hype+card.value));
+  } else {
+    p.hype=Math.max(0,p.hype+card.value);
+  }
+
+  if(card.skip) p.skipNext=true;
+
+  renderHype();
+
+  showModal(`💥 ${card.text} (${card.value})`);
 }
 
-if(cell.type==='skip'){
-  p.skipNext=true;
-  glow(cell,'minus');
-  showModal("Пропуск хода");
+function showRisk(p){
+  const dice=Math.floor(Math.random()*6)+1;
+  const result = dice<=3 ? -5 : 5;
+
+  p.hype=Math.max(0,p.hype+result);
+  renderHype();
+
+  showModal(`🎲 ${dice} → ${result>0?'+':'-'}5`);
 }
 
-if(cell.type==='minusSkip'){
-  p.hype=Math.max(0,p.hype-cell.value);
-  p.skipNext=true;
-  glow(cell,'minusSkip');
-  showModal("-8 и пропуск");
-}
-
-if(cell.type==='scandal'){
-  glow(cell,'scandal');
-  showScandal(p);
-}
-
-if(cell.type==='risk'){
-  glow(cell,'risk');
-  showRisk(p);
-}
-// --- остальной код (без изменений) ---
-
+// --- UI ---
 function showModal(text){
   const m=document.getElementById('modal');
   m.innerHTML=`<div class="modalContent">${text}</div>`;
@@ -204,31 +273,23 @@ function renderHype(){
   const container=document.getElementById('hypeBars');
   container.innerHTML='';
 
-  let maxHype=Math.max(...players.map(p=>p.hype));
-
   players.forEach(p=>{
     const percent=Math.min((p.hype/70)*100,100);
 
     const div=document.createElement('div');
-    div.className='hypeContainer';
-
-    if(p.hype===maxHype && maxHype>0){
-      div.classList.add('leader');
-    }
-
     div.innerHTML=`
-      <div class="hypeLabel" style="color:${p.color}">
+      <div style="color:${p.color};font-weight:bold;font-size:18px">
         ${p.username}: ${p.hype}/70
       </div>
-      <div class="hypeBar">
-        <div class="hypeFill" style="width:${percent}%"></div>
+      <div style="background:#222;height:12px;border-radius:10px;margin-bottom:10px">
+        <div style="width:${percent}%;height:100%;background:#00eaff;border-radius:10px"></div>
       </div>
     `;
 
     container.appendChild(div);
 
     if(p.hype>=70 && !window.gameEnded){
-      window.gameEnded = true;
+      window.gameEnded=true;
       showWinScreen(p.username);
     }
   });
@@ -237,10 +298,8 @@ function renderHype(){
 function showWinScreen(name){
   const m=document.getElementById('modal');
   m.innerHTML=`
-    <div class="winScreen">
-      <div class="winTitle">🏆 ПОБЕДА</div>
-      <div class="winPlayer">${name}</div>
-      <div class="winText">набрал 70 хайпа!</div>
+    <div style="font-size:40px;color:#00ff88;text-align:center">
+      🏆 ${name} победил!
     </div>
   `;
   m.classList.add('active');
@@ -249,24 +308,4 @@ function showWinScreen(name){
 function renderLobbyPlayers(){
   const l=document.getElementById('playersList');
   l.innerHTML=players.map(p=>`<div style="color:${p.color}">${p.username}</div>`).join("");
-}
-
-function glow(cell, type){
-
-  let colorClass = 'green';
-
-  if(type === 'minus' || type === 'minusSkip') colorClass = 'red';
-  if(type === 'scandal') colorClass = 'red';
-  if(type === 'risk') colorClass = 'blue';
-  if(type === 'start') colorClass = 'yellow';
-
-  const d = document.createElement('div');
-  d.className = `cellGlow ${colorClass}`;
-
-  d.style.left = (cell.x - 10) + 'px';
-  d.style.top = (cell.y - 10) + 'px';
-
-  document.getElementById('gameBoard').appendChild(d);
-
-  setTimeout(()=>d.remove(),600);
 }
