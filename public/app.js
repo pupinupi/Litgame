@@ -120,8 +120,11 @@ function showRisk(p){
 function showModal(text){
   const m=document.getElementById('modal');
   m.innerHTML=`<div class="modalContent">${text}</div>`;
-  m.classList.remove('hidden');
-  setTimeout(()=>m.classList.add('hidden'),3000);
+  m.classList.add('active');
+
+  setTimeout(()=>{
+    m.classList.remove('active');
+  },3000);
 }
 
 function renderPlayers(){
