@@ -1,4 +1,5 @@
 window.gameEnded = false;
+
 const socket = io();
 let players=[], username, roomCode, color, currentTurnId=null;
 
@@ -20,11 +21,13 @@ document.getElementById('startBtn').onclick=()=>{
 
 // --- Игра ---
 document.getElementById('rollBtn').onclick=()=>{
+  if(window.gameEnded) return;
   if(currentTurnId===socket.id){
     socket.emit('rollDice',roomCode);
   }
 };
 
+// --- Socket ---
 socket.on('updatePlayers', pl=>{
   players=pl;
   renderPlayers();
@@ -44,7 +47,8 @@ socket.on('nextTurn', id=>{
 });
 
 socket.on('diceRolled', ({playerId,dice})=>{
-  document.getElementById('diceResult').innerText=`Выпало: ${dice}`;
+  document.getElementById('diceResult').innerHTML=
+  `🎲 Выпало: <span style="font-size:28px;color:#00eaff">${dice}</span>`;
   movePlayer(playerId,dice);
 });
 
@@ -89,13 +93,14 @@ function handleCell(p,cell){
   if(cell.type==='plus'){ p.hype+=cell.value; glow(cell,'green'); }
   if(cell.type==='minus'){ p.hype=Math.max(0,p.hype-cell.value); glow(cell,'red'); }
   if(cell.type==='skip'){ p.skipNext=true; showModal("Пропуск хода"); }
-  if(cell.type==='minusSkip'){ p.hype-=cell.value; p.skipNext=true; showModal("-8 и пропуск"); }
+  if(cell.type==='minusSkip'){ p.hype=Math.max(0,p.hype-cell.value); p.skipNext=true; showModal("-8 и пропуск"); }
   if(cell.type==='scandal'){ showScandal(p); }
   if(cell.type==='risk'){ showRisk(p); }
+
   renderHype();
 }
 
-// --- карточки ---
+// --- СКАНДАЛ ---
 function showScandal(p){
   const cards=[
     {text:"Перегрел аудиторию 🔥", value:-1},
@@ -109,7 +114,6 @@ function showScandal(p){
 
   const card = cards[Math.floor(Math.random()*cards.length)];
 
-  // применяем эффект
   if(card.all){
     players.forEach(pl=>pl.hype=Math.max(0,pl.hype+card.value));
   }else{
@@ -121,7 +125,6 @@ function showScandal(p){
   }
 
   renderHype();
-
   showScandalCard(card.text, card.value, card.skip);
 }
 
@@ -139,11 +142,10 @@ function showScandalCard(text, value, skip){
 
   m.classList.add('active');
 
-  setTimeout(()=>{
-    m.classList.remove('active');
-  },4000);
+  setTimeout(()=>m.classList.remove('active'),4000);
 }
 
+// --- РИСК ---
 function showRisk(p){
   const dice=Math.floor(Math.random()*6)+1;
   const result = dice<=3 ? -5 : 5;
@@ -151,7 +153,6 @@ function showRisk(p){
   p.hype = Math.max(0, p.hype + result);
 
   renderHype();
-
   showRiskCard(dice, result);
 }
 
@@ -170,9 +171,7 @@ function showRiskCard(dice, result){
 
   m.classList.add('active');
 
-  setTimeout(()=>{
-    m.classList.remove('active');
-  },3500);
+  setTimeout(()=>m.classList.remove('active'),3500);
 }
 
 // --- UI ---
@@ -180,15 +179,14 @@ function showModal(text){
   const m=document.getElementById('modal');
   m.innerHTML=`<div class="modalContent">${text}</div>`;
   m.classList.add('active');
-
-  setTimeout(()=>{
-    m.classList.remove('active');
-  },3000);
+  setTimeout(()=>m.classList.remove('active'),3000);
 }
 
+// --- РЕНДЕР ---
 function renderPlayers(){
   const b=document.getElementById('gameBoard');
   b.querySelectorAll('.player').forEach(e=>e.remove());
+
   players.forEach((p,i)=>{
     const el=document.createElement('div');
     el.className='player';
@@ -203,7 +201,6 @@ function renderHype(){
   const container=document.getElementById('hypeBars');
   container.innerHTML='';
 
-  // ищем лидера
   let maxHype=Math.max(...players.map(p=>p.hype));
 
   players.forEach(p=>{
@@ -227,13 +224,16 @@ function renderHype(){
 
     container.appendChild(div);
 
-    // 🏆 Победа
-   if(p.hype>=70 && !window.gameEnded){
-  window.gameEnded = true;
-  showWinScreen(p.username);
-} 
+    // 🏆 победа
+    if(p.hype>=70 && !window.gameEnded){
+      window.gameEnded = true;
+      showWinScreen(p.username);
+    }
+  });
+}
 
-   function showWinScreen(name){
+// --- ПОБЕДА ---
+function showWinScreen(name){
   const m=document.getElementById('modal');
 
   m.innerHTML=`
@@ -245,8 +245,9 @@ function renderHype(){
   `;
 
   m.classList.add('active');
-} 
+}
 
+// --- прочее ---
 function renderLobbyPlayers(){
   const l=document.getElementById('playersList');
   l.innerHTML=players.map(p=>`<div style="color:${p.color}">${p.username}</div>`).join("");
