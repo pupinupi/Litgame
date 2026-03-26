@@ -13,35 +13,37 @@
   <h1>Лобби</h1>
   <input type="text" id="username" placeholder="Ваше имя">
   <input type="text" id="roomCode" placeholder="Код комнаты">
+
   <div>
     <span>Выберите фишку:</span>
-    <button class="chip" data-color="red" style="background:red"></button>
-    <button class="chip" data-color="blue" style="background:blue"></button>
-    <button class="chip" data-color="yellow" style="background:yellow"></button>
-    <button class="chip" data-color="purple" style="background:purple"></button>
+    <button class="chip" data-color="red"></button>
+    <button class="chip" data-color="blue"></button>
+    <button class="chip" data-color="yellow"></button>
+    <button class="chip" data-color="purple"></button>
   </div>
+
   <button id="joinBtn">Войти</button>
   <button id="startBtn">Начать игру</button>
+
   <div id="playersList"></div>
 </div>
 
 <div id="game" style="display:none">
-  <h2>Поле</h2>
+  <h2 id="turnText"></h2>
+
   <div id="gameBoard">
     <img src="board.jpg" width="1024" height="1024">
   </div>
-  <button id="rollBtn">Бросить кубик</button>
+
+  <button id="rollBtn">🎲 Бросить кубик</button>
+
+  <div id="diceResult"></div>
   <div id="hypeBars"></div>
   <div id="log"></div>
-
-  <div id="coordPanel" style="margin-top:20px; border:1px solid #ccc; padding:10px;">
-    <h3>Сбор координат клеток</h3>
-    <button id="startCoord">Начать сбор</button>
-    <button id="stopCoord">Закончить сбор</button>
-    <button id="showCoord">Показать координаты</button>
-    <div id="coordList" style="margin-top:10px; max-height:150px; overflow:auto; border:1px solid #eee; padding:5px;"></div>
-  </div>
 </div>
+
+<!-- Модальные окна -->
+<div id="modal" class="hidden"></div>
 
 </body>
 </html>
