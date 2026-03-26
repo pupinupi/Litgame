@@ -5,7 +5,7 @@ const io = require('socket.io')(http);
 
 app.use(express.static('public'));
 
-let rooms = {}; // { roomCode: { players: [], turnIndex: 0, started: false } }
+let rooms = {};
 
 io.on('connection', (socket) => {
   console.log('Игрок подключился:', socket.id);
