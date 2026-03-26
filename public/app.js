@@ -1,60 +1,46 @@
 const socket = io();
-let players = [];
-let username, roomCode, color;
-let currentTurnId = null;
+let players=[], username, roomCode, color, currentTurnId=null;
+let coordMode=false, coordList=[];
 
-// Лобби
-document.querySelectorAll('.chip').forEach(btn=>{
-  btn.onclick = ()=> color = btn.dataset.color;
+// --- Лобби ---
+document.querySelectorAll('.chip').forEach(btn=>{ btn.onclick=()=>color=btn.dataset.color; });
+document.getElementById('joinBtn').onclick = ()=>{
+  username = document.getElementById('username').value;
+  roomCode = document.getElementById('roomCode').value;
+  if(!username || !roomCode || !color){ alert("Заполните все поля!"); return;}
+  socket.emit('joinRoom',{username,roomCode,color});
+};
+document.getElementById('startBtn').onclick = ()=>socket.emit('startGame', roomCode);
+
+// --- Игровое поле ---
+document.getElementById('rollBtn').onclick = ()=>{ if(currentTurnId===socket.id) socket.emit('rollDice',roomCode); };
+
+// --- Координаты ---
+document.getElementById('startCoord').onclick = ()=>{ coordMode=true; alert("Режим координат включен"); };
+document.getElementById('stopCoord').onclick = ()=>{ coordMode=false; alert("Режим координат выключен"); };
+document.getElementById('showCoord').onclick = ()=>{
+  const output=JSON.stringify(coordList,null,2);
+  console.log(output);
+  document.getElementById('coordList').innerText=output;
+  alert("Координаты в консоль и блоке");
+};
+document.getElementById('gameBoard').addEventListener('click', (e)=>{
+  if(!coordMode) return;
+  const rect=e.target.getBoundingClientRect();
+  const x=e.clientX-rect.left;
+  const y=e.clientY-rect.top;
+  coordList.push({x:Math.round(x),y:Math.round(y)});
+  document.getElementById('coordList').innerText=JSON.stringify(coordList,null,2);
 });
 
-const joinBtn = document.getElementById('joinBtn');
-if(joinBtn){
-  joinBtn.onclick = ()=>{
-    username = document.getElementById('username').value;
-    roomCode = document.getElementById('roomCode').value;
-    if(!username || !roomCode || !color){ alert("Заполните все поля!"); return;}
-    socket.emit('joinRoom',{username,roomCode,color});
-  };
-}
-
-const startBtn = document.getElementById('startBtn');
-if(startBtn){
-  startBtn.onclick = ()=>{
-    socket.emit('startGame', roomCode);
-  };
-}
-
-// Игровое поле
-const rollBtn = document.getElementById('rollBtn');
-if(rollBtn){
-  rollBtn.onclick = ()=> {
-    if(currentTurnId===socket.id) socket.emit('rollDice',roomCode);
-  };
-}
-
-// События
-socket.on('updatePlayers', (pl)=>{
-  players = pl;
-  renderPlayers();
-  renderHype();
-  renderLobbyPlayers();
-});
-
+// --- Socket events ---
+socket.on('updatePlayers', pl=>{ players=pl; renderPlayers(); renderHype(); renderLobbyPlayers(); });
 socket.on('roomFull', ()=>alert("Комната полная!"));
+socket.on('gameStarted', ()=>{ document.getElementById('lobby').style.display='none'; document.getElementById('game').style.display='block'; });
+socket.on('nextTurn', id=>currentTurnId=id);
+socket.on('diceRolled', ({playerId,dice})=>{ log(`${players.find(p=>p.id===playerId).username} бросил кубик: ${dice}`); movePlayer(playerId,dice); });
 
-socket.on('gameStarted', ()=>{
-  document.getElementById('lobby').style.display='none';
-  document.getElementById('game').style.display='block';
-});
-
-socket.on('nextTurn', (id)=>currentTurnId=id);
-socket.on('diceRolled', ({playerId,dice})=>{
-  log(`${players.find(p=>p.id===playerId).username} бросил кубик: ${dice}`);
-  movePlayer(playerId,dice);
-});
-
-// --- Клетки (пример, дополни 20 клеток) ---
+// --- Клетки (пример) ---
 const cells=[
   {name:"Старт",x:91,y:583,type:'start'},
   {name:"+3 хайп",x:91,y:442,type:'plus',value:3},
@@ -64,21 +50,20 @@ const cells=[
 ];
 
 function renderPlayers(){
-  const board = document.getElementById('gameBoard');
+  const board=document.getElementById('gameBoard');
   board.querySelectorAll('.player').forEach(e=>e.remove());
-
   players.forEach((p,i)=>{
-    const el = document.createElement('div');
+    const el=document.createElement('div');
     el.className='player';
     el.style.background=p.color;
-    el.style.left=`${cells[p.position].x + i*35}px`; // рядышком
+    el.style.left=`${cells[p.position].x + i*35}px`;
     el.style.top=`${cells[p.position].y}px`;
     board.appendChild(el);
   });
 }
 
 function movePlayer(playerId,steps){
-  const player = players.find(p=>p.id===playerId);
+  const player=players.find(p=>p.id===playerId);
   if(!player) return;
   for(let i=0;i<steps;i++){
     setTimeout(()=>{
@@ -102,8 +87,8 @@ function handleCell(player,cell){
       log(`${player.username} попал на скандал -2 хайпа`);
       break;
     case 'risk':
-      const dice = Math.floor(Math.random()*6)+1;
-      const val = dice<=3?-5:5;
+      const dice=Math.floor(Math.random()*6)+1;
+      const val=dice<=3?-5:5;
       player.hype=Math.max(0,player.hype+val);
       highlightCell(cell.x,cell.y,val>0?'green':'red');
       log(`${player.username} риск: выпало ${dice}, ${val>0?'+':'-'}${Math.abs(val)} хайпа`);
@@ -147,36 +132,3 @@ function renderLobbyPlayers(){
   const list=document.getElementById('playersList');
   list.innerHTML='<h3>Игроки:</h3>'+players.map(p=>`<div style="color:${p.color}">${p.username}</div>`).join('');
 }
-
-let coordMode = false;
-let coordList = [];
-
-// Кнопки
-document.getElementById('startCoord').onclick = ()=>{
-  coordMode = true;
-  alert("Режим сбора координат включен. Кликайте по клеткам на поле.");
-};
-
-document.getElementById('stopCoord').onclick = ()=>{
-  coordMode = false;
-  alert("Режим сбора координат выключен.");
-};
-
-document.getElementById('showCoord').onclick = ()=>{
-  const output = JSON.stringify(coordList, null, 2);
-  console.log(output);
-  document.getElementById('coordList').innerText = output;
-  alert("Координаты выведены в консоль и в блок ниже.");
-};
-
-// Сбор координат кликом по полю
-document.getElementById('gameBoard').addEventListener('click', (e)=>{
-  if(!coordMode) return;
-  const rect = e.target.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  coordList.push({x: Math.round(x), y: Math.round(y)});
-  
-  // Показываем текущий список на странице
-  document.getElementById('coordList').innerText = JSON.stringify(coordList, null, 2);
-});
