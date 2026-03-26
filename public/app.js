@@ -89,7 +89,7 @@ function movePlayer(id,steps){
       // 🎁 ПРОХОД КРУГА
       if(prevPos === cells.length - 1){
         p.hype += 5;
-        showModal("+5 хайпа за круг 🔁");
+        showModal("🔥 КРУГ ПРОЙДЕН! +5 хайпа");
       }
 
       renderPlayers();
