@@ -3,21 +3,105 @@ body{
   background:#000;
   color:#fff;
   font-family:Arial;
+}
+
+/* ЛОББИ */
+#lobby{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  min-height:100vh;
+
+  gap:20px;
   text-align:center;
 }
 
+/* ЗАГОЛОВОК */
+#lobby h1{
+  font-size:52px;
+  text-shadow:0 0 20px #ffe600;
+}
+
+/* ИНПУТЫ */
+#lobby input{
+  width:320px;
+  padding:15px;
+  font-size:24px;
+
+  border-radius:12px;
+  border:none;
+}
+
+/* ФИШКИ */
+.chips{
+  display:flex;
+  gap:15px;
+}
+
+.chip{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  border:3px solid #fff;
+  cursor:pointer;
+
+  box-shadow:0 0 15px #fff;
+}
+
+.chip[data-color="red"]{background:#ff3b3b;}
+.chip[data-color="blue"]{background:#3b7fff;}
+.chip[data-color="yellow"]{background:#ffe600;}
+.chip[data-color="purple"]{background:#a64dff;}
+
+/* КНОПКИ */
+.buttons{
+  display:flex;
+  gap:20px;
+}
+
+button{
+  font-size:26px;
+  padding:15px 30px;
+  border:none;
+  border-radius:15px;
+  cursor:pointer;
+
+  background:#00eaff;
+  color:#000;
+  font-weight:900;
+
+  box-shadow:0 0 20px #00eaff;
+}
+
+/* СПИСОК ИГРОКОВ */
+#playersList{
+  font-size:22px;
+}
+
+/* ПРАВИЛА */
 .rules{
   margin-top:20px;
-  padding:15px;
-  border-radius:15px;
+  padding:20px;
 
-  background:rgba(0,0,0,0.6);
+  width:400px;
+
+  border-radius:20px;
+
+  background:rgba(0,0,0,0.7);
 
   box-shadow:
-    0 0 10px #00eaff,
-    inset 0 0 10px #00eaff;
+    0 0 20px #00eaff,
+    inset 0 0 20px #00eaff;
 
-  font-size:18px;
+  font-size:20px;
+}
+
+/* ИГРА */
+#game{
+  position:relative;
+  text-align:center;
 }
 
 /* ПОЛЕ */
@@ -33,15 +117,19 @@ body{
 
   box-shadow:
     0 0 40px #00eaff,
-    0 0 100px #00eaff,
     inset 0 0 40px #00eaff;
+}
+
+#gameBoard img{
+  width:100%;
+  height:100%;
 }
 
 /* ФИШКИ */
 .player{
   position:absolute;
-  width:36px;
-  height:36px;
+  width:40px;
+  height:40px;
   border-radius:50%;
   border:2px solid #fff;
 
@@ -50,7 +138,7 @@ body{
     0 0 30px currentColor;
 }
 
-/* ХАЙП ЦЕНТР */
+/* ХАЙП */
 #hypeBars{
   position:absolute;
   top:20px;
@@ -59,24 +147,16 @@ body{
   width:500px;
 }
 
-/* ХАЙП ТЕКСТ */
 .hypeBig{
   font-size:48px;
   font-weight:900;
-
-  text-shadow:
-    0 0 10px #fff,
-    0 0 20px #00eaff;
+  text-shadow:0 0 20px #00eaff;
 }
 
-/* ШКАЛА */
 .hypeBarBig{
   height:35px;
   background:#111;
   border-radius:20px;
-  overflow:hidden;
-
-  box-shadow:0 0 20px #00eaff;
 }
 
 .hypeFillBig{
@@ -90,16 +170,7 @@ body{
   bottom:40px;
   left:50%;
   transform:translateX(-50%);
-
-  font-size:34px;
-  padding:20px 40px;
-  border-radius:20px;
-
-  background:#00eaff;
-  color:#000;
-  font-weight:900;
-
-  box-shadow:0 0 40px #00eaff;
+  font-size:32px;
 }
 
 /* ВЫПАЛО */
@@ -108,58 +179,7 @@ body{
   bottom:120px;
   left:50%;
   transform:translateX(-50%);
-
-  font-size:42px;
-  font-weight:900;
-
-  text-shadow:0 0 20px #00eaff;
-}
-
-/* КАРТОЧКА */
-.neonCard{
-  background:#0a0a0a;
-  padding:30px;
-  border-radius:20px;
-
-  box-shadow:
-    0 0 20px #ff3b3b,
-    0 0 40px #00eaff;
-
-  animation:pop 0.3s;
-}
-
-.cardTitle{
-  font-size:32px;
-  font-weight:900;
-}
-
-.cardText{
-  font-size:22px;
-  margin:10px 0;
-}
-
-.cardValue{
-  font-size:30px;
-  font-weight:900;
-}
-
-.plus{
-  color:#00ff99;
-}
-
-.minus{
-  color:#ff3b3b;
-}
-
-/* ВСПЫШКИ */
-.flashGood{ animation:flashG 0.3s; }
-.flashBad{ animation:flashR 0.3s; }
-
-@keyframes flashG{
-  50%{background:#003322;}
-}
-@keyframes flashR{
-  50%{background:#330000;}
+  font-size:40px;
 }
 
 /* МОДАЛ */
@@ -168,10 +188,4 @@ body{
   top:50%;
   left:50%;
   transform:translate(-50%,-50%);
-}
-
-/* ПОБЕДА */
-.winScreen{
-  font-size:60px;
-  color:#ffe600;
 }
