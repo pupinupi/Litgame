@@ -1,211 +1,111 @@
-/* --- Основной фон --- */
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Arial', sans-serif;
-  background: #0a0a0a;
-  color: #fff;
-  overflow-x: hidden;
+body{
+  margin:0;
+  background: radial-gradient(circle,#050505,#000);
+  font-family: Arial;
+  color:white;
 }
 
-/* --- Лобби --- */
-#lobby {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  gap: 15px;
-  text-align: center;
+/* ЛОББИ */
+#lobby{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
 }
 
-#lobby h1 {
-  font-size: 48px;
-  margin-bottom: 20px;
-  text-shadow: 0 0 10px #ffdd00;
+input{
+  padding:10px;
+  font-size:20px;
+  margin:5px;
+  border-radius:10px;
+  border:none;
 }
 
-#lobby input {
-  font-size: 22px;
-  padding: 10px 15px;
-  margin: 5px;
-  border-radius: 10px;
-  border: none;
-  width: 300px;
+button{
+  padding:12px 20px;
+  font-size:20px;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
 }
 
-#lobby button {
-  font-size: 24px;
-  padding: 12px 25px;
-  margin: 10px;
-  border: none;
-  border-radius: 15px;
-  cursor: pointer;
-  transition: transform 0.2s;
+/* НЕОНОВОЕ ПОЛЕ */
+#gameBoard{
+  position:relative;
+  width:1024px;
+  height:1024px;
+  border-radius:20px;
+
+  border:4px solid #00eaff;
+
+  box-shadow:
+    0 0 20px #00eaff,
+    0 0 60px #00eaff,
+    inset 0 0 20px #00eaff;
 }
 
-#lobby button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px #00ffcc;
+/* ФИШКИ */
+.player{
+  position:absolute;
+  width:35px;
+  height:35px;
+  border-radius:50%;
+  border:2px solid white;
+
+  box-shadow:
+    0 0 10px #fff,
+    0 0 20px currentColor;
 }
 
-/* --- Фишки --- */
-.chip {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin: 0 5px;
-  border: 2px solid #fff;
-  cursor: pointer;
-  display: inline-block;
-  transition: transform 0.2s;
+/* АКТИВНЫЙ ИГРОК */
+.activePlayer{
+  animation:pulse 1s infinite;
 }
 
-.chip:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 15px #fff;
+@keyframes pulse{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.3);}
+  100%{transform:scale(1);}
 }
 
-/* Цвета фишек */
-.chip[data-color="red"] { background: #ff3b3b; }
-.chip[data-color="blue"] { background: #3b7fff; }
-.chip[data-color="yellow"] { background: #ffe600; }
-.chip[data-color="purple"] { background: #a64dff; }
-
-/* --- Игровое поле --- */
-#game {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 20px;
+/* ХАЙП */
+.hypeName{
+  font-weight:900;
+  font-size:22px;
+  text-shadow:0 0 10px currentColor;
 }
 
-#gameBoard {
-  position: relative;
-  width: 1024px;
-  height: 1024px;
-  background: #111;
-  border: 4px solid #fff;
-  border-radius: 20px;
-  margin-bottom: 20px;
+.hypeBar{
+  width:300px;
+  height:20px;
+  background:#222;
+  border-radius:10px;
+  overflow:hidden;
 }
 
-#gameBoard img {
-  width: 100%;
-  height: 100%;
-  border-radius: 20px;
+.hypeFill{
+  height:100%;
+  background:linear-gradient(90deg,#ff3b3b,#ffe600,#00ffcc);
+  transition:width 0.5s;
 }
 
-/* --- Фишки игроков --- */
-.player {
-  position: absolute;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  transition: all 0.2s;
+/* МОДАЛКА */
+#modal{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
 }
 
-.activePlayer {
-  animation: pulse 1s infinite;
+.modalContent{
+  background:#000;
+  padding:15px 25px;
+  border-radius:10px;
+  font-size:24px;
 }
 
-/* --- Пульсация фишек --- */
-@keyframes pulse {
-  0% { transform: scale(1); box-shadow: 0 0 10px #fff; }
-  50% { transform: scale(1.3); box-shadow: 0 0 25px #00ffcc; }
-  100% { transform: scale(1); box-shadow: 0 0 10px #fff; }
-}
-
-/* --- Кубик --- */
-#rollBtn {
-  font-size: 30px;
-  padding: 15px 25px;
-  border-radius: 15px;
-  cursor: pointer;
-  margin-bottom: 10px;
-}
-
-#rollBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* --- Шкала хайпа --- */
-.hypeBar {
-  width: 300px;
-  height: 22px;
-  background: #222;
-  border-radius: 15px;
-  overflow: hidden;
-  margin-top: 5px;
-}
-
-.hypeFill {
-  height: 100%;
-  background: linear-gradient(90deg,#ff3b3b,#ffe600,#3bff7f);
-  border-radius: 15px;
-  transition: width 0.5s;
-}
-
-/* --- Модальные окна --- */
-#modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000;
-  pointer-events: none;
-}
-
-#modal.active .modalContent {
-  animation: modalFade 0.3s forwards;
-}
-
-.modalContent {
-  background: rgba(0,0,0,0.85);
-  padding: 15px 25px;
-  border-radius: 12px;
-  font-size: 24px;
-  color: #fff;
-  text-align: center;
-}
-
-@keyframes modalFade {
-  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-}
-
-/* --- Финалка --- */
-.winScreen {
-  font-size: 48px;
-  color: #ffe600;
-  text-shadow: 0 0 15px #ff3b3b, 0 0 25px #00ffcc;
-}
-
-/* --- Лог дополнительного цвета --- */
-#diceResult {
-  font-size: 32px;
-  margin-bottom: 10px;
-}
-
-#hypeBars {
-  margin-top: 10px;
-}
-
-/* --- Лобби список игроков --- */
-#playersList {
-  margin-top: 10px;
-  font-size: 22px;
-}
-
-/* --- Светящиеся клетки --- */
-@keyframes pulseGlow {
-  0% { box-shadow: 0 0 10px #fff; }
-  50% { box-shadow: 0 0 30px #0ff; }
-  100% { box-shadow: 0 0 10px #fff; }
+.winScreen{
+  font-size:40px;
+  color:#ffe600;
 }
