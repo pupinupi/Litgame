@@ -281,21 +281,29 @@ function renderHype(){
   const container=document.getElementById('hypeBars');
   container.innerHTML='';
 
-  players.forEach(p=>{
+  // сортировка по хайпу
+  const sorted=[...players].sort((a,b)=>b.hype-a.hype);
+
+  sorted.forEach((p,index)=>{
     const percent=Math.min((p.hype/70)*100,100);
 
+    const medal = index===0 ? "🥇" : index===1 ? "🥈" : index===2 ? "🥉" : "";
+
     const div=document.createElement('div');
+
     div.innerHTML=`
-      <div style="color:${p.color};font-weight:bold;font-size:18px">
-        ${p.username}: ${p.hype}/70
+      <div style="color:${p.color};font-weight:bold;font-size:20px">
+        ${medal} ${p.username}: ${p.hype}/70
       </div>
-      <div style="background:#222;height:12px;border-radius:10px;margin-bottom:10px">
-        <div style="width:${percent}%;height:100%;background:#00eaff;border-radius:10px"></div>
+
+      <div class="hypeBar">
+        <div class="hypeFill" style="width:${percent}%"></div>
       </div>
     `;
 
     container.appendChild(div);
 
+    // победа
     if(p.hype>=70 && !window.gameEnded){
       window.gameEnded=true;
       showWinScreen(p.username);
