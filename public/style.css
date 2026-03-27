@@ -1,33 +1,56 @@
 body{
-  background:#0b0f1a;
+  margin:0;
+  background:radial-gradient(circle at center,#0a0f1f,#000);
   color:white;
-  text-align:center;
   font-family:Arial;
+  text-align:center;
+}
+
+/* ЛОББИ */
+#lobby{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
 }
 
 h1{
-  font-size:40px;
-  margin-bottom:20px;
+  font-size:48px;
+  text-shadow:0 0 20px #00eaff;
 }
 
 input{
-  display:block;
-  margin:10px auto;
-  padding:12px;
+  padding:15px;
+  margin:10px;
   font-size:18px;
+  border-radius:10px;
+  border:none;
+  width:250px;
 }
 
 button{
-  padding:15px 25px;
+  padding:15px 30px;
   font-size:20px;
-  margin:10px;
+  border:none;
+  border-radius:12px;
   cursor:pointer;
+  margin:10px;
+  background:#111;
+  color:white;
+  box-shadow:0 0 10px #00eaff;
+}
+
+button:hover{
+  transform:scale(1.05);
+  box-shadow:0 0 20px #00eaff;
 }
 
 .chip{
-  width:40px;
-  height:40px;
+  width:50px;
+  height:50px;
   border-radius:50%;
+  margin:5px;
 }
 
 .chip[data-color="red"]{background:red;}
@@ -35,6 +58,7 @@ button{
 .chip[data-color="yellow"]{background:yellow;}
 .chip[data-color="purple"]{background:purple;}
 
+/* ИГРА */
 #gameBoard{
   position:relative;
   width:1024px;
@@ -42,28 +66,76 @@ button{
 }
 
 .player{
-  width:25px;
-  height:25px;
+  width:28px;
+  height:28px;
   border-radius:50%;
   position:absolute;
+  animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.2)}
+  100%{transform:scale(1)}
+}
+
+/* ХАЙП */
+.hypeContainer{
+  width:260px;
+  margin:10px auto;
+}
+
+.hypeLabel{
+  font-size:22px;
+  font-weight:900;
 }
 
 .hypeBar{
-  width:200px;
-  height:10px;
-  background:#333;
-  margin:auto;
+  width:100%;
+  height:14px;
+  background:#111;
+  border-radius:10px;
+  overflow:hidden;
 }
 
 .hypeFill{
   height:100%;
-  background:#00eaff;
+  background:linear-gradient(90deg,#00eaff,#00ff88);
+  box-shadow:0 0 15px #00eaff;
+  transition:0.5s;
 }
 
+/* МОДАЛКА */
 #modal{
   position:fixed;
-  top:40%;
+  top:50%;
   left:50%;
   transform:translate(-50%,-50%);
-  font-size:30px;
+  font-size:28px;
+  text-align:center;
+  pointer-events:none;
+}
+
+.modalContent{
+  background:#111;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 0 25px #00eaff;
+}
+
+/* СКАНДАЛ */
+.scandal{
+  box-shadow:0 0 25px red;
+}
+
+/* РИСК */
+.risk{
+  box-shadow:0 0 25px #00eaff;
+}
+
+/* ПОБЕДА */
+.win{
+  font-size:40px;
+  color:gold;
+  text-shadow:0 0 25px gold;
 }
