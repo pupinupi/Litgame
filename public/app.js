@@ -22,6 +22,98 @@ document.getElementById('startBtn').onclick=()=>{
   socket.emit('startGame', roomCode);
 };
 
+const cells=[
+  {name:"Старт",x:82,y:587,type:'start'},
+  {name:"+3",x:97,y:464,type:'plus',value:3},
+  {name:"+2",x:86,y:348,type:'plus',value:2},
+  {name:"Скандал",x:93,y:224,type:'scandal'},
+  {name:"Риск",x:87,y:129,type:'risk'},
+  {name:"+2",x:219,y:101,type:'plus',value:2},
+  {name:"Скандал",x:364,y:107,type:'scandal'},
+  {name:"+3",x:494,y:95,type:'plus',value:3},
+  {name:"+5",x:652,y:96,type:'plus',value:5},
+  {name:"-10",x:815,y:89,type:'minus',value:10},
+  {name:"-8 skip",x:930,y:135,type:'minusSkip',value:8},
+  {name:"+3",x:936,y:247,type:'plus',value:3},
+  {name:"Риск",x:936,y:357,type:'risk'},
+  {name:"+3",x:941,y:480,type:'plus',value:3},
+  {name:"skip",x:937,y:610,type:'skip'},
+  {name:"+2",x:794,y:624,type:'plus',value:2},
+  {name:"Скандал",x:636,y:635,type:'scandal'},
+  {name:"+8",x:517,y:627,type:'plus',value:8},
+  {name:"-10",x:355,y:619,type:'minus',value:10},
+  {name:"+4",x:210,y:626,type:'plus',value:4}
+];
+
+// --- ПЛАВНОЕ ДВИЖЕНИЕ ПО КЛЕТКАМ ---
+function movePlayerSmooth(id, steps){
+  const p = players.find(pl => pl.id===id);
+  if(!p) return;
+
+  let stepIndex = 0;
+
+  function step(){
+    if(stepIndex >= steps){
+      handleCell(p, cells[p.position]);
+      return;
+    }
+
+    const fromIndex = p.position;
+    let nextIndex = p.position + 1;
+    if(nextIndex >= cells.length) nextIndex = 0; // полный круг
+
+    animateMove(p, fromIndex, nextIndex, ()=>{
+      // Обновляем позицию после каждого шага
+      p.position = nextIndex;
+
+      // Добавляем +5 hype за круг
+      if(nextIndex === 0) {
+        p.hype += 5;
+        showModal("🔥 +5 за круг");
+      }
+
+      stepIndex++;
+      step();
+    });
+  }
+
+  step();
+}
+
+// --- ПУЛЬСИРУЮЩАЯ АНИМАЦИЯ ДВИЖЕНИЯ ---
+function animateMove(p, fromIndex, toIndex, callback){
+  const el = [...document.querySelectorAll('.player')]
+    .find(e=>e.style.background===p.color);
+  if(!el){ callback(); return; }
+
+  const from = cells[fromIndex];
+  const to = cells[toIndex];
+  const frames = 20;
+  let count = 0;
+
+  const interval = setInterval(()=>{
+    count++;
+    const progress = count / frames;
+
+    // Плавное перемещение
+    const x = from.x + (to.x - from.x) * progress;
+    const y = from.y + (to.y - from.y) * progress;
+
+    // Смещаем несколько игроков на одной клетке
+    const sameCellCount = players.filter(pl => pl.position === toIndex).length;
+    const offset = sameCellCount > 1 ? sameCellCount * 10 : 0;
+
+    el.style.left = (x + offset) + 'px';
+    el.style.top = (y + offset) + 'px';
+
+    if(count >= frames){
+      clearInterval(interval);
+      renderPlayers(); // обновляем всех после каждого шага
+      callback();
+    }
+  }, 20);
+}
+
 // --- ИГРА ---
 document.getElementById('rollBtn').onclick=()=>{
   if(window.gameEnded) return;
