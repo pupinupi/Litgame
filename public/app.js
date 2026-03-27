@@ -211,6 +211,8 @@ function glow(cell,type){
 }
 
 // --- КАРТОЧКИ ---
+document.body.classList.add('shake');
+setTimeout(()=>document.body.classList.remove('shake'),400);
 function showScandal(p){
   const cards=[
     {text:"Перегрел аудиторию 🔥", value:-1},
@@ -262,9 +264,15 @@ function renderPlayers(){
   players.forEach((p,i)=>{
     const el=document.createElement('div');
     el.className='player';
+
+    if(p.id === currentTurnId){
+      el.classList.add('activePlayer');
+    }
+
     el.style.background=p.color;
     el.style.left=`${cells[p.position].x+i*30}px`;
     el.style.top=`${cells[p.position].y}px`;
+
     b.appendChild(el);
   });
 }
@@ -297,12 +305,16 @@ function renderHype(){
 
 function showWinScreen(name){
   const m=document.getElementById('modal');
+
   m.innerHTML=`
-    <div style="font-size:40px;color:#00ff88;text-align:center">
+    <div class="winScreen">
       🏆 ${name} победил!
     </div>
   `;
+
   m.classList.add('active');
+
+  document.body.style.background = "radial-gradient(circle, #001f2f, #000)";
 }
 
 function renderLobbyPlayers(){
