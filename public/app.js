@@ -1,56 +1,58 @@
-window.gameEnded = false;
+window.addEventListener('DOMContentLoaded', ()=>{
 
 const socket = io();
 
 let players = [];
 let currentTurnId = null;
 
-// 👉 ВАЖНО: добавили переменные
 let username = "";
 let roomCode = "";
 let color = null;
 
 // --- ВЫБОР ФИШКИ ---
 document.querySelectorAll('.chip').forEach(chip=>{
-  chip.onclick = () => {
+  chip.addEventListener('click', ()=>{
 
-    // убрать выделение у всех
     document.querySelectorAll('.chip').forEach(c=>{
       c.classList.remove('selected');
     });
 
-    // выделить текущую
     chip.classList.add('selected');
 
     color = chip.dataset.color;
-  };
+  });
 });
 
-// --- КНОПКА ВОЙТИ ---
-document.getElementById('joinBtn').onclick = () => {
+// --- ВОЙТИ ---
+document.getElementById('joinBtn').addEventListener('click', ()=>{
 
   username = document.getElementById('username').value.trim();
   roomCode = document.getElementById('roomCode').value.trim();
 
   if(!username || !roomCode || !color){
-    alert("Заполни имя, комнату и выбери фишку");
+    alert("Заполни всё и выбери фишку");
     return;
   }
 
   socket.emit('joinRoom', {username, roomCode, color});
-};
+});
 
-// --- КНОПКА СТАРТ ---
-document.getElementById('startBtn').onclick = () => {
-  if(!roomCode) return;
+// --- СТАРТ ---
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  if(!roomCode){
+    alert("Сначала войди в комнату");
+    return;
+  }
+
   socket.emit('startGame', roomCode);
-};
+});
 
-// --- КНОПКА КУБИКА ---
-document.getElementById('rollBtn').onclick = () => {
+// --- КУБИК ---
+document.getElementById('rollBtn').addEventListener('click', ()=>{
   if(currentTurnId !== socket.id) return;
+
   socket.emit('rollDice', roomCode);
-};
+});
 
 // --- SOCKET ---
 socket.on('updatePlayers', pl=>{
@@ -62,9 +64,9 @@ socket.on('updatePlayers', pl=>{
 
   players = pl;
 
+  renderLobbyPlayers();
   updatePlayersUI();
   renderHype();
-  renderLobbyPlayers();
 });
 
 socket.on('gameStarted', ()=>{
@@ -77,18 +79,15 @@ socket.on('nextTurn', id=>{
 });
 
 socket.on('diceRolled', ({playerId,dice})=>{
-  showDice(dice);
+  document.getElementById('diceResult').innerText = "🎲 " + dice;
   movePlayerSmooth(playerId);
 });
 
-// --- ЛОББИ СПИСОК ---
+// --- ЛОББИ ---
 function renderLobbyPlayers(){
   const list = document.getElementById('playersList');
-
   list.innerHTML = players.map(p=>
-    `<div style="color:${p.color}; font-size:20px;">
-      ${p.username}
-    </div>`
+    `<div style="color:${p.color}; font-size:20px;">${p.username}</div>`
   ).join('');
 }
 
@@ -167,4 +166,28 @@ function animateMove(el, fromIndex, toIndex, cb){
     t+=0.08;
 
     el.style.left = from.x+(to.x-from.x)*t+"px";
-    el.style.top  = from.y+(to.y
+    el.style.top  = from.y+(to.y-from.y)*t+"px";
+
+    if(t>=1){
+      clearInterval(interval);
+      cb();
+    }
+  },16);
+}
+
+// --- ХАЙП ---
+function renderHype(){
+  const me=players.find(p=>p.id===socket.id);
+  if(!me) return;
+
+  const percent=(me.hype/70)*100;
+
+  document.getElementById('hypeBars').innerHTML=`
+    <div class="hypeBig">${me.hype} / 70</div>
+    <div class="hypeBarBig">
+      <div class="hypeFillBig" style="width:${percent}%"></div>
+    </div>
+  `;
+}
+
+});
