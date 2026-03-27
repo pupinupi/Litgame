@@ -6,6 +6,20 @@ body{
   text-align:center;
 }
 
+.rules{
+  margin-top:20px;
+  padding:15px;
+  border-radius:15px;
+
+  background:rgba(0,0,0,0.6);
+
+  box-shadow:
+    0 0 10px #00eaff,
+    inset 0 0 10px #00eaff;
+
+  font-size:18px;
+}
+
 /* ПОЛЕ */
 #gameBoard{
   position:relative;
