@@ -23,14 +23,14 @@ input{
 }
 
 /* Кнопки */
-button{
-  padding:10px 15px;
-  margin:5px;
-  background:#1f2937;
-  color:#fff;
-  border:1px solid #00eaff;
-  box-shadow:0 0 10px rgba(0,234,255,0.4);
-  cursor:pointer;
+button {
+  font-size: 20px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: linear-gradient(45deg, #00eaff, #00ff88);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 10px #00eaff;
 }
 
 button:hover{
