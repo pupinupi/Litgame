@@ -43,7 +43,33 @@ socket.on('gameStarted', ()=>{
 socket.on('nextTurn', id=>{
   currentTurnId=id;
   const p=players.find(p=>p.id===id);
+
   document.getElementById('turnText').innerText=`Ходит: ${p.username}`;
+
+  // 🔥 если это Я и у меня пропуск
+  if(id === socket.id){
+    const me = players.find(pl=>pl.id===socket.id);
+
+    if(me && me.skipNext){
+      showModal("⛔ Вы пропускаете ход");
+
+      // блокируем кнопку
+      document.getElementById('rollBtn').disabled = true;
+
+      // снимаем пропуск
+      me.skipNext = false;
+
+      // через время разблокируем
+      setTimeout(()=>{
+        document.getElementById('rollBtn').disabled = false;
+      },2000);
+
+      return;
+    }
+  }
+
+  // включаем кнопку только если мой ход
+  document.getElementById('rollBtn').disabled = (id !== socket.id);
 });
 
 socket.on('diceRolled', ({playerId,dice})=>{
