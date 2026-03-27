@@ -3,31 +3,9 @@ window.gameEnded = false;
 const socket = io();
 
 let players = [];
-let username, roomCode, color;
 let currentTurnId = null;
 
-// --- ЛОББИ ---
-document.querySelectorAll('.chip').forEach(btn=>{
-  btn.onclick=()=>color=btn.dataset.color;
-});
-
-document.getElementById('joinBtn').onclick=()=>{
-  username = document.getElementById('username').value;
-  roomCode = document.getElementById('roomCode').value;
-
-  if(!username || !roomCode || !color){
-    alert("Заполните все поля");
-    return;
-  }
-
-  socket.emit('joinRoom', {username, roomCode, color});
-};
-
-document.getElementById('startBtn').onclick=()=>{
-  socket.emit('startGame', roomCode);
-};
-
-// --- КНОПКА ---
+// --- КНОПКИ ---
 document.getElementById('rollBtn').onclick=()=>{
   if(window.gameEnded) return;
   if(currentTurnId !== socket.id) return;
@@ -38,7 +16,6 @@ document.getElementById('rollBtn').onclick=()=>{
 // --- SOCKET ---
 socket.on('updatePlayers', pl=>{
 
-  // сохраняем старые позиции
   pl.forEach(newP=>{
     const old = players.find(p=>p.id===newP.id);
     if(old){
@@ -46,45 +23,14 @@ socket.on('updatePlayers', pl=>{
     }
   });
 
-  // показать изменение хайпа
-  const meOld = players.find(p=>p.id===socket.id);
-  const meNew = pl.find(p=>p.id===socket.id);
-
-  if(meOld && meNew){
-    const diff = meNew.hype - meOld.hype;
-    if(diff !== 0){
-      showModal(`${diff>0?'🔥 +':'💀 '}${diff} хайпа`);
-    }
-  }
-
   players = pl;
 
-  renderPlayers();
+  updatePlayersUI();
   renderHype();
-  renderLobbyPlayers();
-});
-
-socket.on('gameStarted', ()=>{
-  document.getElementById('lobby').style.display='none';
-  document.getElementById('game').style.display='block';
 });
 
 socket.on('nextTurn', id=>{
   currentTurnId = id;
-
-  const p = players.find(p=>p.id===id);
-  document.getElementById('turnText').innerText=`Ходит: ${p?.username}`;
-
-  const btn = document.getElementById('rollBtn');
-  btn.disabled = id !== socket.id;
-
-  // подсветка активного
-  document.querySelectorAll('.player').forEach(el=>{
-    el.classList.remove('activePlayer');
-  });
-
-  const active = document.querySelector(`[data-id="${id}"]`);
-  if(active) active.classList.add('activePlayer');
 });
 
 socket.on('diceRolled', ({playerId})=>{
@@ -104,6 +50,28 @@ const cells=[
   {x:794,y:624},{x:636,y:635},{x:517,y:627},{x:355,y:619},{x:210,y:626}
 ];
 
+// --- СОЗДАНИЕ/ОБНОВЛЕНИЕ ФИШЕК ---
+function updatePlayersUI(){
+  const board = document.getElementById('gameBoard');
+
+  players.forEach((p,i)=>{
+    let el = document.querySelector(`[data-id="${p.id}"]`);
+
+    if(!el){
+      el = document.createElement('div');
+      el.className = 'player';
+      el.dataset.id = p.id;
+      el.style.background = p.color;
+      board.appendChild(el);
+    }
+
+    const cell = cells[p.position];
+
+    el.style.left = (cell.x + i*18) + 'px';
+    el.style.top = cell.y + 'px';
+  });
+}
+
 // --- ДВИЖЕНИЕ ---
 function movePlayerSmooth(id){
   const p = players.find(pl => pl.id===id);
@@ -121,6 +89,9 @@ function movePlayerSmooth(id){
     path.push(cur);
   }
 
+  let el = document.querySelector(`[data-id="${p.id}"]`);
+  if(!el) return;
+
   let i = 0;
 
   function step(){
@@ -128,7 +99,7 @@ function movePlayerSmooth(id){
 
     let next = path[i];
 
-    animateMove(p, from, next, ()=>{
+    animateMove(el, from, next, ()=>{
       from = next;
       i++;
       step();
@@ -139,18 +110,16 @@ function movePlayerSmooth(id){
 }
 
 // --- АНИМАЦИЯ ---
-function animateMove(p, fromIndex, toIndex, callback){
-  const el = document.querySelector(`[data-id="${p.id}"]`);
-  if(!el){ callback(); return; }
-
+function animateMove(el, fromIndex, toIndex, callback){
   const from = cells[fromIndex];
   const to = cells[toIndex];
 
-  let frames = 18;
+  let frames = 20;
   let count = 0;
 
   const interval = setInterval(()=>{
     count++;
+
     const progress = count / frames;
 
     const x = from.x + (to.x - from.x) * progress;
@@ -166,65 +135,21 @@ function animateMove(p, fromIndex, toIndex, callback){
   }, 16);
 }
 
-// --- РЕНДЕР ---
-function renderPlayers(){
-  const board = document.getElementById('gameBoard');
-
-  board.querySelectorAll('.player').forEach(e=>e.remove());
-
-  players.forEach((p,i)=>{
-    const el = document.createElement('div');
-    el.className='player';
-    el.dataset.id = p.id;
-    el.style.background = p.color;
-
-    const cell = cells[p.position];
-
-    el.style.left = (cell.x + i*18) + 'px';
-    el.style.top = cell.y + 'px';
-
-    board.appendChild(el);
-  });
-}
-
 // --- ХАЙП ---
 function renderHype(){
   const container = document.getElementById('hypeBars');
-  container.innerHTML='';
 
-  const sorted = [...players].sort((a,b)=>b.hype-a.hype);
+  const me = players.find(p=>p.id===socket.id);
+  if(!me) return;
 
-  sorted.forEach((p,index)=>{
-    const percent = Math.min((p.hype/70)*100,100);
-    const medal = index===0?"🥇":index===1?"🥈":index===2?"🥉":"";
+  const percent = Math.min((me.hype/70)*100,100);
 
-    const div = document.createElement('div');
-
-    div.innerHTML=`
-      <div class="hypeName" style="color:${p.color}">
-        ${medal} ${p.username}: ${p.hype} / 70
-      </div>
-      <div class="hypeBar">
-        <div class="hypeFill" style="width:${percent}%"></div>
-      </div>
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-// --- ЛОББИ ---
-function renderLobbyPlayers(){
-  const l = document.getElementById('playersList');
-  l.innerHTML = players.map(p=>`<div style="color:${p.color}">${p.username}</div>`).join("");
-}
-
-// --- МОДАЛ ---
-function showModal(text){
-  const m = document.getElementById('modal');
-  m.innerHTML=`<div class="modalContent">${text}</div>`;
-  m.classList.add('active');
-  setTimeout(()=>m.classList.remove('active'),2000);
+  container.innerHTML = `
+    <div class="hypeBig">${me.hype} / 70</div>
+    <div class="hypeBarBig">
+      <div class="hypeFillBig" style="width:${percent}%"></div>
+    </div>
+  `;
 }
 
 // --- ПОБЕДА ---
