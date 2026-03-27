@@ -14,8 +14,8 @@ h1, h2{
 
 /* Поля ввода */
 input{
-  padding:10px;
-  margin:5px;
+  padding:15px;
+  margin:10px;
   background:#111827;
   color:white;
   border:1px solid #00eaff;
@@ -50,6 +50,11 @@ button:hover{
 
 #rollBtn:hover{
   transform:scale(1.1);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Фишки */
