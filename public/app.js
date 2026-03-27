@@ -5,8 +5,56 @@ const socket = io();
 let players = [];
 let currentTurnId = null;
 
+// 👉 ВАЖНО: добавили переменные
+let username = "";
+let roomCode = "";
+let color = null;
+
+// --- ВЫБОР ФИШКИ ---
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.onclick = () => {
+
+    // убрать выделение у всех
+    document.querySelectorAll('.chip').forEach(c=>{
+      c.classList.remove('selected');
+    });
+
+    // выделить текущую
+    chip.classList.add('selected');
+
+    color = chip.dataset.color;
+  };
+});
+
+// --- КНОПКА ВОЙТИ ---
+document.getElementById('joinBtn').onclick = () => {
+
+  username = document.getElementById('username').value.trim();
+  roomCode = document.getElementById('roomCode').value.trim();
+
+  if(!username || !roomCode || !color){
+    alert("Заполни имя, комнату и выбери фишку");
+    return;
+  }
+
+  socket.emit('joinRoom', {username, roomCode, color});
+};
+
+// --- КНОПКА СТАРТ ---
+document.getElementById('startBtn').onclick = () => {
+  if(!roomCode) return;
+  socket.emit('startGame', roomCode);
+};
+
+// --- КНОПКА КУБИКА ---
+document.getElementById('rollBtn').onclick = () => {
+  if(currentTurnId !== socket.id) return;
+  socket.emit('rollDice', roomCode);
+};
+
 // --- SOCKET ---
 socket.on('updatePlayers', pl=>{
+
   pl.forEach(newP=>{
     const old = players.find(p=>p.id===newP.id);
     if(old) newP.oldPosition = old.position;
@@ -16,6 +64,12 @@ socket.on('updatePlayers', pl=>{
 
   updatePlayersUI();
   renderHype();
+  renderLobbyPlayers();
+});
+
+socket.on('gameStarted', ()=>{
+  document.getElementById('lobby').style.display='none';
+  document.getElementById('game').style.display='block';
 });
 
 socket.on('nextTurn', id=>{
@@ -27,15 +81,16 @@ socket.on('diceRolled', ({playerId,dice})=>{
   movePlayerSmooth(playerId);
 });
 
-socket.on('gameEnded', winner=>{
-  showWinScreen(winner);
-});
+// --- ЛОББИ СПИСОК ---
+function renderLobbyPlayers(){
+  const list = document.getElementById('playersList');
 
-// --- КНОПКА ---
-rollBtn.onclick=()=>{
-  if(currentTurnId !== socket.id) return;
-  socket.emit('rollDice', roomCode);
-};
+  list.innerHTML = players.map(p=>
+    `<div style="color:${p.color}; font-size:20px;">
+      ${p.username}
+    </div>`
+  ).join('');
+}
 
 // --- КЛЕТКИ ---
 const cells=[
@@ -60,9 +115,9 @@ function updatePlayersUI(){
       board.appendChild(el);
     }
 
-    const cell = cells[p.position];
-    el.style.left = (cell.x + i*15)+'px';
-    el.style.top = cell.y+'px';
+    const c = cells[p.position];
+    el.style.left = (c.x + i*15)+'px';
+    el.style.top = c.y+'px';
   });
 }
 
@@ -89,10 +144,7 @@ function movePlayerSmooth(id){
   let i=0;
 
   function step(){
-    if(i>=path.length){
-      triggerCellEffect(p);
-      return;
-    }
+    if(i>=path.length) return;
 
     animateMove(el, from, path[i], ()=>{
       from=path[i];
@@ -115,96 +167,4 @@ function animateMove(el, fromIndex, toIndex, cb){
     t+=0.08;
 
     el.style.left = from.x+(to.x-from.x)*t+"px";
-    el.style.top  = from.y+(to.y-from.y)*t+"px";
-
-    if(t>=1){
-      clearInterval(interval);
-      cb();
-    }
-  },16);
-}
-
-// --- ЭФФЕКТЫ КЛЕТОК ---
-function triggerCellEffect(p){
-  const rand = Math.random();
-
-  if(rand < 0.5){
-    showScandalCard();
-  } else {
-    showRiskCard();
-  }
-}
-
-// --- ТВОИ СКАНДАЛЫ ---
-function showScandalCard(){
-  const cards=[
-    {text:"Перегрел аудиторию 🔥", value:-1},
-    {text:"Громкий заголовок 🫣", value:-2},
-    {text:"Это монтаж 😱", value:-3},
-    {text:"Меня взломали #️⃣", value:-3},
-    {text:"Подписчики в шоке 😮", value:-4},
-    {text:"Удаляй пока не поздно 🤫", value:-5},
-    {text:"Это контент 🙄", value:-5}
-  ];
-
-  const c = cards[Math.floor(Math.random()*cards.length)];
-  showFancyCard("💥 СКАНДАЛ", c.text, c.value);
-}
-
-// --- РИСК ---
-function showRiskCard(){
-  const dice = Math.floor(Math.random()*6)+1;
-  const result = dice <=3 ? -5 : 5;
-
-  showFancyCard("⚠️ РИСК", `Выпало ${dice}`, result);
-}
-
-// --- КРАСИВАЯ КАРТОЧКА ---
-function showFancyCard(title,text,value){
-  const modal=document.getElementById('modal');
-
-  modal.innerHTML=`
-    <div class="card neonCard">
-      <div class="cardTitle">${title}</div>
-      <div class="cardText">${text}</div>
-      <div class="cardValue ${value>0?'plus':'minus'}">
-        ${value>0?'+':''}${value} хайпа
-      </div>
-    </div>
-  `;
-
-  modal.classList.add('active');
-
-  document.body.classList.add(value>0?'flashGood':'flashBad');
-
-  setTimeout(()=>{
-    modal.classList.remove('active');
-    document.body.classList.remove('flashGood','flashBad');
-  },2500);
-}
-
-// --- ХАЙП ---
-function renderHype(){
-  const me=players.find(p=>p.id===socket.id);
-  if(!me) return;
-
-  const percent=(me.hype/70)*100;
-
-  hypeBars.innerHTML=`
-    <div class="hypeBig">${me.hype} / 70</div>
-    <div class="hypeBarBig">
-      <div class="hypeFillBig" style="width:${percent}%"></div>
-    </div>
-  `;
-}
-
-// --- КУБИК ---
-function showDice(n){
-  diceResult.innerHTML=`🎲 Выпало: ${n}`;
-}
-
-// --- ПОБЕДА ---
-function showWinScreen(name){
-  modal.innerHTML=`<div class="winScreen">${name} победил!</div>`;
-  modal.classList.add('active');
-}
+    el.style.top  = from.y+(to.y
