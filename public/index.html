@@ -3,36 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <title>Литвин. Путь к хайпу</title>
+
 <link rel="stylesheet" href="style.css">
+
 <script src="/socket.io/socket.io.js"></script>
 <script defer src="app.js"></script>
 </head>
+
 <body>
 
+<!-- ЛОББИ -->
 <div id="lobby">
-  <h1>🔥 Литвин: Путь к хайпу 🔥</h1>
-  <input type="text" id="username" placeholder="Ваше имя">
-  <input type="text" id="roomCode" placeholder="Код комнаты">
 
-  <div>
-    <div class="lobbyBox">
-  <!-- тут все твои поля -->
-</div>
-    
-    <span>Выберите фишку:</span>
-    <button class="chip" data-color="red"></button>
-    <button class="chip" data-color="blue"></button>
-    <button class="chip" data-color="yellow"></button>
-    <button class="chip" data-color="purple"></button>
+  <div class="lobbyBox">
+
+    <h1>🔥 Литвин: Путь к хайпу 🔥</h1>
+
+    <input type="text" id="username" placeholder="Ваше имя">
+    <input type="text" id="roomCode" placeholder="Код комнаты">
+
+    <div>
+      <p>Выберите фишку:</p>
+
+      <button class="chip" data-color="red"></button>
+      <button class="chip" data-color="blue"></button>
+      <button class="chip" data-color="yellow"></button>
+      <button class="chip" data-color="purple"></button>
+    </div>
+
+    <button id="joinBtn">Войти</button>
+    <button id="startBtn">Начать игру</button>
+
+    <div id="playersList"></div>
+
   </div>
 
-  <button id="joinBtn">Войти</button>
-  <button id="startBtn">Начать игру</button>
-
-  <div id="playersList"></div>
 </div>
 
+<!-- ИГРА -->
 <div id="game" style="display:none">
+
   <h2 id="turnText"></h2>
 
   <div id="gameBoard">
@@ -43,10 +53,10 @@
 
   <div id="diceResult"></div>
   <div id="hypeBars"></div>
-  <div id="log"></div>
+
 </div>
 
-<!-- Модальные окна -->
+<!-- МОДАЛКА -->
 <div id="modal" class="hidden"></div>
 
 </body>
