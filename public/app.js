@@ -8,11 +8,21 @@ document.querySelectorAll('.chip').forEach(btn=>{
   btn.onclick=()=>color=btn.dataset.color;
 });
 
-document.getElementById('joinBtn').onclick=()=>{
-  username=document.getElementById('username').value;
-  roomCode=document.getElementById('roomCode').value;
-  if(!username||!roomCode||!color){alert("Заполни всё");return;}
-  socket.emit('joinRoom',{username,roomCode,color});
+document.getElementById('rollBtn').onclick=()=>{
+  const me = players.find(p=>p.id===socket.id);
+
+  if(window.gameEnded) return;
+
+  // ❌ если не мой ход
+  if(currentTurnId !== socket.id) return;
+
+  // ❌ если пропуск
+  if(me && me.skipNext){
+    showModal("⛔ Вы пропускаете ход");
+    return;
+  }
+
+  socket.emit('rollDice',roomCode);
 };
 
 document.getElementById('startBtn').onclick=()=>{
@@ -46,27 +56,28 @@ socket.on('nextTurn', id=>{
 
   document.getElementById('turnText').innerText=`Ходит: ${p.username}`;
 
-  // 🔥 если это Я и у меня пропуск
-  if(id === socket.id){
-    const me = players.find(pl=>pl.id===socket.id);
+  const me = players.find(pl=>pl.id===socket.id);
 
-    if(me && me.skipNext){
-      showModal("⛔ Вы пропускаете ход");
-
-      // блокируем кнопку
-      document.getElementById('rollBtn').disabled = true;
-
-      // снимаем пропуск
-      me.skipNext = false;
-
-      // через время разблокируем
-      setTimeout(()=>{
-        document.getElementById('rollBtn').disabled = false;
-      },2000);
-
-      return;
-    }
+  // блок кнопки
+  if(id !== socket.id){
+    document.getElementById('rollBtn').disabled = true;
+    return;
   }
+
+  // если мой ход
+  if(me && me.skipNext){
+    showModal("⛔ Вы пропускаете ход");
+    document.getElementById('rollBtn').disabled = true;
+
+    setTimeout(()=>{
+      document.getElementById('rollBtn').disabled = false;
+    },2000);
+
+    return;
+  }
+
+  document.getElementById('rollBtn').disabled = false;
+});
 
   // включаем кнопку только если мой ход
   document.getElementById('rollBtn').disabled = (id !== socket.id);
@@ -307,7 +318,6 @@ function renderHype(){
   const container=document.getElementById('hypeBars');
   container.innerHTML='';
 
-  // сортировка по хайпу
   const sorted=[...players].sort((a,b)=>b.hype-a.hype);
 
   sorted.forEach((p,index)=>{
@@ -317,8 +327,15 @@ function renderHype(){
 
     const div=document.createElement('div');
 
+    div.style.marginBottom="15px";
+
     div.innerHTML=`
-      <div style="color:${p.color};font-weight:bold;font-size:20px">
+      <div style="
+        color:${p.color};
+        font-weight:900;
+        font-size:26px;
+        text-shadow:0 0 10px ${p.color};
+      ">
         ${medal} ${p.username}: ${p.hype}/70
       </div>
 
@@ -329,7 +346,6 @@ function renderHype(){
 
     container.appendChild(div);
 
-    // победа
     if(p.hype>=70 && !window.gameEnded){
       window.gameEnded=true;
       showWinScreen(p.username);
