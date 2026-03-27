@@ -5,22 +5,11 @@ const socket = io();
 let players = [];
 let currentTurnId = null;
 
-// --- КНОПКИ ---
-document.getElementById('rollBtn').onclick=()=>{
-  if(window.gameEnded) return;
-  if(currentTurnId !== socket.id) return;
-
-  socket.emit('rollDice', roomCode);
-};
-
 // --- SOCKET ---
 socket.on('updatePlayers', pl=>{
-
   pl.forEach(newP=>{
     const old = players.find(p=>p.id===newP.id);
-    if(old){
-      newP.oldPosition = old.position;
-    }
+    if(old) newP.oldPosition = old.position;
   });
 
   players = pl;
@@ -33,14 +22,20 @@ socket.on('nextTurn', id=>{
   currentTurnId = id;
 });
 
-socket.on('diceRolled', ({playerId})=>{
+socket.on('diceRolled', ({playerId,dice})=>{
+  showDice(dice);
   movePlayerSmooth(playerId);
 });
 
 socket.on('gameEnded', winner=>{
-  window.gameEnded = true;
   showWinScreen(winner);
 });
+
+// --- КНОПКА ---
+rollBtn.onclick=()=>{
+  if(currentTurnId !== socket.id) return;
+  socket.emit('rollDice', roomCode);
+};
 
 // --- КЛЕТКИ ---
 const cells=[
@@ -50,7 +45,7 @@ const cells=[
   {x:794,y:624},{x:636,y:635},{x:517,y:627},{x:355,y:619},{x:210,y:626}
 ];
 
-// --- СОЗДАНИЕ/ОБНОВЛЕНИЕ ФИШЕК ---
+// --- ФИШКИ ---
 function updatePlayersUI(){
   const board = document.getElementById('gameBoard');
 
@@ -66,41 +61,41 @@ function updatePlayersUI(){
     }
 
     const cell = cells[p.position];
-
-    el.style.left = (cell.x + i*18) + 'px';
-    el.style.top = cell.y + 'px';
+    el.style.left = (cell.x + i*15)+'px';
+    el.style.top = cell.y+'px';
   });
 }
 
 // --- ДВИЖЕНИЕ ---
 function movePlayerSmooth(id){
-  const p = players.find(pl => pl.id===id);
+  const p = players.find(pl=>pl.id===id);
   if(!p) return;
 
   let from = p.oldPosition ?? p.position;
   let to = p.position;
 
-  let path = [];
-  let cur = from;
+  let path=[];
+  let cur=from;
 
-  while(cur !== to){
+  while(cur!==to){
     cur++;
-    if(cur >= cells.length) cur = 0;
+    if(cur>=cells.length) cur=0;
     path.push(cur);
   }
 
-  let el = document.querySelector(`[data-id="${p.id}"]`);
+  const el=document.querySelector(`[data-id="${p.id}"]`);
   if(!el) return;
 
-  let i = 0;
+  let i=0;
 
   function step(){
-    if(i >= path.length) return;
+    if(i>=path.length){
+      triggerCellEffect(p);
+      return;
+    }
 
-    let next = path[i];
-
-    animateMove(el, from, next, ()=>{
-      from = next;
+    animateMove(el, from, path[i], ()=>{
+      from=path[i];
       i++;
       step();
     });
@@ -110,41 +105,92 @@ function movePlayerSmooth(id){
 }
 
 // --- АНИМАЦИЯ ---
-function animateMove(el, fromIndex, toIndex, callback){
-  const from = cells[fromIndex];
-  const to = cells[toIndex];
+function animateMove(el, fromIndex, toIndex, cb){
+  const from=cells[fromIndex];
+  const to=cells[toIndex];
 
-  let frames = 20;
-  let count = 0;
+  let t=0;
 
-  const interval = setInterval(()=>{
-    count++;
+  const interval=setInterval(()=>{
+    t+=0.08;
 
-    const progress = count / frames;
+    el.style.left = from.x+(to.x-from.x)*t+"px";
+    el.style.top  = from.y+(to.y-from.y)*t+"px";
 
-    const x = from.x + (to.x - from.x) * progress;
-    const y = from.y + (to.y - from.y) * progress;
-
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-
-    if(count >= frames){
+    if(t>=1){
       clearInterval(interval);
-      callback();
+      cb();
     }
-  }, 16);
+  },16);
+}
+
+// --- ЭФФЕКТЫ КЛЕТОК ---
+function triggerCellEffect(p){
+  const rand = Math.random();
+
+  if(rand < 0.5){
+    showScandalCard();
+  } else {
+    showRiskCard();
+  }
+}
+
+// --- ТВОИ СКАНДАЛЫ ---
+function showScandalCard(){
+  const cards=[
+    {text:"Перегрел аудиторию 🔥", value:-1},
+    {text:"Громкий заголовок 🫣", value:-2},
+    {text:"Это монтаж 😱", value:-3},
+    {text:"Меня взломали #️⃣", value:-3},
+    {text:"Подписчики в шоке 😮", value:-4},
+    {text:"Удаляй пока не поздно 🤫", value:-5},
+    {text:"Это контент 🙄", value:-5}
+  ];
+
+  const c = cards[Math.floor(Math.random()*cards.length)];
+  showFancyCard("💥 СКАНДАЛ", c.text, c.value);
+}
+
+// --- РИСК ---
+function showRiskCard(){
+  const dice = Math.floor(Math.random()*6)+1;
+  const result = dice <=3 ? -5 : 5;
+
+  showFancyCard("⚠️ РИСК", `Выпало ${dice}`, result);
+}
+
+// --- КРАСИВАЯ КАРТОЧКА ---
+function showFancyCard(title,text,value){
+  const modal=document.getElementById('modal');
+
+  modal.innerHTML=`
+    <div class="card neonCard">
+      <div class="cardTitle">${title}</div>
+      <div class="cardText">${text}</div>
+      <div class="cardValue ${value>0?'plus':'minus'}">
+        ${value>0?'+':''}${value} хайпа
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('active');
+
+  document.body.classList.add(value>0?'flashGood':'flashBad');
+
+  setTimeout(()=>{
+    modal.classList.remove('active');
+    document.body.classList.remove('flashGood','flashBad');
+  },2500);
 }
 
 // --- ХАЙП ---
 function renderHype(){
-  const container = document.getElementById('hypeBars');
-
-  const me = players.find(p=>p.id===socket.id);
+  const me=players.find(p=>p.id===socket.id);
   if(!me) return;
 
-  const percent = Math.min((me.hype/70)*100,100);
+  const percent=(me.hype/70)*100;
 
-  container.innerHTML = `
+  hypeBars.innerHTML=`
     <div class="hypeBig">${me.hype} / 70</div>
     <div class="hypeBarBig">
       <div class="hypeFillBig" style="width:${percent}%"></div>
@@ -152,9 +198,13 @@ function renderHype(){
   `;
 }
 
+// --- КУБИК ---
+function showDice(n){
+  diceResult.innerHTML=`🎲 Выпало: ${n}`;
+}
+
 // --- ПОБЕДА ---
 function showWinScreen(name){
-  const m = document.getElementById('modal');
-  m.innerHTML=`<div class="winScreen">🏆 ${name} победил!</div>`;
-  m.classList.add('active');
+  modal.innerHTML=`<div class="winScreen">${name} победил!</div>`;
+  modal.classList.add('active');
 }
