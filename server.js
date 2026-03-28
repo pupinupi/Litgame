@@ -93,5 +93,8 @@ io.on('connection', (socket) => {
   io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
 }
 
-http.listen(3000, ()=>console.log("SERVER OK"));
-}); 
+const PORT = process.env.PORT || 3000;
+
+http.listen(PORT, ()=>{
+  console.log("🚀 Server started on port " + PORT);
+});
