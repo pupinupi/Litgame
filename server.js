@@ -3,11 +3,11 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
-app.use(express.static('public'));
+app.use(express.static(__dirname));
 
 let rooms = {};
 
-const cells = [
+const CELLS = [
   'start','plus','plus','scandal','risk',
   'plus','scandal','plus','plus','minus',
   'minusSkip','plus','risk','plus','skip',
@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
 
   socket.on('startGame', (roomCode)=>{
     const room = rooms[roomCode];
-    if(!room) return;
+    if(!room || room.players.length === 0) return;
 
     io.to(roomCode).emit('gameStarted');
     io.to(roomCode).emit('nextTurn', room.players[0].id);
@@ -50,6 +50,7 @@ io.on('connection', (socket) => {
     if(!room) return;
 
     const player = room.players.find(p=>p.id===socket.id);
+    if(!player) return;
 
     if(player.skipNext){
       player.skipNext = false;
@@ -59,11 +60,11 @@ io.on('connection', (socket) => {
 
     const dice = Math.floor(Math.random()*6)+1;
 
-    player.position = (player.position + dice) % cells.length;
+    player.position = (player.position + dice) % CELLS.length;
 
     let event = null;
 
-    switch(cells[player.position]){
+    switch(CELLS[player.position]){
       case 'plus':
         player.hype += 3;
         event = {type:'plus', value:3};
@@ -96,17 +97,12 @@ io.on('connection', (socket) => {
         break;
     }
 
-    if(player.hype >= 70){
-      io.to(roomCode).emit('gameEnded', player.username);
-    }
-
     io.to(roomCode).emit('diceRolled', {
       playerId: socket.id,
       dice,
-      event
+      event,
+      players: room.players
     });
-
-    io.to(roomCode).emit('updatePlayers', room.players);
 
     nextTurn(roomCode);
   });
@@ -116,9 +112,11 @@ io.on('connection', (socket) => {
     if(!room) return;
 
     room.turn = (room.turn + 1) % room.players.length;
+
+    io.to(roomCode).emit('updatePlayers', room.players);
     io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
   }
 
 });
 
-http.listen(3000);
+http.listen(3000, ()=>console.log("SERVER RUNNING"));
