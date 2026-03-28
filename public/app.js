@@ -7,38 +7,58 @@ let currentTurnId = null;
 
 let username="", roomCode="", color=null;
 
+// --- ЭЛЕМЕНТЫ ---
+const usernameInput = document.getElementById('username');
+const roomCodeInput = document.getElementById('roomCode');
+const joinBtn = document.getElementById('joinBtn');
+const startBtn = document.getElementById('startBtn');
+const rollBtn = document.getElementById('rollBtn');
+
+const lobby = document.getElementById('lobby');
+const game = document.getElementById('game');
+
+const gameBoard = document.getElementById('gameBoard');
+const hypeBars = document.getElementById('hypeBars');
+const diceResult = document.getElementById('diceResult');
+const modal = document.getElementById('modal');
+const log = document.getElementById('log');
+
 // --- ВЫБОР ФИШКИ ---
 document.querySelectorAll('.chip').forEach(chip=>{
-  chip.onclick=()=>{
+  chip.addEventListener('click', ()=>{
     document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
     chip.classList.add('selected');
     color = chip.dataset.color;
-  };
+  });
 });
 
 // --- ВОЙТИ ---
-joinBtn.onclick=()=>{
-  username = usernameInput.value;
-  roomCode = roomCodeInput.value;
+joinBtn.addEventListener('click', ()=>{
+  username = usernameInput.value.trim();
+  roomCode = roomCodeInput.value.trim();
 
   if(!username || !roomCode || !color){
-    alert("Заполни всё");
+    alert("Заполни имя, комнату и выбери фишку");
     return;
   }
 
   socket.emit('joinRoom',{username,roomCode,color});
-};
+});
 
 // --- СТАРТ ---
-startBtn.onclick=()=>{
+startBtn.addEventListener('click', ()=>{
+  if(!roomCode){
+    alert("Сначала войди");
+    return;
+  }
   socket.emit('startGame',roomCode);
-};
+});
 
 // --- КУБИК ---
-rollBtn.onclick=()=>{
+rollBtn.addEventListener('click', ()=>{
   if(currentTurnId !== socket.id) return;
   socket.emit('rollDice',roomCode);
-};
+});
 
 // --- SOCKET ---
 socket.on('updatePlayers', pl=>{
@@ -174,46 +194,17 @@ function renderHype(){
 function showEvent(e){
   if(!e) return;
 
-  if(e.type==='scandal'){
-    showModal("💥 Скандал!");
-    return;
-  }
-
-  if(e.type==='risk'){
-    showRisk(e.value);
-    return;
-  }
-
   let text="";
+
   if(e.type==='plus') text=`🔥 +${e.value}`;
   if(e.type==='minus') text=`❌ -${e.value}`;
   if(e.type==='skip') text=`⛔ Пропуск`;
   if(e.type==='minusSkip') text=`⛔ -${e.value} + пропуск`;
+  if(e.type==='scandal') text=`💥 Скандал!`;
+  if(e.type==='risk') text=`🎲 Риск ${e.value}`;
 
   showModal(text);
   addLog(text);
-}
-
-function showRisk(val){
-  modal.innerHTML=`
-    <div class="neonCard">
-      <h2>⚠️ РИСК</h2>
-      <p>Перебросить?</p>
-      <button onclick="reroll()">Да</button>
-      <button onclick="closeRisk()">Нет</button>
-    </div>
-  `;
-  modal.classList.add('active');
-
-  window.reroll=()=>{
-    modal.classList.remove('active');
-    socket.emit('rollDice',roomCode);
-  };
-
-  window.closeRisk=()=>{
-    modal.classList.remove('active');
-    addLog("Риск: "+val);
-  };
 }
 
 function showModal(t){
@@ -224,6 +215,8 @@ function showModal(t){
 
 // --- ЛОГ ---
 function addLog(t){
+  if(!log) return;
+
   const el=document.createElement('div');
   el.innerText=t;
   log.prepend(el);
