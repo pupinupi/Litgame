@@ -106,26 +106,26 @@ const cells=[
   {name:"+4",x:210,y:626,type:'plus',value:4}
 ];
 
-// --- ДВИЖЕНИЕ ---
+// --- ПЛАВНОЕ ДВИЖЕНИЕ ---
 function movePlayerSmooth(id, steps){
   const p = players.find(pl=>pl.id===id);
   if(!p) return;
 
   let stepIndex=0;
+
   function step(){
     if(stepIndex >= steps){
       handleCell(p,cells[p.position]);
       return;
     }
+
     const nextIndex = (p.position + 1) % cells.length;
-
     p.position = nextIndex;
-
     renderPlayers();
-
     stepIndex++;
     setTimeout(step, 300);
   }
+
   step();
 }
 
