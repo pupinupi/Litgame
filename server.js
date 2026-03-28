@@ -7,6 +7,7 @@ app.use(express.static('public'));
 
 let rooms = {};
 
+// --- КЛЕТКИ ---
 const cells = [
   {type:'start'},
   {type:'plus', value:3},
@@ -33,12 +34,10 @@ const cells = [
 io.on('connection', (socket) => {
 
   socket.on('joinRoom', ({username, roomCode, color}) => {
-    if(!rooms[roomCode]){
-      rooms[roomCode] = { players: [], turn: 0, started:false, gameEnded:false };
-    }
 
-    const room = rooms[roomCode];
-    if(room.started) return;
+    if(!rooms[roomCode]){
+      rooms[roomCode] = { players: [], turn: 0 };
+    }
 
     const player = {
       id: socket.id,
@@ -49,17 +48,15 @@ io.on('connection', (socket) => {
       skipNext: false
     };
 
-    room.players.push(player);
+    rooms[roomCode].players.push(player);
     socket.join(roomCode);
 
-    io.to(roomCode).emit('updatePlayers', room.players);
+    io.to(roomCode).emit('updatePlayers', rooms[roomCode].players);
   });
 
   socket.on('startGame', (roomCode)=>{
     const room = rooms[roomCode];
-    if(!room || room.started) return;
-
-    room.started = true;
+    if(!room) return;
 
     io.to(roomCode).emit('gameStarted');
     io.to(roomCode).emit('nextTurn', room.players[0].id);
@@ -67,10 +64,9 @@ io.on('connection', (socket) => {
 
   socket.on('rollDice', (roomCode)=>{
     const room = rooms[roomCode];
-    if(!room || room.gameEnded) return;
+    if(!room) return;
 
     const player = room.players.find(p=>p.id===socket.id);
-    if(!player) return;
 
     if(player.skipNext){
       player.skipNext = false;
@@ -80,67 +76,77 @@ io.on('connection', (socket) => {
 
     const dice = Math.floor(Math.random()*6)+1;
 
-    let steps = dice;
+    // --- ДВИЖЕНИЕ ---
+    player.position = (player.position + dice) % cells.length;
 
-    while(steps > 0){
-      player.position++;
-
-      if(player.position >= cells.length){
-        player.position = 0;
-        player.hype += 5;
-      }
-
-      steps--;
+    // --- ПОЛНЫЙ КРУГ ---
+    if(player.position === 0){
+      player.hype += 5;
     }
 
-    // клетка
+    // --- ЛОГИКА КЛЕТКИ ---
     const cell = cells[player.position];
 
-    if(cell.type==='plus') player.hype += cell.value;
-    if(cell.type==='minus') player.hype = Math.max(0, player.hype - cell.value);
-    if(cell.type==='skip') player.skipNext = true;
+    let event = null;
+
+    if(cell.type==='plus'){
+      player.hype += cell.value;
+      event = {type:'plus', value:cell.value};
+    }
+
+    if(cell.type==='minus'){
+      player.hype = Math.max(0, player.hype - cell.value);
+      event = {type:'minus', value:cell.value};
+    }
+
+    if(cell.type==='skip'){
+      player.skipNext = true;
+      event = {type:'skip'};
+    }
+
     if(cell.type==='minusSkip'){
       player.hype = Math.max(0, player.hype - cell.value);
       player.skipNext = true;
+      event = {type:'minusSkip', value:cell.value};
+    }
+
+    if(cell.type==='scandal'){
+      const val = - (Math.floor(Math.random()*5)+1);
+      player.hype = Math.max(0, player.hype + val);
+      event = {type:'scandal', value:val};
+    }
+
+    if(cell.type==='risk'){
+      const val = Math.random()<0.5 ? -5 : 5;
+      player.hype = Math.max(0, player.hype + val);
+      event = {type:'risk', value:val};
+    }
+
+    // --- ПОБЕДА ---
+    if(player.hype >= 70){
+      io.to(roomCode).emit('gameEnded', player.username);
     }
 
     io.to(roomCode).emit('diceRolled', {
       playerId: socket.id,
-      dice
+      dice,
+      event
     });
 
     io.to(roomCode).emit('updatePlayers', room.players);
-
-    if(player.hype >= 70){
-      room.gameEnded = true;
-      io.to(roomCode).emit('gameEnded', player.username);
-      return;
-    }
 
     nextTurn(roomCode);
   });
 
   function nextTurn(roomCode){
     const room = rooms[roomCode];
-    if(!room || room.gameEnded) return;
+    if(!room) return;
 
     room.turn = (room.turn + 1) % room.players.length;
+
     io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
   }
 
-  socket.on('disconnect', ()=>{
-    for(const roomCode in rooms){
-      const room = rooms[roomCode];
-      room.players = room.players.filter(p=>p.id !== socket.id);
-
-      if(room.players.length === 0){
-        delete rooms[roomCode];
-      } else {
-        io.to(roomCode).emit('updatePlayers', room.players);
-      }
-    }
-  });
-
 });
 
-http.listen(3000, ()=>console.log('Server running on http://localhost:3000'));
+http.listen(3000);
