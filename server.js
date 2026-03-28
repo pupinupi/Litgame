@@ -7,28 +7,11 @@ app.use(express.static('public'));
 
 let rooms = {};
 
-// --- КЛЕТКИ ---
 const cells = [
-  {type:'start'},
-  {type:'plus', value:3},
-  {type:'plus', value:2},
-  {type:'scandal'},
-  {type:'risk'},
-  {type:'plus', value:2},
-  {type:'scandal'},
-  {type:'plus', value:3},
-  {type:'plus', value:5},
-  {type:'minus', value:10},
-  {type:'minusSkip', value:8},
-  {type:'plus', value:3},
-  {type:'risk'},
-  {type:'plus', value:3},
-  {type:'skip'},
-  {type:'plus', value:2},
-  {type:'scandal'},
-  {type:'plus', value:8},
-  {type:'minus', value:10},
-  {type:'plus', value:4}
+  'start','plus','plus','scandal','risk',
+  'plus','scandal','plus','plus','minus',
+  'minusSkip','plus','risk','plus','skip',
+  'plus','scandal','plus','minus','plus'
 ];
 
 io.on('connection', (socket) => {
@@ -76,53 +59,43 @@ io.on('connection', (socket) => {
 
     const dice = Math.floor(Math.random()*6)+1;
 
-    // --- ДВИЖЕНИЕ ---
     player.position = (player.position + dice) % cells.length;
-
-    // --- ПОЛНЫЙ КРУГ ---
-    if(player.position === 0){
-      player.hype += 5;
-    }
-
-    // --- ЛОГИКА КЛЕТКИ ---
-    const cell = cells[player.position];
 
     let event = null;
 
-    if(cell.type==='plus'){
-      player.hype += cell.value;
-      event = {type:'plus', value:cell.value};
+    switch(cells[player.position]){
+      case 'plus':
+        player.hype += 3;
+        event = {type:'plus', value:3};
+        break;
+
+      case 'minus':
+        player.hype = Math.max(0, player.hype - 5);
+        event = {type:'minus', value:5};
+        break;
+
+      case 'skip':
+        player.skipNext = true;
+        event = {type:'skip'};
+        break;
+
+      case 'minusSkip':
+        player.hype = Math.max(0, player.hype - 8);
+        player.skipNext = true;
+        event = {type:'minusSkip', value:8};
+        break;
+
+      case 'scandal':
+        event = {type:'scandal'};
+        break;
+
+      case 'risk':
+        const val = Math.random()<0.5 ? -5 : 5;
+        player.hype = Math.max(0, player.hype + val);
+        event = {type:'risk', value:val};
+        break;
     }
 
-    if(cell.type==='minus'){
-      player.hype = Math.max(0, player.hype - cell.value);
-      event = {type:'minus', value:cell.value};
-    }
-
-    if(cell.type==='skip'){
-      player.skipNext = true;
-      event = {type:'skip'};
-    }
-
-    if(cell.type==='minusSkip'){
-      player.hype = Math.max(0, player.hype - cell.value);
-      player.skipNext = true;
-      event = {type:'minusSkip', value:cell.value};
-    }
-
-    if(cell.type==='scandal'){
-      const val = - (Math.floor(Math.random()*5)+1);
-      player.hype = Math.max(0, player.hype + val);
-      event = {type:'scandal', value:val};
-    }
-
-    if(cell.type==='risk'){
-      const val = Math.random()<0.5 ? -5 : 5;
-      player.hype = Math.max(0, player.hype + val);
-      event = {type:'risk', value:val};
-    }
-
-    // --- ПОБЕДА ---
     if(player.hype >= 70){
       io.to(roomCode).emit('gameEnded', player.username);
     }
@@ -143,7 +116,6 @@ io.on('connection', (socket) => {
     if(!room) return;
 
     room.turn = (room.turn + 1) % room.players.length;
-
     io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
   }
 
