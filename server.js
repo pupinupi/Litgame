@@ -79,14 +79,18 @@ io.on('connection', (socket) => {
   });
 
   function nextTurn(roomCode){
-    const room = rooms[roomCode];
-    if(!room || room.players.length === 0) return;
+  const room = rooms[roomCode];
+  if(!room || room.players.length === 0) return;
 
-    room.turn = (room.turn + 1) % room.players.length;
-
-    io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
+  // 💥 ЕСЛИ 1 ИГРОК — НЕ КРУТИМ ХОДЫ
+  if(room.players.length === 1){
+    io.to(roomCode).emit('nextTurn', room.players[0].id);
+    return;
   }
 
-});
+  room.turn = (room.turn + 1) % room.players.length;
+
+  io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
+}
 
 http.listen(3000, ()=>console.log("SERVER OK"));
