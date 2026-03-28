@@ -92,6 +92,7 @@ io.on('connection', (socket) => {
 
   io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
 }
+  });
 
 const PORT = process.env.PORT || 3000;
 
