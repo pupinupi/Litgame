@@ -56,14 +56,32 @@ rollBtn.onclick = ()=>{
   socket.emit("rollDice", roomCode);
 };
 
-// координаты КВАДРАТА
-const cells = [];
+const cells = [
+  {x:82,y:587},
+  {x:97,y:464},
+  {x:86,y:348},
+  {x:93,y:224},
+  {x:87,y:129},
 
-for(let i=0;i<4;i++) cells.push({x:100, y:600 - i*120});
-for(let i=1;i<=6;i++) cells.push({x:100 + i*140, y:120});
-for(let i=1;i<=4;i++) cells.push({x:940, y:120 + i*120});
-for(let i=5;i>=0;i--) cells.push({x:100 + i*140, y:600});
+  {x:219,y:101},
+  {x:364,y:107},
+  {x:494,y:95},
+  {x:652,y:96},
+  {x:815,y:89},
 
+  {x:930,y:135},
+  {x:936,y:247},
+  {x:936,y:357},
+  {x:941,y:480},
+  {x:937,y:610},
+
+  {x:794,y:624},
+  {x:636,y:635},
+  {x:517,y:627},
+  {x:355,y:619},
+  {x:210,y:626}
+];
+  
 // SOCKET
 socket.on("updatePlayers", (pl)=>{
   players = pl;
