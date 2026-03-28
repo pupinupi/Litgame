@@ -7,7 +7,7 @@ let currentTurnId = null;
 
 let username="", roomCode="", color=null;
 
-// --- ЛОББИ ---
+// --- ВЫБОР ФИШКИ ---
 document.querySelectorAll('.chip').forEach(chip=>{
   chip.onclick=()=>{
     document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
@@ -16,6 +16,7 @@ document.querySelectorAll('.chip').forEach(chip=>{
   };
 });
 
+// --- ВОЙТИ ---
 joinBtn.onclick=()=>{
   username = usernameInput.value;
   roomCode = roomCodeInput.value;
@@ -28,6 +29,7 @@ joinBtn.onclick=()=>{
   socket.emit('joinRoom',{username,roomCode,color});
 };
 
+// --- СТАРТ ---
 startBtn.onclick=()=>{
   socket.emit('startGame',roomCode);
 };
@@ -46,6 +48,7 @@ socket.on('updatePlayers', pl=>{
   });
 
   players = pl;
+
   renderPlayers();
   renderHype();
 });
@@ -57,14 +60,26 @@ socket.on('gameStarted', ()=>{
 
 socket.on('nextTurn', id=>{
   currentTurnId=id;
+
+  const me = players.find(p=>p.id===socket.id);
+  rollBtn.disabled = (id !== socket.id) || (me && me.skipNext);
 });
 
 socket.on('diceRolled', ({playerId,dice,event})=>{
-  diceResult.innerText = "🎲 "+dice;
+  diceResult.innerText="🎲 "+dice;
+
   movePlayerSmooth(playerId, ()=>{
     if(playerId===socket.id) showEvent(event);
   });
 });
+
+// --- КВАДРАТНОЕ ПОЛЕ ---
+const cells = [];
+
+for(let i=0;i<4;i++) cells.push({x:100, y:600 - i*120});
+for(let i=1;i<=6;i++) cells.push({x:100 + i*140, y:120});
+for(let i=1;i<=4;i++) cells.push({x:940, y:120 + i*120});
+for(let i=5;i>=0;i--) cells.push({x:100 + i*140, y:600});
 
 // --- ДВИЖЕНИЕ ---
 function movePlayerSmooth(id, cb){
@@ -78,7 +93,7 @@ function movePlayerSmooth(id, cb){
   let cur=from;
 
   while(cur!==to){
-    cur=(cur+1)%20;
+    cur=(cur+1)%cells.length;
     steps.push(cur);
   }
 
@@ -103,7 +118,6 @@ function movePlayerSmooth(id, cb){
   step();
 }
 
-// --- АНИМАЦИЯ ---
 function animateMove(el, from, to, cb){
   const c1=cells[from];
   const c2=cells[to];
@@ -125,8 +139,6 @@ function animateMove(el, from, to, cb){
 
 // --- UI ---
 function renderPlayers(){
-  const board=gameBoard;
-
   players.forEach((p,i)=>{
     let el=document.querySelector(`[data-id="${p.id}"]`);
 
@@ -135,11 +147,11 @@ function renderPlayers(){
       el.className='player';
       el.dataset.id=p.id;
       el.style.background=p.color;
-      board.appendChild(el);
+      gameBoard.appendChild(el);
     }
 
     const c=cells[p.position];
-    el.style.left=(c.x+i*15)+"px";
+    el.style.left=(c.x+i*10)+"px";
     el.style.top=c.y+"px";
   });
 }
@@ -162,30 +174,59 @@ function renderHype(){
 function showEvent(e){
   if(!e) return;
 
-  let text="";
+  if(e.type==='scandal'){
+    showModal("💥 Скандал!");
+    return;
+  }
 
-  if(e.type==='plus') text=`+${e.value} хайпа 🔥`;
-  if(e.type==='minus') text=`-${e.value} хайпа ❌`;
-  if(e.type==='scandal') text=`💥 Скандал ${e.value}`;
-  if(e.type==='risk') text=`🎲 Риск ${e.value}`;
-  if(e.type==='skip') text=`⛔ Пропуск хода`;
-  if(e.type==='minusSkip') text=`-${e.value} + пропуск`;
+  if(e.type==='risk'){
+    showRisk(e.value);
+    return;
+  }
+
+  let text="";
+  if(e.type==='plus') text=`🔥 +${e.value}`;
+  if(e.type==='minus') text=`❌ -${e.value}`;
+  if(e.type==='skip') text=`⛔ Пропуск`;
+  if(e.type==='minusSkip') text=`⛔ -${e.value} + пропуск`;
 
   showModal(text);
+  addLog(text);
+}
+
+function showRisk(val){
+  modal.innerHTML=`
+    <div class="neonCard">
+      <h2>⚠️ РИСК</h2>
+      <p>Перебросить?</p>
+      <button onclick="reroll()">Да</button>
+      <button onclick="closeRisk()">Нет</button>
+    </div>
+  `;
+  modal.classList.add('active');
+
+  window.reroll=()=>{
+    modal.classList.remove('active');
+    socket.emit('rollDice',roomCode);
+  };
+
+  window.closeRisk=()=>{
+    modal.classList.remove('active');
+    addLog("Риск: "+val);
+  };
 }
 
 function showModal(t){
   modal.innerHTML=`<div class="neonCard">${t}</div>`;
   modal.classList.add('active');
-
   setTimeout(()=>modal.classList.remove('active'),2000);
 }
 
-const cells=[
-  {x:82,y:587},{x:97,y:464},{x:86,y:348},{x:93,y:224},{x:87,y:129},
-  {x:219,y:101},{x:364,y:107},{x:494,y:95},{x:652,y:96},{x:815,y:89},
-  {x:930,y:135},{x:936,y:247},{x:936,y:357},{x:941,y:480},{x:937,y:610},
-  {x:794,y:624},{x:636,y:635},{x:517,y:627},{x:355,y:619},{x:210,y:626}
-];
+// --- ЛОГ ---
+function addLog(t){
+  const el=document.createElement('div');
+  el.innerText=t;
+  log.prepend(el);
+}
 
 });
