@@ -5,6 +5,17 @@ let currentTurnId=null;
 
 let username, roomCode, color;
 
+// 🎯 СКАНДАЛЫ
+const scandals = [
+  {text:"перегрел аудиторию🔥",hype:-1},
+  {text:"громкий заголовок🫣",hype:-2},
+  {text:"это монтаж 😱",hype:-3},
+  {text:"меня взломали #️⃣",hypeAll:-3},
+  {text:"подписчики в шоке 😮",hype:-4},
+  {text:"удаляй пока не поздно🤫",hype:-5},
+  {text:"это контент🙄",hype:-5,skip:true}
+];
+
 // --- ВЫБОР ФИШКИ ---
 document.querySelectorAll('.chip').forEach(btn=>{
   btn.onclick=()=>{
@@ -56,39 +67,16 @@ socket.on('nextTurn', id=>{
 });
 
 socket.on('diceRolled', ({playerId,dice})=>{
-  if(playerId !== socket.id) return;
-
   document.getElementById('diceResult').innerText = "🎲 " + dice;
 
+  if(playerId !== socket.id) return;
   movePlayer(dice);
 });
 
+// --- ПОЛЕ ---
+const cells=[ /* твой массив оставь как есть */ ];
 
-// --- ТВОИ КООРДИНАТЫ ---
-const cells=[
-  {x:82,y:587,type:'start'},
-  {x:97,y:464,type:'plus',value:3},
-  {x:86,y:348,type:'plus',value:2},
-  {x:93,y:224,type:'scandal'},
-  {x:87,y:129,type:'risk'},
-  {x:219,y:101,type:'plus',value:2},
-  {x:364,y:107,type:'scandal'},
-  {x:494,y:95,type:'plus',value:3},
-  {x:652,y:96,type:'plus',value:5},
-  {x:815,y:89,type:'minus',value:10},
-  {x:930,y:135,type:'minusSkip',value:8},
-  {x:936,y:247,type:'plus',value:3},
-  {x:936,y:357,type:'risk'},
-  {x:941,y:480,type:'plus',value:3},
-  {x:937,y:610,type:'skip'},
-  {x:794,y:624,type:'plus',value:2},
-  {x:636,y:635,type:'scandal'},
-  {x:517,y:627,type:'plus',value:8},
-  {x:355,y:619,type:'minus',value:10},
-  {x:210,y:626,type:'plus',value:4}
-];
-
-// --- ДВИЖЕНИЕ (ГЛАВНОЕ) ---
+// --- ДВИЖЕНИЕ ---
 function movePlayer(steps){
   const me = players.find(p=>p.id===socket.id);
   if(!me) return;
@@ -102,39 +90,110 @@ function movePlayer(steps){
     }
 
     me.position = (me.position + 1) % cells.length;
-
     renderPlayers();
 
     count++;
-    setTimeout(step,300);
+    setTimeout(step,250);
   }
 
   step();
 }
 
-// --- ЛОГИКА ---
+// --- ЛОГИКА КЛЕТОК ---
 function handleCell(p){
   const cell=cells[p.position];
 
-  if(cell.type==='start'){p.hype+=10;}
   if(cell.type==='plus'){p.hype+=cell.value;}
   if(cell.type==='minus'){p.hype=Math.max(0,p.hype-cell.value);}
   if(cell.type==='skip'){p.skipNext=true;}
-  if(cell.type==='minusSkip'){p.hype=Math.max(0,p.hype-cell.value); p.skipNext=true;}
+  if(cell.type==='minusSkip'){
+    p.hype=Math.max(0,p.hype-cell.value);
+    p.skipNext=true;
+  }
+
+  if(cell.type==='scandal'){
+    showScandal(p);
+    return;
+  }
+
   if(cell.type==='risk'){
-    const val=Math.random()<0.5?-5:5;
-    p.hype=Math.max(0,p.hype+val);
+    showRisk(p);
+    return;
+  }
+
+  finishTurn(p);
+}
+
+// 🔥 СКАНДАЛ
+function showScandal(p){
+  const card=scandals[Math.floor(Math.random()*scandals.length)];
+
+  showModal("💥 СКАНДАЛ<br>"+card.text,"red");
+
+  if(card.hypeAll){
+    players.forEach(pl=>{
+      pl.hype=Math.max(0,pl.hype+card.hypeAll);
+    });
+  } else {
+    p.hype=Math.max(0,p.hype+card.hype);
+  }
+
+  if(card.skip) p.skipNext=true;
+
+  setTimeout(()=>{
+    finishTurn(p);
+  },1500);
+}
+
+// ⚡ РИСК
+function showRisk(p){
+  showModal("⚠️ РИСК<br>1-3: -5 | 4-6: +5","yellow");
+
+  setTimeout(()=>{
+    const dice=Math.floor(Math.random()*6)+1;
+    const change = dice<=3?-5:5;
+
+    p.hype=Math.max(0,p.hype+change);
+
+    showModal(`🎲 ${dice}<br>${change>0?'+':'-'}5 ХАЙП`,"cyan");
+
+    setTimeout(()=>{
+      finishTurn(p);
+    },1200);
+
+  },1200);
+}
+
+// --- ФИНИШ ХОДА ---
+function finishTurn(p){
+
+  if(p.hype>=70){
+    showModal("🏆 ПОБЕДА!","gold");
   }
 
   renderHype();
 
-  // отправляем серверу
   socket.emit('playerMoved',{
     roomCode,
     position:p.position,
     hype:p.hype,
     skipNext:p.skipNext
   });
+}
+
+// --- МОДАЛКА ---
+function showModal(text,color){
+  const m=document.getElementById('modal');
+
+  m.innerHTML=`<div class="modalContent" style="box-shadow:0 0 25px ${color}">
+    ${text}
+  </div>`;
+
+  m.classList.add('active');
+
+  setTimeout(()=>{
+    m.classList.remove('active');
+  },1200);
 }
 
 // --- РЕНДЕР ---
@@ -157,12 +216,21 @@ function renderPlayers(){
   });
 }
 
+// 🔵 ШКАЛА ХАЙПА
 function renderHype(){
-  const me=players.find(p=>p.id===socket.id);
-  if(!me) return;
+  let html="";
 
-  document.getElementById('hypeBars').innerHTML=
-    `<div style="font-size:40px;font-weight:900;text-align:center;">
-      ${me.hype} / 70
-     </div>`;
+  players.forEach(p=>{
+    const percent = Math.min(100,(p.hype/70)*100);
+
+    html+=`
+    <div>
+      ${p.username}: ${p.hype}
+      <div class="hypeBar">
+        <div class="hypeFill" style="width:${percent}%"></div>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('hypeBars').innerHTML=html;
 }
