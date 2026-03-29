@@ -2,20 +2,18 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>🔥 Литвин</title>
+<title>🔥 Литвин: Путь к хайпу</title>
 <link rel="stylesheet" href="style.css">
-
-<script src="socket.io/socket.io.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script defer src="app.js"></script>
 </head>
-
 <body>
 
+<!-- ЛОББИ -->
 <div id="lobby">
-  <h1>🔥 ЛИТВИН</h1>
-
+  <h1>🔥 ЛИТВИН: ПУТЬ К ХАЙПУ 🔥</h1>
   <input id="username" placeholder="Имя">
-  <input id="roomCode" placeholder="Комната">
+  <input id="roomCode" placeholder="Код комнаты">
 
   <div class="chips">
     <div class="chip" data-color="red"></div>
@@ -24,25 +22,36 @@
     <div class="chip" data-color="purple"></div>
   </div>
 
-  <button id="joinBtn">ВОЙТИ</button>
-  <button id="startBtn">СТАРТ</button>
+  <div class="buttons">
+    <button id="joinBtn">ВОЙТИ</button>
+    <button id="startBtn">НАЧАТЬ</button>
+  </div>
 
   <div id="playersList"></div>
 
   <div class="rules">
-    <p>🎲 Бросай кубик</p>
-    <p>🔥 70 хайпа — победа</p>
+    <h2>📜 Правила</h2>
+    <p>🎲 Бросай кубик и двигайся по полю</p>
+    <p>🔥 Собери 70 хайпа</p>
+    <p>💥 Скандалы уменьшают хайп</p>
+    <p>⚠️ Риск: + или -</p>
+    <p>🏆 Первый до 70 — победил</p>
   </div>
 </div>
 
-<div id="game">
+<!-- ИГРА -->
+<div id="game" style="display:none; flex-direction:column; align-items:center;">
   <div id="hypeBars"></div>
 
-  <div id="board"></div>
+  <div id="gameBoard">
+    <img src="board.jpg" alt="Игровое поле">
+  </div>
 
-  <div id="dice"></div>
-  <button id="rollBtn">🎲</button>
+  <div id="diceResult"></div>
+  <button id="rollBtn">🎲 БРОСИТЬ</button>
 </div>
+
+<div id="modal"></div>
 
 </body>
 </html>
