@@ -63,9 +63,16 @@ socket.on('gameStarted', () => {
   document.getElementById('game').style.display = 'flex';
 });
 
-socket.on('nextTurn', id => {
+socket.on('nextTurn', id=>{
   currentTurnId = id;
-  document.getElementById('rollBtn').disabled = id !== socket.id;
+
+  const btn = document.getElementById('rollBtn');
+  btn.disabled = id !== socket.id;
+
+  // 💥 отладка (можешь потом удалить)
+  if(id === socket.id){
+    console.log("ТВОЙ ХОД");
+  }
 });
 
 socket.on('diceRolled', ({ playerId, dice }) => {
