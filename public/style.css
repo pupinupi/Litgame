@@ -245,6 +245,30 @@ button{
   pointer-events:none;
 }
 
+#modal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(5px);
+
+  opacity:0;
+  pointer-events:none;
+  transition:0.3s;
+}
+
+#modal.active{
+  opacity:1;
+  pointer-events:all;
+}
+
 .modalContent{
   background:rgba(0,0,0,0.9);
   padding:20px;
