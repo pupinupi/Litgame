@@ -59,6 +59,8 @@ socket.on('updatePlayers', pl=>{
 socket.on('gameStarted', ()=>{
   document.getElementById('lobby').style.display='none';
   document.getElementById('game').style.display='flex';
+
+  renderPlayers(); // 🔥 фикс старта
 });
 
 socket.on('nextTurn', id=>{
@@ -74,7 +76,28 @@ socket.on('diceRolled', ({playerId,dice})=>{
 });
 
 // --- ПОЛЕ ---
-const cells=[ /* твой массив оставь как есть */ ];
+const cells=[
+  {x:82,y:587,type:'start'},
+  {x:97,y:464,type:'plus',value:3},
+  {x:86,y:348,type:'plus',value:2},
+  {x:93,y:224,type:'scandal'},
+  {x:87,y:129,type:'risk'},
+  {x:219,y:101,type:'plus',value:2},
+  {x:364,y:107,type:'scandal'},
+  {x:494,y:95,type:'plus',value:3},
+  {x:652,y:96,type:'plus',value:5},
+  {x:815,y:89,type:'minus',value:10},
+  {x:930,y:135,type:'minusSkip',value:8},
+  {x:936,y:247,type:'plus',value:3},
+  {x:936,y:357,type:'risk'},
+  {x:941,y:480,type:'plus',value:3},
+  {x:937,y:610,type:'skip'},
+  {x:794,y:624,type:'plus',value:2},
+  {x:636,y:635,type:'scandal'},
+  {x:517,y:627,type:'plus',value:8},
+  {x:355,y:619,type:'minus',value:10},
+  {x:210,y:626,type:'plus',value:4}
+];
 
 // --- ДВИЖЕНИЕ ---
 function movePlayer(steps){
@@ -99,7 +122,7 @@ function movePlayer(steps){
   step();
 }
 
-// --- ЛОГИКА КЛЕТОК ---
+// --- ЛОГИКА ---
 function handleCell(p){
   const cell=cells[p.position];
 
@@ -109,66 +132,6 @@ function handleCell(p){
   if(cell.type==='minusSkip'){
     p.hype=Math.max(0,p.hype-cell.value);
     p.skipNext=true;
-  }
-
-  if(cell.type==='scandal'){
-    showScandal(p);
-    return;
-  }
-
-  if(cell.type==='risk'){
-    showRisk(p);
-    return;
-  }
-
-  finishTurn(p);
-}
-
-// 🔥 СКАНДАЛ
-function showScandal(p){
-  const card=scandals[Math.floor(Math.random()*scandals.length)];
-
-  showModal("💥 СКАНДАЛ<br>"+card.text,"red");
-
-  if(card.hypeAll){
-    players.forEach(pl=>{
-      pl.hype=Math.max(0,pl.hype+card.hypeAll);
-    });
-  } else {
-    p.hype=Math.max(0,p.hype+card.hype);
-  }
-
-  if(card.skip) p.skipNext=true;
-
-  setTimeout(()=>{
-    finishTurn(p);
-  },1500);
-}
-
-// ⚡ РИСК
-function showRisk(p){
-  showModal("⚠️ РИСК<br>1-3: -5 | 4-6: +5","yellow");
-
-  setTimeout(()=>{
-    const dice=Math.floor(Math.random()*6)+1;
-    const change = dice<=3?-5:5;
-
-    p.hype=Math.max(0,p.hype+change);
-
-    showModal(`🎲 ${dice}<br>${change>0?'+':'-'}5 ХАЙП`,"cyan");
-
-    setTimeout(()=>{
-      finishTurn(p);
-    },1200);
-
-  },1200);
-}
-
-// --- ФИНИШ ХОДА ---
-function finishTurn(p){
-
-  if(p.hype>=70){
-    showModal("🏆 ПОБЕДА!","gold");
   }
 
   renderHype();
@@ -181,42 +144,40 @@ function finishTurn(p){
   });
 }
 
-// --- МОДАЛКА ---
-function showModal(text,color){
-  const m=document.getElementById('modal');
-
-  m.innerHTML=`<div class="modalContent" style="box-shadow:0 0 25px ${color}">
-    ${text}
-  </div>`;
-
-  m.classList.add('active');
-
-  setTimeout(()=>{
-    m.classList.remove('active');
-  },1200);
-}
-
 // --- РЕНДЕР ---
 function renderPlayers(){
-  const b=document.getElementById('gameBoard');
-  b.querySelectorAll('.player').forEach(e=>e.remove());
+  const board=document.getElementById('gameBoard');
+  if(board){
+    board.querySelectorAll('.player').forEach(e=>e.remove());
 
-  players.forEach((p,i)=>{
-    const c=cells[p.position];
-    if(!c) return;
+    players.forEach((p,i)=>{
+      const c=cells[p.position];
+      if(!c) return;
 
-    const el=document.createElement('div');
-    el.className='player';
-    el.style.background=p.color;
+      const el=document.createElement('div');
+      el.className='player';
+      el.style.background=p.color;
 
-    el.style.left=(c.x + i*10)+'px';
-    el.style.top=c.y+'px';
+      el.style.left=(c.x + i*10)+'px';
+      el.style.top=c.y+'px';
 
-    b.appendChild(el);
-  });
+      board.appendChild(el);
+    });
+  }
+
+  // 👇 ЛОББИ СПИСОК
+  const list=document.getElementById('playersList');
+  if(list){
+    list.innerHTML="";
+    players.forEach(p=>{
+      const div=document.createElement('div');
+      div.innerHTML = `🟢 ${p.username}`;
+      list.appendChild(div);
+    });
+  }
 }
 
-// 🔵 ШКАЛА ХАЙПА
+// --- ШКАЛА ---
 function renderHype(){
   let html="";
 
