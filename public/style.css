@@ -1,20 +1,184 @@
-body { margin:0; padding:0; font-family:Arial,sans-serif; background:#0a0a0a; color:#fff; }
-#lobby, #game { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; height:100vh;}
-.chips{display:flex;gap:10px;}
-.chip{width:50px;height:50px;border-radius:50%;border:2px solid #fff;cursor:pointer;transition:0.2s;}
-.chip:hover{transform:scale(1.2);}
-.chip.selected{box-shadow:0 0 15px #00ffcc;}
-input{font-size:22px;padding:10px;margin:5px;border-radius:10px;border:none;width:300px;}
-button{font-size:24px;padding:10px 20px;margin:5px;border-radius:15px;cursor:pointer;}
-#gameBoard{position:relative;width:1024px;height:1024px;background:#111;border:4px solid #fff;border-radius:20px;}
-#gameBoard img{width:100%;height:100%;border-radius:20px;}
-.player{position:absolute;width:35px;height:35px;border-radius:50%;border:2px solid #fff;}
-.hypeBar{width:300px;height:22px;background:#222;border-radius:15px;margin-top:5px;overflow:hidden;}
-.hypeFill{height:100%;background:linear-gradient(90deg,#00eaff,#3bff7f,#ffe600);transition:width 0.5s;}
-#diceResult{font-size:32px;margin:10px;color:#00eaff;font-weight:900;}
-#modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;pointer-events:none;}
-.modalContent{background:rgba(0,0,0,0.85);padding:15px 25px;border-radius:12px;font-size:24px;color:#fff;text-align:center;}
-.modal.active .modalContent{animation:modalFade 0.3s forwards;}
-@keyframes modalFade{0%{transform:translate(-50%,-50%) scale(0.5);opacity:0;}100%{transform:translate(-50%,-50%) scale(1);opacity:1;}}
-.rules{color:#fff;font-size:18px; text-align:center; margin-top:10px;}
-#playersList{margin-top:15px; font-size:18px;}
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0a0a0a;
+  color:white;
+}
+
+/* ЛОББИ */
+#lobby{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+  gap:10px;
+}
+
+.title{
+  font-size:32px;
+  text-shadow:0 0 15px #00eaff;
+}
+
+input{
+  padding:10px;
+  font-size:18px;
+  border-radius:10px;
+  border:none;
+  width:250px;
+}
+
+/* ФИШКИ */
+.chips{
+  display:flex;
+  gap:15px;
+  margin:10px;
+}
+
+.chip{
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  cursor:pointer;
+  border:3px solid white;
+  transition:0.2s;
+}
+
+.chip:hover{
+  transform:scale(1.2);
+}
+
+.chip.selected{
+  box-shadow:0 0 20px #00ffcc;
+}
+
+/* ЦВЕТА */
+.red{background:red;}
+.blue{background:blue;}
+.yellow{background:yellow;}
+.purple{background:purple;}
+
+button{
+  padding:10px 20px;
+  font-size:20px;
+  border:none;
+  border-radius:15px;
+  cursor:pointer;
+}
+
+.buttons{
+  display:flex;
+  gap:10px;
+}
+
+/* СПИСОК ИГРОКОВ */
+#playersList{
+  margin-top:10px;
+  font-size:18px;
+}
+
+/* ПРАВИЛА */
+.rules{
+  margin-top:10px;
+  font-size:16px;
+  text-align:center;
+}
+
+/* ИГРА */
+#game{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+  gap:10px;
+}
+
+/* ПОЛЕ */
+#gameBoard{
+  position:relative;
+  width:800px;
+  height:800px;
+  border-radius:20px;
+  overflow:hidden;
+  border:4px solid white;
+  box-shadow:0 0 30px #00eaff;
+}
+
+#gameBoard img{
+  width:100%;
+  height:100%;
+}
+
+/* ФИШКИ НА ПОЛЕ */
+.player{
+  position:absolute;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  border:2px solid white;
+  box-shadow:0 0 10px white;
+}
+
+/* КУБИК */
+#diceResult{
+  font-size:30px;
+  font-weight:bold;
+  color:#00eaff;
+}
+
+/* ШКАЛА ХАЙПА */
+#hypeBars{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.hypeBar{
+  width:300px;
+  height:25px;
+  background:#222;
+  border-radius:15px;
+  overflow:hidden;
+  position:relative;
+}
+
+.hypeFill{
+  height:100%;
+  background:linear-gradient(90deg,#00eaff,#00ffcc,#ffe600);
+  transition:0.4s;
+}
+
+.hypeBar div{
+  position:absolute;
+  width:100%;
+  text-align:center;
+  font-weight:bold;
+}
+
+/* МОДАЛКА */
+#modal{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+}
+
+.modalContent{
+  background:rgba(0,0,0,0.9);
+  padding:20px;
+  border-radius:15px;
+  font-size:24px;
+  text-align:center;
+  box-shadow:0 0 20px #ff3b3b;
+}
+
+#modal.active .modalContent{
+  animation:pop 0.3s;
+}
+
+@keyframes pop{
+  0%{transform:scale(0.5); opacity:0;}
+  100%{transform:scale(1); opacity:1;}
+}
