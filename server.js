@@ -70,10 +70,6 @@ io.on('connection', (socket) => {
     const player = room.players.find(p=>p.id===socket.id);
     if(!player) return;
 
-    if(player.skipNext){
-      player.skipNext = false;
-      nextTurn(roomCode);
-      return;
     }
 
     const dice = Math.floor(Math.random()*6)+1;
