@@ -239,14 +239,6 @@ button{
 /* МОДАЛКА */
 #modal{
   position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-}
-
-#modal{
-  position:fixed;
   top:0;
   left:0;
   width:100%;
@@ -256,8 +248,8 @@ button{
   align-items:center;
   justify-content:center;
 
-  background:rgba(0,0,0,0.7);
-  backdrop-filter:blur(5px);
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(6px);
 
   opacity:0;
   pointer-events:none;
