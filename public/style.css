@@ -18,3 +18,20 @@ button{font-size:24px;padding:10px 20px;margin:5px;border-radius:15px;cursor:poi
 @keyframes modalFade{0%{transform:translate(-50%,-50%) scale(0.5);opacity:0;}100%{transform:translate(-50%,-50%) scale(1);opacity:1;}}
 .winScreen{font-size:48px;color:#ffe600;text-shadow:0 0 15px #ff3b3b,0 0 25px #00ffcc;}
 .rules{color:#fff;font-size:18px; text-align:center; margin-top:10px;}
+.modalContent{
+  font-size:28px;
+  font-weight:900;
+  border-radius:15px;
+  padding:20px;
+  animation:pop 0.3s ease;
+}
+
+@keyframes pop{
+  0%{transform:scale(0.5);opacity:0;}
+  100%{transform:scale(1);opacity:1;}
+}
+
+.hypeFill{
+  background:cyan;
+  box-shadow:0 0 15px cyan;
+}
