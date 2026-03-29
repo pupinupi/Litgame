@@ -10,9 +10,35 @@ let rooms = {};
 io.on('connection', (socket) => {
 
   socket.on('joinRoom', ({username, roomCode, color}) => {
-    if(!rooms[roomCode]){
-      rooms[roomCode] = { players: [], turn: 0 };
-    }
+
+  if(!rooms[roomCode]){
+    rooms[roomCode] = { players: [], turn: 0 };
+  }
+
+  const room = rooms[roomCode];
+
+  // ❗ ПРОВЕРКА ЦВЕТА
+  const colorTaken = room.players.some(p => p.color === color);
+
+  if(colorTaken){
+    socket.emit('colorTaken');
+    return;
+  }
+
+  const player = {
+    id: socket.id,
+    username,
+    color,
+    position: 0,
+    hype: 0,
+    skipNext: false
+  };
+
+  room.players.push(player);
+  socket.join(roomCode);
+
+  io.to(roomCode).emit('updatePlayers', room.players);
+});
 
     const player = {
       id: socket.id,
