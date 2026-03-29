@@ -33,7 +33,7 @@ document.getElementById('rollBtn').onclick=()=>{
 socket.on('updatePlayers', pl=>{
   players=pl;
   renderPlayers();
-  renderHype();
+  renderHypeBars();
   renderLobbyPlayers();
 });
 
@@ -65,7 +65,7 @@ const cells=[
   {x:494,y:95,type:'plus',value:3},
   {x:652,y:96,type:'plus',value:5},
   {x:815,y:89,type:'minus',value:10},
-  {x:930,y:135,type:'minusSkip',value:8},
+  {x:930,y:135,type:'minusSkip',value:8}, // Суд
   {x:936,y:247,type:'plus',value:3},
   {x:936,y:357,type:'risk'},
   {x:941,y:480,type:'plus',value:3},
@@ -104,18 +104,22 @@ function handleCell(p){
     case 'plus': p.hype+=cell.value; modalText=`➕ +${cell.value} хайпа`; break;
     case 'minus': p.hype=Math.max(0,p.hype-cell.value); modalText=`➖ -${cell.value} хайпа`; break;
     case 'skip': p.skipNext=true; modalText='🛑 Пропуск хода!'; break;
-    case 'minusSkip': p.hype=Math.max(0,p.hype-cell.value); p.skipNext=true; modalText=`🛑 -${cell.value} хайпа и пропуск хода!`; break;
-    case 'risk': showRiskModal(p); break;
-    case 'scandal': showScandalModal(p); break;
+    case 'minusSkip': 
+      p.hype=Math.max(0,p.hype-cell.value); 
+      p.skipNext=true; 
+      modalText=`🛑 -${cell.value} хайпа и пропуск хода!`; 
+      break;
+    case 'risk': showRiskModal(p); return;
+    case 'scandal': showScandalModal(p); return;
   }
 
-  renderHype();
+  renderHypeBars();
   if(modalText) showModal(modalText);
 
   socket.emit('playerMoved',{ roomCode, position:p.position, hype:p.hype, skipNext:p.skipNext });
 }
 
-// --- Рендер ---
+// --- Рендер фишек ---
 function renderPlayers(){
   const b=document.getElementById('gameBoard');
   players.forEach((p,i)=>{
@@ -134,14 +138,23 @@ function renderPlayers(){
   });
 }
 
-function renderHype(){
-  const me=players.find(p=>p.id===socket.id);
-  if(!me) return;
-  document.getElementById('hypeBars').innerHTML=`<div style="font-size:40px;font-weight:900;text-align:center;">
-    ${me.hype} / 70
-  </div>`;
+// --- Шкалы хайпа для всех ---
+function renderHypeBars(){
+  const container=document.getElementById('hypeBars');
+  container.innerHTML='';
+  players.forEach(p=>{
+    const bar=document.createElement('div');
+    bar.className='hypeBar';
+    const fill=document.createElement('div');
+    fill.className='hypeFill';
+    fill.style.width=Math.min(p.hype,70)/70*100+'%';
+    bar.innerHTML=`<div style="text-align:center;font-weight:bold;color:#fff;">${p.username}: ${p.hype}/70</div>`;
+    bar.appendChild(fill);
+    container.appendChild(bar);
+  });
 }
 
+// --- Лобби ---
 function renderLobbyPlayers(){
   const list=document.getElementById('playersList');
   list.innerHTML=players.map(p=>`<div style="color:${p.color}">${p.username}</div>`).join('');
@@ -155,13 +168,17 @@ function showModal(text){
   setTimeout(()=>{ m.classList.remove('active'); },1500);
 }
 
+// --- Риск ---
 function showRiskModal(p){
   const dice=Math.floor(Math.random()*6)+1;
   const val=(dice<=3?-5:5);
   p.hype=Math.max(0,p.hype+val);
   showModal(`🎲 Риск! Выпало ${dice}, ${val>0?'+':'-'}${Math.abs(val)} хайпа`);
+  renderHypeBars();
+  socket.emit('playerMoved',{ roomCode, position:p.position, hype:p.hype, skipNext:p.skipNext });
 }
 
+// --- Скандалы ---
 function showScandalModal(p){
   const options=[
     {text:'перегрел аудиторию🔥', val:-1},
@@ -180,5 +197,6 @@ function showScandalModal(p){
   if(choice.skip) p.skipNext=true;
 
   showModal(`💥 Скандал: ${choice.text} (${choice.val>0?'+':'-'}${Math.abs(choice.val)} хайпа)`);
-  renderHype();
+  renderHypeBars();
+  socket.emit('playerMoved',{ roomCode, position:p.position, hype:p.hype, skipNext:p.skipNext });
 }
