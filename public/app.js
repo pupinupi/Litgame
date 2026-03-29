@@ -195,24 +195,63 @@ function showRiskModal(p) {
 }
 
 // --- СКАНДАЛ ---
-function showScandalModal(p) {
-  const options = [
-    { text: 'перегрел аудиторию🔥', val: -1 },
-    { text: 'громкий заголовок🫣', val: -2 },
-    { text: 'это монтаж 😱', val: -3 },
-    { text: 'меня взломали #️⃣', val: -3, all: true },
-    { text: 'подписчики в шоке 😮', val: -4 },
-    { text: 'удаляй пока не поздно🤫', val: -5 },
-    { text: 'это контент, вы не понимаете🙄', val: -5, skip: true }
+function showScandalModal(p){
+  const options=[
+    {text:'перегрел аудиторию🔥', val:-1},
+    {text:'громкий заголовок🫣', val:-2},
+    {text:'это монтаж 😱', val:-3},
+    {text:'меня взломали #️⃣', val:-3, all:true},
+    {text:'подписчики в шоке 😮', val:-4},
+    {text:'удаляй пока не поздно🤫', val:-5},
+    {text:'это контент, вы не понимаете🙄', val:-5, skip:true}
   ];
-  const choice = options[Math.floor(Math.random() * options.length)];
 
-  if (choice.all) players.forEach(pl => { pl.hype = Math.max(0, pl.hype + choice.val); });
-  else p.hype = Math.max(0, p.hype + choice.val);
+  const choice=options[Math.floor(Math.random()*options.length)];
 
-  if (choice.skip) p.skipNext = true;
+  const m=document.getElementById('modal');
 
-  showModal(`💥 Скандал: ${choice.text} (${choice.val > 0 ? '+' : '-'}${Math.abs(choice.val)} хайпа)`);
-  renderHypeBars();
-  socket.emit('playerMoved', { roomCode, position: p.position, hype: p.hype, skipNext: p.skipNext });
+  m.innerHTML=`
+    <div class="scandalCard">
+      <div class="scandalTitle">💥 СКАНДАЛ</div>
+
+      <div class="scandalText">
+        ${choice.text}
+      </div>
+
+      <div class="scandalValue">
+        ${choice.val} ХАЙПА
+      </div>
+
+      <button class="scandalBtn">ПРИНЯТЬ</button>
+    </div>
+  `;
+
+  m.classList.add('active');
+
+  // КНОПКА
+  document.querySelector('.scandalBtn').onclick=()=>{
+
+    if(choice.all){
+      players.forEach(pl=>{
+        pl.hype=Math.max(0, pl.hype+choice.val);
+      });
+    }else{
+      p.hype=Math.max(0, p.hype+choice.val);
+    }
+
+    if(choice.skip){
+      p.skipNext=true;
+    }
+
+    renderHypeBars();
+
+    m.classList.remove('active');
+
+    socket.emit('playerMoved',{
+      roomCode,
+      position:p.position,
+      hype:p.hype,
+      skipNext:p.skipNext
+    });
+  };
 }
