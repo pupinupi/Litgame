@@ -9,6 +9,11 @@ document.querySelectorAll('.chip').forEach(btn => {
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
     btn.classList.add('selected');
     color = btn.dataset.color;
+
+    socket.on('colorTaken', ()=>{
+  alert("❌ Этот цвет уже занят!");
+});
+    
   };
 });
 
