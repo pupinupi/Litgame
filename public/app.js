@@ -209,7 +209,7 @@ function showScandalModal(p){
   const choice=options[Math.floor(Math.random()*options.length)];
 
   const m=document.getElementById('modal');
-
+  m.style.display = "flex";
   m.innerHTML=`
     <div class="scandalCard">
       <div class="scandalTitle">💥 СКАНДАЛ</div>
