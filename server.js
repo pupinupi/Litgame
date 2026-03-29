@@ -96,25 +96,33 @@ io.on('connection', (socket) => {
     nextTurn(roomCode);
   });
 
-  function nextTurn(roomCode){
-    const room = rooms[roomCode];
-    if(!room || room.players.length === 0) return;
+    function nextTurn(roomCode){
+  const room = rooms[roomCode];
+  if(!room || room.players.length === 0) return;
 
-    let attempts = 0;
-    do {
-      room.turn = (room.turn + 1) % room.players.length;
-      const nextPlayer = room.players[room.turn];
-      if(!nextPlayer.skipNext) break;
+  let nextIndex = room.turn;
 
-      // пропуск хода выполнен
-      nextPlayer.skipNext = false;
-      io.to(roomCode).emit('updatePlayers', room.players);
-      attempts++;
-    } while(attempts <= room.players.length);
+  let attempts = 0;
 
-    io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
-  }
-});
+  do{
+    nextIndex = (nextIndex + 1) % room.players.length;
+    attempts++;
+
+    // ❗ если у игрока skipNext — пропускаем его
+    if(room.players[nextIndex].skipNext){
+      room.players[nextIndex].skipNext = false;
+    }else{
+      room.turn = nextIndex;
+      io.to(roomCode).emit('nextTurn', room.players[nextIndex].id);
+      return;
+    }
+
+  }while(attempts < room.players.length);
+
+  // если вдруг все пропускают
+  room.turn = 0;
+  io.to(roomCode).emit('nextTurn', room.players[0].id);
+}
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, ()=>console.log("🚀 Server started on port " + PORT));
