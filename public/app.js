@@ -1,18 +1,18 @@
 const socket = io();
 
-let players=[];
-let currentTurn=null;
+let players = [];
+let currentTurnId = null;
 
-let username="";
-let roomCode="";
-let color="";
+let username = "";
+let roomCode = "";
+let color = "";
 
 // --- ВЫБОР ФИШКИ ---
-document.querySelectorAll('.chip').forEach(c=>{
-  c.onclick=()=>{
-    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));
-    c.classList.add('selected');
-    color=c.dataset.color;
+document.querySelectorAll('.chip').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+    btn.classList.add('selected');
+    color=btn.dataset.color;
   };
 });
 
@@ -40,94 +40,140 @@ document.getElementById('startBtn').onclick=()=>{
 
 // --- КУБИК ---
 document.getElementById('rollBtn').onclick=()=>{
-  if(currentTurn!==socket.id) return;
+  if(currentTurnId !== socket.id) return;
   socket.emit('rollDice',roomCode);
 };
 
 // --- SOCKET ---
 socket.on('updatePlayers', pl=>{
-  players=pl;
-  render();
+  players = pl;
+  renderPlayers();
+  renderHype();
 });
 
 socket.on('gameStarted', ()=>{
   document.getElementById('lobby').style.display='none';
   document.getElementById('game').style.display='flex';
+
+  renderPlayers(); // 🔥 важно
 });
 
 socket.on('nextTurn', id=>{
-  currentTurn=id;
+  currentTurnId = id;
+  document.getElementById('rollBtn').disabled = id !== socket.id;
 });
 
 socket.on('diceRolled', ({playerId,dice})=>{
-  document.getElementById('dice').innerText="🎲 "+dice;
+  document.getElementById('diceResult').innerText = "🎲 " + dice;
 
-  if(playerId!==socket.id) return;
-
-  move(dice);
+  if(playerId !== socket.id) return;
+  movePlayer(dice);
 });
 
+
+// --- ТВОЁ ПОЛЕ ---
+const cells = [
+  {x:82,y:587},
+  {x:97,y:464},
+  {x:86,y:348},
+  {x:93,y:224},
+  {x:87,y:129},
+  {x:219,y:101},
+  {x:364,y:107},
+  {x:494,y:95},
+  {x:652,y:96},
+  {x:815,y:89},
+  {x:930,y:135},
+  {x:936,y:247},
+  {x:936,y:357},
+  {x:941,y:480},
+  {x:937,y:610},
+  {x:794,y:624},
+  {x:636,y:635},
+  {x:517,y:627},
+  {x:355,y:619},
+  {x:210,y:626}
+];
+
 // --- ДВИЖЕНИЕ ---
-function move(n){
-  const me=players.find(p=>p.id===socket.id);
+function movePlayer(steps){
+  const me = players.find(p=>p.id===socket.id);
   if(!me) return;
 
-  let i=0;
+  let count = 0;
 
   function step(){
-    if(i>=n){
-      socket.emit('playerMoved',{
-        roomCode,
-        position:me.position,
-        hype:me.hype,
-        skipNext:false
-      });
+    if(count >= steps){
+      finishTurn(me);
       return;
     }
 
-    me.position=(me.position+1)%20;
-    render();
+    me.position = (me.position + 1) % cells.length;
 
-    i++;
-    setTimeout(step,200);
+    renderPlayers();
+
+    count++;
+    setTimeout(step,300);
   }
 
   step();
 }
 
-// --- РЕНДЕР ---
-function render(){
-
-  // список игроков
-  const list=document.getElementById('playersList');
-  list.innerHTML="";
-
-  players.forEach(p=>{
-    const div=document.createElement('div');
-    div.innerText=p.username;
-    list.appendChild(div);
+// --- КОНЕЦ ХОДА ---
+function finishTurn(p){
+  socket.emit('playerMoved',{
+    roomCode,
+    position:p.position,
+    hype:p.hype,
+    skipNext:p.skipNext
   });
+}
 
-  // поле
-  const board=document.getElementById('board');
-  board.innerHTML="";
+// --- РЕНДЕР ФИШЕК + ЛОББИ ---
+function renderPlayers(){
+
+  // 👇 ЛОББИ СПИСОК
+  const list=document.getElementById('playersList');
+  if(list){
+    list.innerHTML="";
+    players.forEach(p=>{
+      const div=document.createElement('div');
+      div.innerText="🟢 "+p.username;
+      list.appendChild(div);
+    });
+  }
+
+  // 👇 ПОЛЕ
+  const board=document.getElementById('gameBoard');
+  if(!board) return;
+
+  board.querySelectorAll('.player').forEach(e=>e.remove());
 
   players.forEach((p,i)=>{
+    const cell=cells[p.position];
+    if(!cell) return;
+
     const el=document.createElement('div');
     el.className='player';
     el.style.background=p.color;
 
-    el.style.left=(p.position*40)+"px";
-    el.style.top=(i*40)+"px";
+    el.style.left=(cell.x + i*10)+'px';
+    el.style.top=cell.y+'px';
 
     board.appendChild(el);
   });
+}
 
-  // хайп
-  const hype=document.getElementById('hypeBars');
-  hype.innerHTML="";
+// --- ШКАЛА ХАЙПА ---
+function renderHype(){
+  let html="";
 
   players.forEach(p=>{
-    hype.innerHTML+=`${p.username}: ${p.hype}<br>`;
+    html+=`
+      <div style="margin:5px;">
+        ${p.username}: ${p.hype}
+      </div>`;
   });
+
+  document.getElementById('hypeBars').innerHTML=html;
 }
