@@ -97,8 +97,8 @@ button{
 /* ПОЛЕ */
 #gameBoard{
   position:relative;
-  width:800px;
-  height:800px;
+  width:1024px;
+  height:1024px;
   border-radius:20px;
   overflow:hidden;
   border:4px solid white;
