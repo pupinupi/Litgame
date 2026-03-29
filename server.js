@@ -88,31 +88,34 @@ io.on('connection', (socket) => {
 
   // --- СМЕНА ХОДА (ФИКС ПРОПУСКОВ) ---
   function nextTurn(roomCode){
-    const room = rooms[roomCode];
-    if(!room || room.players.length === 0) return;
+  const room = rooms[roomCode];
+  if(!room || room.players.length === 0) return;
 
-    let nextIndex = room.turn;
-    let attempts = 0;
+  let attempts = 0;
 
-    do{
-      nextIndex = (nextIndex + 1) % room.players.length;
+  while(attempts < room.players.length){
+
+    // следующий игрок
+    room.turn = (room.turn + 1) % room.players.length;
+
+    const nextPlayer = room.players[room.turn];
+
+    // ❗ если пропуск хода
+    if(nextPlayer.skipNext){
+      nextPlayer.skipNext = false;
       attempts++;
+      continue; // ищем дальше
+    }
 
-      if(room.players[nextIndex].skipNext){
-        room.players[nextIndex].skipNext = false;
-      }else{
-        room.turn = nextIndex;
-        io.to(roomCode).emit('nextTurn', room.players[nextIndex].id);
-        return;
-      }
-
-    }while(attempts < room.players.length);
-
-    // fallback если все пропускают
-    room.turn = 0;
-    io.to(roomCode).emit('nextTurn', room.players[0].id);
+    // ✅ нашли игрока — даем ход
+    io.to(roomCode).emit('nextTurn', nextPlayer.id);
+    return;
   }
 
+  // ❗ fallback (если вдруг все пропускают)
+  io.to(roomCode).emit('nextTurn', room.players[0].id);
+}
+  
 }); // ❗ ВАЖНО: закрыли io.on
 
 // --- ЗАПУСК ---
