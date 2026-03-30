@@ -165,6 +165,15 @@ function handleCell(p) {
   renderHypeBars();
   if (modalText) showModal(modalText);
 
+  if(p.hype >= 70){
+  showWinScreen(p);
+
+  // ❗ блокируем игру
+  document.getElementById('rollBtn').disabled = true;
+
+  return;
+}
+
   socket.emit('playerMoved', { roomCode, position: p.position, hype: p.hype, skipNext: p.skipNext });
 }
 
