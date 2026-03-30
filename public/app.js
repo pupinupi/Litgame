@@ -76,6 +76,8 @@ socket.on('nextTurn', id=>{
 });
 
 socket.on('diceRolled', ({ playerId, dice }) => {
+  diceSound.currentTime = 0;
+diceSound.play();
   if (playerId !== socket.id) return;
   document.getElementById('diceResult').innerText = "🎲 " + dice;
   movePlayer(dice);
