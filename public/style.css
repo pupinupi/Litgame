@@ -196,7 +196,7 @@ button{
 }
 
 .hypeBar div{
-  position:absolute;
+  position:relative;
   width:100%;
   text-align:center;
   font-weight:bold;
