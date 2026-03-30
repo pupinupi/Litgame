@@ -177,13 +177,27 @@ function renderLobbyPlayers() {
 }
 
 // --- МОДАЛКИ ---
-function showModal(text) {
-  const m = document.getElementById('modal');
-  m.innerHTML = `<div class="modalContent">${text}</div>`;
-  m.classList.add('active');
-  setTimeout(() => { m.classList.remove('active'); }, 1500);
-}
+function showModal(text, type="normal"){
+  const m=document.getElementById('modal');
 
+  let color = '#00eaff';
+
+  if(type==="scandal") color = '#ff3b3b';
+  if(type==="risk") color = '#ffe600';
+  if(type==="good") color = '#00ffcc';
+
+  m.innerHTML = `
+    <div class="modalContent" style="box-shadow:0 0 30px ${color},0 0 60px ${color}">
+      ${text}
+    </div>
+  `;
+
+  m.classList.add('active');
+
+  setTimeout(()=>{
+    m.classList.remove('active');
+  },2000);
+}
 // --- РИСК ---
 function showRiskModal(p) {
   const dice = Math.floor(Math.random() * 6) + 1;
