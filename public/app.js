@@ -299,3 +299,10 @@ function showWinScreen(winner){
 
   m.classList.add('active');
 }
+
+const img = document.getElementById("boardImg");
+
+img.onerror = () => {
+  console.error("❌ КАРТИНКА НЕ НАЙДЕНА");
+  alert("board.jpg не найден!");
+};
