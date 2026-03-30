@@ -126,16 +126,7 @@ function movePlayer(steps){
       return;
     }
 
-    const prevPos = me.position;
-
-    me.position = (me.position + 1) % cells.length;
-
-    // 🔁 ПРОХОД СТАРТА
-    if(me.position === 0 && prevPos !== 0){
-      me.hype += 7;
-      showModal("🔁 КРУГ ПРОЙДЕН<br>+7 ХАЙПА");
-    }
-
+  
     renderPlayers();
 
     count++;
