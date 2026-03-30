@@ -76,12 +76,34 @@ socket.on('nextTurn', id=>{
   }
 });
 
-socket.on('diceRolled', ({ playerId, dice }) => {
+socket.on('diceRolled', ({playerId,dice})=>{
+
+  // 🔊 сначала звук
+  diceSound.pause();
   diceSound.currentTime = 0;
-diceSound.play();
-  if (playerId !== socket.id) return;
-  document.getElementById('diceResult').innerText = "🎲 " + dice;
-  movePlayer(dice);
+
+  diceSound.play().then(()=>{
+
+    // 👉 после начала звука — показываем число
+    if(playerId === socket.id){
+      document.getElementById('diceResult').innerText = "🎲 " + dice;
+    }
+
+    // ⏳ небольшая задержка = ощущение броска
+    setTimeout(()=>{
+      if(playerId === socket.id){
+        movePlayer(dice);
+      }
+    }, 300);
+
+  }).catch(()=>{
+    // если браузер заблокировал звук — всё равно двигаемся
+    if(playerId === socket.id){
+      document.getElementById('diceResult').innerText = "🎲 " + dice;
+      movePlayer(dice);
+    }
+  });
+
 });
 
 // --- КЛЕТКИ ПОЛЯ ---
