@@ -288,3 +288,16 @@ function showScandalModal(p){
     });
   };
 }
+function showWinScreen(winner){
+  const m = document.getElementById('modal');
+
+  m.innerHTML = `
+    <div class="winScreenBox">
+      <div class="winTitle">🏆 ПОБЕДА</div>
+      <div class="winName">${winner.username}</div>
+      <div class="winText">набрал(а) 70 хайпа!</div>
+    </div>
+  `;
+
+  m.classList.add('active');
+}
