@@ -74,13 +74,22 @@ socket.on('gameStarted', () => {
 socket.on('nextTurn', id => {
   currentTurnId = id;
   document.getElementById('rollBtn').disabled = id !== socket.id || gameOver;
+  renderPlayers();
 });
 
 socket.on('diceRolled', ({ playerId, dice }) => {
   if (playerId !== socket.id) return;
 
-  document.getElementById('diceResult').innerText = "🎲 " + dice;
-  movePlayer(dice);
+  const diceEl = document.getElementById('diceResult');
+
+  diceEl.classList.add('rolling');
+  diceEl.innerText = "🎲 ...";
+
+  setTimeout(() => {
+    diceEl.classList.remove('rolling');
+    diceEl.innerText = "🎲 " + dice;
+    movePlayer(dice);
+  }, 600);
 });
 
 // --- КЛЕТКИ ---
@@ -122,7 +131,17 @@ function movePlayer(steps) {
       return;
     }
 
+    const prevPosition = me.position;
+
     me.position = (me.position + 1) % cells.length;
+
+    // 🔁 ПРОХОЖДЕНИЕ КРУГА
+    if (me.position === 0 && prevPosition !== 0) {
+      me.hype += 7;
+      showModal('🔁 Круг пройден! +7 хайпа');
+      renderHypeBars();
+    }
+
     renderPlayers();
     count++;
 
@@ -186,6 +205,14 @@ function handleCell(p) {
   });
 }
 
+// --- 💥 ТРЯСКА ---
+function shakeScreen() {
+  document.body.classList.add('shake');
+  setTimeout(() => {
+    document.body.classList.remove('shake');
+  }, 400);
+}
+
 // --- ПРОВЕРКА ПОБЕДЫ ---
 function checkWin(p) {
   if (p.hype >= 70 && !gameOver) {
@@ -214,9 +241,8 @@ function renderPlayers() {
 
     if (!el) {
       el = document.createElement('div');
-      el.className = 'player';
+      el.className = 'player ' + p.color;
       el.id = p.id;
-      el.style.background = p.color;
       b.appendChild(el);
     }
 
@@ -225,6 +251,9 @@ function renderPlayers() {
 
     el.style.left = (c.x + i * 10) + 'px';
     el.style.top = c.y + 'px';
+
+    if (p.id === currentTurnId) el.classList.add('active');
+    else el.classList.remove('active');
   });
 }
 
@@ -288,6 +317,8 @@ function showRiskModal(p) {
 
 // --- СКАНДАЛ ---
 function showScandalModal(p) {
+  shakeScreen(); // 💥 ТРЯСКА
+
   const options = [
     { text: 'перегрел аудиторию🔥', val: -1 },
     { text: 'громкий заголовок🫣', val: -2 },
