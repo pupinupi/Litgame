@@ -6,10 +6,6 @@ let currentTurnId = null;
 
 let username, roomCode, color;
 
-// --- ОШИБКА ЦВЕТА ---
-socket.on('colorTaken', ()=>{
-  alert("❌ Этот цвет уже занят!");
-});
 
 // --- ВЫБОР ФИШКИ ---
 document.querySelectorAll('.chip').forEach(btn => {
