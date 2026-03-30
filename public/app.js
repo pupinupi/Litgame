@@ -1,9 +1,13 @@
 const socket = io();
+
 let players = [];
 let currentTurnId = null;
 let username, roomCode, color;
 
-// --- ВЫБОР ФИШКИ В ЛОББИ ---
+let isAnimating = false;
+let gameOver = false;
+
+// --- ВЫБОР ФИШКИ ---
 document.querySelectorAll('.chip').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
@@ -12,33 +16,42 @@ document.querySelectorAll('.chip').forEach(btn => {
   };
 });
 
-// --- ВХОД В ЛОББИ ---
+// --- ВХОД ---
 document.getElementById('joinBtn').onclick = () => {
   username = document.getElementById('username').value;
   roomCode = document.getElementById('roomCode').value;
+
   if (!username || !roomCode || !color) {
     alert("Заполни всё");
     return;
   }
+
   socket.emit('joinRoom', { username, roomCode, color });
 };
 
-// --- НАЧАЛО ИГРЫ ---
+// --- СТАРТ ---
 document.getElementById('startBtn').onclick = () => {
   socket.emit('startGame', roomCode);
 };
 
-// --- БРОСОК КУБИКА ---
+// --- КУБИК ---
 document.getElementById('rollBtn').onclick = () => {
+  if (gameOver || isAnimating) return;
+
   const me = players.find(p => p.id === socket.id);
   if (!me) return;
 
-  if (currentTurnId !== socket.id) return; // не твой ход
+  if (currentTurnId !== socket.id) return;
 
-  if (me.skipNext) { // ПРОПУСК ХОДА
+  if (me.skipNext) {
     me.skipNext = false;
     showModal('🛑 Пропуск хода!');
-    socket.emit('playerMoved', { roomCode, position: me.position, hype: me.hype, skipNext: me.skipNext });
+    socket.emit('playerMoved', {
+      roomCode,
+      position: me.position,
+      hype: me.hype,
+      skipNext: me.skipNext
+    });
     return;
   }
 
@@ -60,16 +73,17 @@ socket.on('gameStarted', () => {
 
 socket.on('nextTurn', id => {
   currentTurnId = id;
-  document.getElementById('rollBtn').disabled = id !== socket.id;
+  document.getElementById('rollBtn').disabled = id !== socket.id || gameOver;
 });
 
 socket.on('diceRolled', ({ playerId, dice }) => {
   if (playerId !== socket.id) return;
+
   document.getElementById('diceResult').innerText = "🎲 " + dice;
   movePlayer(dice);
 });
 
-// --- КЛЕТКИ ПОЛЯ ---
+// --- КЛЕТКИ ---
 const cells = [
   { x: 82, y: 587, type: 'start' },
   { x: 97, y: 464, type: 'plus', value: 3 },
@@ -81,7 +95,7 @@ const cells = [
   { x: 494, y: 95, type: 'plus', value: 3 },
   { x: 652, y: 96, type: 'plus', value: 5 },
   { x: 815, y: 89, type: 'minus', value: 10 },
-  { x: 930, y: 135, type: 'minusSkip', value: 8 }, // Суд
+  { x: 930, y: 135, type: 'minusSkip', value: 8 },
   { x: 936, y: 247, type: 'plus', value: 3 },
   { x: 936, y: 357, type: 'risk' },
   { x: 941, y: 480, type: 'plus', value: 3 },
@@ -93,53 +107,111 @@ const cells = [
   { x: 210, y: 626, type: 'plus', value: 4 }
 ];
 
-// --- ДВИЖЕНИЕ ФИШКИ ---
+// --- ДВИЖЕНИЕ ---
 function movePlayer(steps) {
   const me = players.find(p => p.id === socket.id);
   if (!me) return;
+
+  isAnimating = true;
   let count = 0;
 
   function step() {
-    if (count >= steps) { handleCell(me); return; }
+    if (count >= steps) {
+      isAnimating = false;
+      handleCell(me);
+      return;
+    }
+
     me.position = (me.position + 1) % cells.length;
     renderPlayers();
     count++;
+
     setTimeout(step, 300);
   }
 
   step();
 }
 
-// --- ОБРАБОТКА КЛЕТОК ---
+// --- ОБРАБОТКА КЛЕТКИ ---
 function handleCell(p) {
   const cell = cells[p.position];
-  let modalText = '';
+  let text = '';
 
   switch (cell.type) {
-    case 'start': p.hype += 10; modalText = '🚀 Старт! +10 хайпа'; break;
-    case 'plus': p.hype += cell.value; modalText = `➕ +${cell.value} хайпа`; break;
-    case 'minus': p.hype = Math.max(0, p.hype - cell.value); modalText = `➖ -${cell.value} хайпа`; break;
-    case 'skip': p.skipNext = true; modalText = '🛑 Пропуск хода!'; break;
-    case 'minusSkip': 
+    case 'start':
+      p.hype += 10;
+      text = '🚀 Старт! +10 хайпа';
+      break;
+
+    case 'plus':
+      p.hype += cell.value;
+      text = `➕ +${cell.value} хайпа`;
+      break;
+
+    case 'minus':
+      p.hype = Math.max(0, p.hype - cell.value);
+      text = `➖ -${cell.value} хайпа`;
+      break;
+
+    case 'skip':
+      p.skipNext = true;
+      text = '🛑 Пропуск хода!';
+      break;
+
+    case 'minusSkip':
       p.hype = Math.max(0, p.hype - cell.value);
       p.skipNext = true;
-      modalText = `🛑 -${cell.value} хайпа и пропуск хода!`; 
+      text = `🛑 -${cell.value} и пропуск`;
       break;
-    case 'risk': showRiskModal(p); return;
-    case 'scandal': showScandalModal(p); return;
+
+    case 'risk':
+      showRiskModal(p);
+      return;
+
+    case 'scandal':
+      showScandalModal(p);
+      return;
   }
 
   renderHypeBars();
-  if (modalText) showModal(modalText);
+  if (text) showModal(text);
 
-  socket.emit('playerMoved', { roomCode, position: p.position, hype: p.hype, skipNext: p.skipNext });
+  checkWin(p);
+
+  socket.emit('playerMoved', {
+    roomCode,
+    position: p.position,
+    hype: p.hype,
+    skipNext: p.skipNext
+  });
 }
 
-// --- РЕНДЕР ФИШЕК НА ПОЛЕ ---
+// --- ПРОВЕРКА ПОБЕДЫ ---
+function checkWin(p) {
+  if (p.hype >= 70 && !gameOver) {
+    gameOver = true;
+
+    document.getElementById('modal').innerHTML = `
+      <div class="winScreenBox">
+        <div class="winTitle">🏆 ПОБЕДА</div>
+        <div class="winName">${p.username}</div>
+        <div class="winText">набрал 70 хайпа!</div>
+      </div>
+    `;
+
+    document.getElementById('modal').classList.add('active');
+
+    document.getElementById('rollBtn').disabled = true;
+  }
+}
+
+// --- РЕНДЕР ---
 function renderPlayers() {
   const b = document.getElementById('gameBoard');
+
   players.forEach((p, i) => {
     let el = document.getElementById(p.id);
+
     if (!el) {
       el = document.createElement('div');
       el.className = 'player';
@@ -147,65 +219,71 @@ function renderPlayers() {
       el.style.background = p.color;
       b.appendChild(el);
     }
+
     const c = cells[p.position];
     if (!c) return;
+
     el.style.left = (c.x + i * 10) + 'px';
     el.style.top = c.y + 'px';
   });
 }
 
-// --- ШКАЛА ХАЙПА ДЛЯ ВСЕХ ---
+// --- ХАЙП ---
 function renderHypeBars() {
   const container = document.getElementById('hypeBars');
   container.innerHTML = '';
+
   players.forEach(p => {
     const bar = document.createElement('div');
     bar.className = 'hypeBar';
+
     const fill = document.createElement('div');
     fill.className = 'hypeFill';
     fill.style.width = Math.min(p.hype, 70) / 70 * 100 + '%';
-    bar.innerHTML = `<div style="text-align:center;font-weight:bold;color:#fff;">${p.username}: ${p.hype}/70</div>`;
+
+    bar.innerHTML = `<div>${p.username}: ${p.hype}/70</div>`;
     bar.appendChild(fill);
+
     container.appendChild(bar);
   });
 }
 
-// --- ЛОББИ: список игроков ---
+// --- ЛОББИ ---
 function renderLobbyPlayers() {
   const list = document.getElementById('playersList');
   list.innerHTML = players.map(p => `<div style="color:${p.color}">${p.username}</div>`).join('');
 }
 
-// --- МОДАЛКИ ---
-function showModal(text, type="normal"){
-  const m=document.getElementById('modal');
+// --- МОДАЛКА ---
+function showModal(text) {
+  const m = document.getElementById('modal');
 
-  let color = '#00eaff';
-
-  if(type==="scandal") color = '#ff3b3b';
-  if(type==="risk") color = '#ffe600';
-  if(type==="good") color = '#00ffcc';
-
-  m.innerHTML = `
-    <div class="modalContent" style="box-shadow:0 0 30px ${color},0 0 60px ${color}">
-      ${text}
-    </div>
-  `;
-
+  m.innerHTML = `<div class="modalContent">${text}</div>`;
   m.classList.add('active');
 
-  setTimeout(()=>{
-    m.classList.remove('active');
-  },2000);
+  setTimeout(() => {
+    if (!gameOver) m.classList.remove('active');
+  }, 2000);
 }
+
 // --- РИСК ---
 function showRiskModal(p) {
   const dice = Math.floor(Math.random() * 6) + 1;
   const val = (dice <= 3 ? -5 : 5);
+
   p.hype = Math.max(0, p.hype + val);
-  showModal(`🎲 Риск! Выпало ${dice}, ${val > 0 ? '+' : '-'}${Math.abs(val)} хайпа`);
+
+  showModal(`🎲 Риск: ${dice} → ${val > 0 ? '+' : ''}${val}`);
   renderHypeBars();
-  socket.emit('playerMoved', { roomCode, position: p.position, hype: p.hype, skipNext: p.skipNext });
+
+  checkWin(p);
+
+  socket.emit('playerMoved', {
+    roomCode,
+    position: p.position,
+    hype: p.hype,
+    skipNext: p.skipNext
+  });
 }
 
 // --- СКАНДАЛ ---
@@ -217,16 +295,25 @@ function showScandalModal(p) {
     { text: 'меня взломали #️⃣', val: -3, all: true },
     { text: 'подписчики в шоке 😮', val: -4 },
     { text: 'удаляй пока не поздно🤫', val: -5 },
-    { text: 'это контент, вы не понимаете🙄', val: -5, skip: true }
+    { text: 'это контент🙄', val: -5, skip: true }
   ];
-  const choice = options[Math.floor(Math.random() * options.length)];
 
-  if (choice.all) players.forEach(pl => { pl.hype = Math.max(0, pl.hype + choice.val); });
-  else p.hype = Math.max(0, p.hype + choice.val);
+  const c = options[Math.floor(Math.random() * options.length)];
 
-  if (choice.skip) p.skipNext = true;
+  if (c.all) players.forEach(pl => pl.hype = Math.max(0, pl.hype + c.val));
+  else p.hype = Math.max(0, p.hype + c.val);
 
-  showModal(`💥 Скандал: ${choice.text} (${choice.val > 0 ? '+' : '-'}${Math.abs(choice.val)} хайпа)`);
+  if (c.skip) p.skipNext = true;
+
+  showModal(`💥 ${c.text} (${c.val})`);
   renderHypeBars();
-  socket.emit('playerMoved', { roomCode, position: p.position, hype: p.hype, skipNext: p.skipNext });
+
+  checkWin(p);
+
+  socket.emit('playerMoved', {
+    roomCode,
+    position: p.position,
+    hype: p.hype,
+    skipNext: p.skipNext
+  });
 }
