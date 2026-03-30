@@ -155,21 +155,27 @@ function handleCell(p){
     case 'plus': p.hype += cell.value; text=`+${cell.value} хайпа`; break;
     case 'minus': p.hype = Math.max(0, p.hype - cell.value); text=`-${cell.value}`; break;
     case 'skip': p.skipNext = true; text='Пропуск хода'; break;
-    case 'minusSkip': p.hype = Math.max(0, p.hype - cell.value); p.skipNext = true; text='Штраф + пропуск'; break;
+    case 'minusSkip': 
+      p.hype = Math.max(0, p.hype - cell.value);
+      p.skipNext = true;
+      text='Штраф + пропуск';
+      break;
     case 'risk': showRiskModal(p); return;
     case 'scandal': showScandalModal(p); return;
   }
 
   renderHypeBars();
+
   if(text) showModal(text);
 
-  // 🏆 ПОБЕДА
+  // 🏆 ВОТ ЗДЕСЬ (после логики клетки!)
   if(p.hype >= 70){
     showWinScreen(p);
     document.getElementById('rollBtn').disabled = true;
     return;
   }
 
+  // 👇 И ТОЛЬКО ПОСЛЕ ЭТОГО отправка
   socket.emit('playerMoved',{
     roomCode,
     position:p.position,
@@ -177,7 +183,6 @@ function handleCell(p){
     skipNext:p.skipNext
   });
 }
-
 // --- РЕНДЕР ФИШЕК ---
 function renderPlayers(){
   const b = document.getElementById('gameBoard');
