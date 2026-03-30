@@ -9,20 +9,9 @@ let rooms = {};
 
 io.on('connection', (socket) => {
 
-  // --- ВХОД В КОМНАТУ ---
   socket.on('joinRoom', ({username, roomCode, color}) => {
-
     if(!rooms[roomCode]){
       rooms[roomCode] = { players: [], turn: 0 };
-    }
-
-    const room = rooms[roomCode];
-
-    // ❗ ПРОВЕРКА ЦВЕТА
-    const colorTaken = room.players.some(p => p.color === color);
-    if(colorTaken){
-      socket.emit('colorTaken');
-      return;
     }
 
     const player = {
@@ -34,14 +23,12 @@ io.on('connection', (socket) => {
       skipNext: false
     };
 
-    room.players.push(player);
+    rooms[roomCode].players.push(player);
     socket.join(roomCode);
 
-    io.to(roomCode).emit('updatePlayers', room.players);
+    io.to(roomCode).emit('updatePlayers', rooms[roomCode].players);
   });
 
-
-  // --- СТАРТ ИГРЫ ---
   socket.on('startGame', (roomCode)=>{
     const room = rooms[roomCode];
     if(!room || room.players.length === 0) return;
@@ -50,8 +37,6 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('nextTurn', room.players[0].id);
   });
 
-
-  // --- БРОСОК КУБИКА ---
   socket.on('rollDice', (roomCode)=>{
     const room = rooms[roomCode];
     if(!room) return;
@@ -59,16 +44,16 @@ io.on('connection', (socket) => {
     const player = room.players.find(p=>p.id===socket.id);
     if(!player) return;
 
-    const dice = Math.floor(Math.random()*6)+1;
+    if(player.skipNext){
+      player.skipNext = false;
+      nextTurn(roomCode);
+      return;
+    }
 
-    io.to(roomCode).emit('diceRolled', {
-      playerId: socket.id,
-      dice
-    });
+    const dice = Math.floor(Math.random()*6)+1;
+    io.to(roomCode).emit('diceRolled', { playerId: socket.id, dice });
   });
 
-
-  // --- ПЕРЕМЕЩЕНИЕ ИГРОКА ---
   socket.on('playerMoved', ({roomCode, position, hype, skipNext})=>{
     const room = rooms[roomCode];
     if(!room) return;
@@ -85,42 +70,25 @@ io.on('connection', (socket) => {
     nextTurn(roomCode);
   });
 
-
-  // --- СМЕНА ХОДА (ФИКС ПРОПУСКОВ) ---
   function nextTurn(roomCode){
-  const room = rooms[roomCode];
-  if(!room || room.players.length === 0) return;
+    const room = rooms[roomCode];
+    if(!room || room.players.length === 0) return;
 
-  let attempts = 0;
+    let attempts = 0;
+    do {
+      room.turn = (room.turn + 1) % room.players.length;
+      const nextPlayer = room.players[room.turn];
+      if(!nextPlayer.skipNext) break;
 
-  while(attempts < room.players.length){
-
-    // следующий игрок
-    room.turn = (room.turn + 1) % room.players.length;
-
-    const nextPlayer = room.players[room.turn];
-
-    // ❗ если пропуск хода
-    if(nextPlayer.skipNext){
+      // пропуск хода выполнен
       nextPlayer.skipNext = false;
+      io.to(roomCode).emit('updatePlayers', room.players);
       attempts++;
-      continue; // ищем дальше
-    }
+    } while(attempts <= room.players.length);
 
-    // ✅ нашли игрока — даем ход
-    io.to(roomCode).emit('nextTurn', nextPlayer.id);
-    return;
+    io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
   }
-
-  // ❗ fallback (если вдруг все пропускают)
-  io.to(roomCode).emit('nextTurn', room.players[0].id);
-}
-  
-}); // ❗ ВАЖНО: закрыли io.on
-
-// --- ЗАПУСК ---
-const PORT = process.env.PORT || 3000;
-
-http.listen(PORT, ()=>{
-  console.log("🚀 Server started on port " + PORT);
 });
+
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, ()=>console.log("🚀 Server started on port " + PORT));
