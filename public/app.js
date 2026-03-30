@@ -131,20 +131,16 @@ const cells = [
 ];
 
 // --- ДВИЖЕНИЕ ФИШКИ ---
-function movePlayer(steps) {
-  const me = players.find(p => p.id === socket.id);
-  if (!me) return;
-  let count = 0;
+// сохраняем старую позицию
+const prevPos = me.position;
 
-  function step() {
-    if (count >= steps) { handleCell(me); return; }
-    me.position = (me.position + 1) % cells.length;
-    renderPlayers();
-    count++;
-    setTimeout(step, 300);
-  }
+// двигаем
+me.position = (me.position + 1) % cells.length;
 
-  step();
+// 💥 ЕСЛИ ПРОШЛИ СТАРТ
+if(me.position === 0 && prevPos !== 0){
+  me.hype += 7;
+  showModal("🔁 КРУГ ПРОЙДЕН<br>+7 ХАЙПА", "good");
 }
 
 // --- ОБРАБОТКА КЛЕТОК ---
