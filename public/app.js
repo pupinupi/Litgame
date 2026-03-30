@@ -1,3 +1,4 @@
+const diceSound = new Audio('dice.mp3');
 const socket = io();
 let players = [];
 let currentTurnId = null;
