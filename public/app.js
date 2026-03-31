@@ -1,3 +1,6 @@
+// 🔊 звук кубика
+const diceSound = new Audio('dice.mp3');
+diceSound.volume = 0.7;
 const socket = io();
 
 let players = [];
