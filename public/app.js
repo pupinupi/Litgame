@@ -327,7 +327,12 @@ function showRiskModal(p) {
 
 // --- СКАНДАЛ ---
 function showScandalModal(p) {
-  shakeScreen(); // 💥 ТРЯСКА
+  // 💥 тряска
+  shakeScreen();
+
+  // 🔊 звук
+  scandalSound.currentTime = 0;
+  scandalSound.play();
 
   const options = [
     { text: 'перегрел аудиторию🔥', val: -1 },
@@ -338,6 +343,31 @@ function showScandalModal(p) {
     { text: 'удаляй пока не поздно🤫', val: -5 },
     { text: 'это контент🙄', val: -5, skip: true }
   ];
+
+  const c = options[Math.floor(Math.random() * options.length)];
+
+  if (c.all) {
+    players.forEach(pl => {
+      pl.hype = Math.max(0, pl.hype + c.val);
+    });
+  } else {
+    p.hype = Math.max(0, p.hype + c.val);
+  }
+
+  if (c.skip) p.skipNext = true;
+
+  showModal(`💥 ${c.text} (${c.val})`);
+  renderHypeBars();
+
+  checkWin(p);
+
+  socket.emit('playerMoved', {
+    roomCode,
+    position: p.position,
+    hype: p.hype,
+    skipNext: p.skipNext
+  });
+}
 
   const c = options[Math.floor(Math.random() * options.length)];
 
