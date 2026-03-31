@@ -50,20 +50,6 @@ document.getElementById('rollBtn').onclick = () => {
 
   if (currentTurnId !== socket.id) return;
 
-  if (me.skipNext) {
-    me.skipNext = false;
-    showModal('🛑 Пропуск хода!');
-    document.getElementById('rollBtn').disabled = true;
-
-    socket.emit('playerMoved', {
-      roomCode,
-      position: me.position,
-      hype: me.hype,
-      skipNext: false
-    });
-    return;
-  }
-
   socket.emit('rollDice', roomCode);
 };
 
