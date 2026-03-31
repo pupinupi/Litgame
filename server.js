@@ -38,16 +38,25 @@ io.on('connection', (socket) => {
   });
 
   socket.on('rollDice', (roomCode)=>{
-    const room = rooms[roomCode];
-    if(!room) return;
+  const room = rooms[roomCode];
+  if(!room) return;
 
-    const player = room.players.find(p=>p.id===socket.id);
-    if(!player) return;
+  const player = room.players.find(p=>p.id===socket.id);
+  if(!player) return;
 
-    const dice = Math.floor(Math.random()*6)+1;
+  // 🚫 ВОТ ОН — ГЛАВНЫЙ ФИКС
+  if(player.skipNext){
+    io.to(roomCode).emit('playerSkipped', player.id);
 
-    io.to(roomCode).emit('diceRolled', { playerId: socket.id, dice });
-  });
+    player.skipNext = false;
+    nextTurn(roomCode);
+    return;
+  }
+
+  const dice = Math.floor(Math.random()*6)+1;
+
+  io.to(roomCode).emit('diceRolled', { playerId: socket.id, dice });
+});
 
   socket.on('playerMoved', ({roomCode, position, hype, skipNext})=>{
     const room = rooms[roomCode];
