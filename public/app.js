@@ -1,3 +1,6 @@
+// 🔊 звук скандала
+const scandalSound = new Audio('scandal.mp3');
+scandalSound.volume = 0.8;
 // 🔊 звук кубика
 const diceSound = new Audio('dice.mp3');
 diceSound.volume = 0.7;
