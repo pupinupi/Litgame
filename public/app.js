@@ -85,6 +85,10 @@ socket.on('diceRolled', ({ playerId, dice }) => {
 
   const diceEl = document.getElementById('diceResult');
 
+  // 🔊 запускаем звук
+  diceSound.currentTime = 0;
+  diceSound.play();
+
   diceEl.classList.add('rolling');
   diceEl.innerText = "🎲 ...";
 
