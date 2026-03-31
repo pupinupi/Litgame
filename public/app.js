@@ -75,6 +75,12 @@ socket.on('updatePlayers', pl => {
   renderLobbyPlayers();
 });
 
+socket.on('playerSkipped', (playerId) => {
+  if(playerId === socket.id){
+    showModal('🛑 Пропуск хода!');
+  }
+});
+
 // --- НАЧАЛО ИГРЫ ---
 socket.on('gameStarted', () => {
   document.getElementById('lobby').style.display = 'none';
