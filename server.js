@@ -75,24 +75,31 @@ io.on('connection', (socket) => {
   });
 
   function nextTurn(roomCode){
-    const room = rooms[roomCode];
-    if(!room || room.players.length === 0) return;
+  const room = rooms[roomCode];
+  if(!room || room.players.length === 0) return;
 
-    let attempts = 0;
-    do {
-      room.turn = (room.turn + 1) % room.players.length;
-      const nextPlayer = room.players[room.turn];
-      if(!nextPlayer.skipNext) break;
+  let nextPlayer;
 
-      // пропуск хода выполнен
-      nextPlayer.skipNext = false;
-      io.to(roomCode).emit('updatePlayers', room.players);
+  let attempts = 0;
+
+  while(attempts < room.players.length){
+    room.turn = (room.turn + 1) % room.players.length;
+    nextPlayer = room.players[room.turn];
+
+    // ✅ ЕСЛИ ПРОПУСК — СООБЩАЕМ И ПРОПУСКАЕМ
+    if(nextPlayer.skipNext){
+      io.to(roomCode).emit('playerSkipped', nextPlayer.id);
+
+      nextPlayer.skipNext = false; // сбрасываем ТОЛЬКО ТУТ
       attempts++;
-    } while(attempts <= room.players.length);
+      continue;
+    }
 
-    io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
+    break;
   }
-});
+
+  io.to(roomCode).emit('nextTurn', nextPlayer.id);
+}
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, ()=>console.log("🚀 Server started on port " + PORT));
