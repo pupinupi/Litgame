@@ -1,15 +1,15 @@
-// 🔊 звук скандала
+// 🔊 Звуки
 const scandalSound = new Audio('scandal.mp3');
 scandalSound.volume = 0.8;
-// 🔊 звук кубика
+
 const diceSound = new Audio('dice.mp3');
 diceSound.volume = 0.7;
+
 const socket = io();
 
 let players = [];
 let currentTurnId = null;
 let username, roomCode, color;
-
 let isAnimating = false;
 let gameOver = false;
 
@@ -22,7 +22,7 @@ document.querySelectorAll('.chip').forEach(btn => {
   };
 });
 
-// --- ВХОД ---
+// --- ВХОД В ЛОББИ ---
 document.getElementById('joinBtn').onclick = () => {
   username = document.getElementById('username').value;
   roomCode = document.getElementById('roomCode').value;
@@ -35,18 +35,17 @@ document.getElementById('joinBtn').onclick = () => {
   socket.emit('joinRoom', { username, roomCode, color });
 };
 
-// --- СТАРТ ---
+// --- НАЧАЛО ИГРЫ ---
 document.getElementById('startBtn').onclick = () => {
   socket.emit('startGame', roomCode);
 };
 
-// --- КУБИК ---
+// --- БРОСОК КУБИКА ---
 document.getElementById('rollBtn').onclick = () => {
   if (gameOver || isAnimating) return;
 
   const me = players.find(p => p.id === socket.id);
   if (!me) return;
-
   if (currentTurnId !== socket.id) return;
 
   if (me.skipNext) {
@@ -61,6 +60,7 @@ document.getElementById('rollBtn').onclick = () => {
     return;
   }
 
+  safePlaySound(diceSound);
   socket.emit('rollDice', roomCode);
 };
 
@@ -87,11 +87,6 @@ socket.on('diceRolled', ({ playerId, dice }) => {
   if (playerId !== socket.id) return;
 
   const diceEl = document.getElementById('diceResult');
-
-  // 🔊 запускаем звук
-  diceSound.currentTime = 0;
-  diceSound.play();
-
   diceEl.classList.add('rolling');
   diceEl.innerText = "🎲 ...";
 
@@ -142,10 +137,9 @@ function movePlayer(steps) {
     }
 
     const prevPosition = me.position;
-
     me.position = (me.position + 1) % cells.length;
 
-    // 🔁 ПРОХОЖДЕНИЕ КРУГА
+    // 🔁 бонус за прохождение круга
     if (me.position === 0 && prevPosition !== 0) {
       me.hype += 7;
       showModal('🔁 Круг пройден! +7 хайпа');
@@ -154,7 +148,6 @@ function movePlayer(steps) {
 
     renderPlayers();
     count++;
-
     setTimeout(step, 300);
   }
 
@@ -171,32 +164,26 @@ function handleCell(p) {
       p.hype += 10;
       text = '🚀 Старт! +10 хайпа';
       break;
-
     case 'plus':
       p.hype += cell.value;
       text = `➕ +${cell.value} хайпа`;
       break;
-
     case 'minus':
       p.hype = Math.max(0, p.hype - cell.value);
       text = `➖ -${cell.value} хайпа`;
       break;
-
     case 'skip':
       p.skipNext = true;
       text = '🛑 Пропуск хода!';
       break;
-
     case 'minusSkip':
       p.hype = Math.max(0, p.hype - cell.value);
       p.skipNext = true;
       text = `🛑 -${cell.value} и пропуск`;
       break;
-
     case 'risk':
       showRiskModal(p);
       return;
-
     case 'scandal':
       showScandalModal(p);
       return;
@@ -215,55 +202,43 @@ function handleCell(p) {
   });
 }
 
-// --- 💥 ТРЯСКА ---
+// --- 💥 ТРЯСКА ЭКРАНА ---
 function shakeScreen() {
   document.body.classList.add('shake');
-  setTimeout(() => {
-    document.body.classList.remove('shake');
-  }, 400);
+  setTimeout(() => document.body.classList.remove('shake'), 400);
 }
 
 // --- ПРОВЕРКА ПОБЕДЫ ---
 function checkWin(p) {
   if (p.hype >= 70 && !gameOver) {
     gameOver = true;
-
     document.getElementById('modal').innerHTML = `
       <div class="winScreenBox">
         <div class="winTitle">🏆 ПОБЕДА</div>
         <div class="winName">${p.username}</div>
         <div class="winText">набрал 70 хайпа!</div>
-      </div>
-    `;
-
+      </div>`;
     document.getElementById('modal').classList.add('active');
-
     document.getElementById('rollBtn').disabled = true;
   }
 }
 
-// --- РЕНДЕР ---
+// --- РЕНДЕР ФИШЕК ---
 function renderPlayers() {
   const b = document.getElementById('gameBoard');
-
   players.forEach((p, i) => {
     let el = document.getElementById(p.id);
-
     if (!el) {
       el = document.createElement('div');
       el.className = 'player ' + p.color;
       el.id = p.id;
       b.appendChild(el);
     }
-
     const c = cells[p.position];
     if (!c) return;
-
     el.style.left = (c.x + i * 10) + 'px';
     el.style.top = c.y + 'px';
-
-    if (p.id === currentTurnId) el.classList.add('active');
-    else el.classList.remove('active');
+    el.classList.toggle('active', p.id === currentTurnId);
   });
 }
 
@@ -271,18 +246,14 @@ function renderPlayers() {
 function renderHypeBars() {
   const container = document.getElementById('hypeBars');
   container.innerHTML = '';
-
   players.forEach(p => {
     const bar = document.createElement('div');
     bar.className = 'hypeBar';
-
     const fill = document.createElement('div');
     fill.className = 'hypeFill';
     fill.style.width = Math.min(p.hype, 70) / 70 * 100 + '%';
-
     bar.innerHTML = `<div>${p.username}: ${p.hype}/70</div>`;
     bar.appendChild(fill);
-
     container.appendChild(bar);
   });
 }
@@ -296,27 +267,19 @@ function renderLobbyPlayers() {
 // --- МОДАЛКА ---
 function showModal(text) {
   const m = document.getElementById('modal');
-
   m.innerHTML = `<div class="modalContent">${text}</div>`;
   m.classList.add('active');
-
-  setTimeout(() => {
-    if (!gameOver) m.classList.remove('active');
-  }, 2000);
+  setTimeout(() => { if (!gameOver) m.classList.remove('active'); }, 2000);
 }
 
 // --- РИСК ---
 function showRiskModal(p) {
   const dice = Math.floor(Math.random() * 6) + 1;
-  const val = (dice <= 3 ? -5 : 5);
-
+  const val = dice <= 3 ? -5 : 5;
   p.hype = Math.max(0, p.hype + val);
-
   showModal(`🎲 Риск: ${dice} → ${val > 0 ? '+' : ''}${val}`);
   renderHypeBars();
-
   checkWin(p);
-
   socket.emit('playerMoved', {
     roomCode,
     position: p.position,
@@ -327,12 +290,8 @@ function showRiskModal(p) {
 
 // --- СКАНДАЛ ---
 function showScandalModal(p) {
-  // 💥 тряска
   shakeScreen();
-
-  // 🔊 звук
-  scandalSound.currentTime = 0;
-  scandalSound.play();
+  safePlaySound(scandalSound);
 
   const options = [
     { text: 'перегрел аудиторию🔥', val: -1 },
@@ -345,20 +304,12 @@ function showScandalModal(p) {
   ];
 
   const c = options[Math.floor(Math.random() * options.length)];
-
-  if (c.all) {
-    players.forEach(pl => {
-      pl.hype = Math.max(0, pl.hype + c.val);
-    });
-  } else {
-    p.hype = Math.max(0, p.hype + c.val);
-  }
-
+  if (c.all) players.forEach(pl => pl.hype = Math.max(0, pl.hype + c.val));
+  else p.hype = Math.max(0, p.hype + c.val);
   if (c.skip) p.skipNext = true;
 
   showModal(`💥 ${c.text} (${c.val})`);
   renderHypeBars();
-
   checkWin(p);
 
   socket.emit('playerMoved', {
@@ -369,22 +320,11 @@ function showScandalModal(p) {
   });
 }
 
-  const c = options[Math.floor(Math.random() * options.length)];
-
-  if (c.all) players.forEach(pl => pl.hype = Math.max(0, pl.hype + c.val));
-  else p.hype = Math.max(0, p.hype + c.val);
-
-  if (c.skip) p.skipNext = true;
-
-  showModal(`💥 ${c.text} (${c.val})`);
-  renderHypeBars();
-
-  checkWin(p);
-
-  socket.emit('playerMoved', {
-    roomCode,
-    position: p.position,
-    hype: p.hype,
-    skipNext: p.skipNext
-  });
+// --- БЕЗОПАСНОЕ ВОСПРОИЗВЕДЕНИЕ ЗВУКА ---
+function safePlaySound(sound) {
+  if (!sound) return;
+  try {
+    sound.currentTime = 0;
+    sound.play().catch(()=>{});
+  } catch(e){}
 }
