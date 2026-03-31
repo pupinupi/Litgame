@@ -33,30 +33,34 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     if(!room || room.players.length === 0) return;
 
+    room.turn = 0;
+
     io.to(roomCode).emit('gameStarted');
     io.to(roomCode).emit('nextTurn', room.players[0].id);
   });
 
   socket.on('rollDice', (roomCode)=>{
-  const room = rooms[roomCode];
-  if(!room) return;
+    const room = rooms[roomCode];
+    if(!room) return;
 
-  const player = room.players.find(p=>p.id===socket.id);
-  if(!player) return;
+    const player = room.players[room.turn];
 
-  // 🚫 ВОТ ОН — ГЛАВНЫЙ ФИКС
-  if(player.skipNext){
-    io.to(roomCode).emit('playerSkipped', player.id);
+    // ❌ не твой ход
+    if(player.id !== socket.id) return;
 
-    player.skipNext = false;
-    nextTurn(roomCode);
-    return;
-  }
+    // 🛑 ПРОПУСК ХОДА
+    if(player.skipNext){
+      io.to(roomCode).emit('playerSkipped', player.id);
 
-  const dice = Math.floor(Math.random()*6)+1;
+      player.skipNext = false;
+      nextTurn(roomCode);
+      return;
+    }
 
-  io.to(roomCode).emit('diceRolled', { playerId: socket.id, dice });
-});
+    const dice = Math.floor(Math.random()*6)+1;
+
+    io.to(roomCode).emit('diceRolled', { playerId: player.id, dice });
+  });
 
   socket.on('playerMoved', ({roomCode, position, hype, skipNext})=>{
     const room = rooms[roomCode];
@@ -74,28 +78,13 @@ io.on('connection', (socket) => {
     nextTurn(roomCode);
   });
 
-  // 🔥 ПРАВИЛЬНЫЙ nextTurn
   function nextTurn(roomCode){
     const room = rooms[roomCode];
-    if(!room || room.players.length === 0) return;
+    if(!room) return;
 
-    let nextPlayer;
-    let attempts = 0;
+    room.turn = (room.turn + 1) % room.players.length;
 
-    while(attempts < room.players.length){
-      room.turn = (room.turn + 1) % room.players.length;
-      nextPlayer = room.players[room.turn];
-
-      if(nextPlayer.skipNext){
-        io.to(roomCode).emit('playerSkipped', nextPlayer.id);
-
-        nextPlayer.skipNext = false;
-        attempts++;
-        continue;
-      }
-
-      break;
-    }
+    const nextPlayer = room.players[room.turn];
 
     io.to(roomCode).emit('nextTurn', nextPlayer.id);
   }
