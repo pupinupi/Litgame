@@ -205,70 +205,94 @@ button{
 }
 
 /* --- КАРТОЧКА СКАНДАЛА --- */
+/* --- КАРТОЧКА СКАНДАЛА (УЛУЧШЕННАЯ) --- */
 .scandalCard{
-  width:280px;
-  height:360px;
-  background:linear-gradient(145deg,#1a1a1a,#000);
-  border-radius:20px;
-  border:3px solid #ff3b3b;
+  width:320px;
+  height:420px;
+
+  background:linear-gradient(145deg,#050505,#1a1a1a);
+  border-radius:25px;
+
+  border:4px solid #ff3b3b;
 
   display:flex;
   flex-direction:column;
   justify-content:space-between;
   align-items:center;
 
-  padding:20px;
+  padding:25px;
   text-align:center;
   color:white;
 
   box-shadow:
-    0 0 20px #ff0000,
-    0 0 40px #ff3b3b,
-    0 0 80px rgba(255,0,0,0.5);
+    0 0 30px #ff0000,
+    0 0 60px #ff3b3b,
+    0 0 120px rgba(255,0,0,0.7);
 
-  animation:cardEnter 0.5s ease;
+  animation:cardEnter 0.4s ease;
 }
 
-/* Заголовок */
+/* 🔥 Заголовок (если добавишь потом) */
 .scandalTitle{
-  font-size:26px;
+  font-size:28px;
   font-weight:bold;
   color:#ff3b3b;
-  text-shadow:0 0 10px #ff0000;
+  text-shadow:
+    0 0 10px #ff0000,
+    0 0 20px #ff3b3b;
 }
 
-/* Текст */
+/* 🧠 текст */
 .scandalText{
-  font-size:22px;
-  margin-top:20px;
+  font-size:26px;
+  margin-top:10px;
+  line-height:1.3;
+
+  text-shadow:
+    0 0 10px rgba(255,255,255,0.3);
 }
 
-/* Значение */
+/* 💣 значение */
 .scandalValue{
-  font-size:30px;
+  font-size:42px;
   font-weight:bold;
+
   color:#ffe600;
-  text-shadow:0 0 10px #ffe600;
+
+  text-shadow:
+    0 0 15px #ffe600,
+    0 0 30px #ffae00;
 }
 
-/* Кнопка */
+/* 🔘 кнопка */
 .scandalBtn{
   margin-top:20px;
-  padding:10px 20px;
+
+  padding:14px 30px;
   border:none;
-  border-radius:10px;
-  background:#ff3b3b;
+  border-radius:15px;
+
+  background:linear-gradient(145deg,#ff3b3b,#ff0000);
   color:white;
-  font-size:18px;
+
+  font-size:20px;
+  font-weight:bold;
+
   cursor:pointer;
 
-  box-shadow:0 0 10px #ff0000;
+  box-shadow:
+    0 0 15px #ff0000,
+    0 0 30px rgba(255,0,0,0.8);
+
+  transition:0.2s;
 }
 
 .scandalBtn:hover{
-  transform:scale(1.1);
+  transform:scale(1.15);
+  box-shadow:
+    0 0 30px #ff0000,
+    0 0 60px rgba(255,0,0,1);
 }
-
 /* АНИМАЦИЯ ПОЯВЛЕНИЯ */
 @keyframes cardEnter{
   0%{
