@@ -38,25 +38,16 @@ io.on('connection', (socket) => {
   });
 
   socket.on('rollDice', (roomCode)=>{
-  const room = rooms[roomCode];
-  if(!room) return;
+    const room = rooms[roomCode];
+    if(!room) return;
 
-  const currentPlayer = room.players[room.turn];
-  
-  // ⛔ если не его ход — игнор
-  if(currentPlayer.id !== socket.id) return;
+    const player = room.players.find(p=>p.id===socket.id);
+    if(!player) return;
 
-  const player = currentPlayer;
+    const dice = Math.floor(Math.random()*6)+1;
 
-  if(player.skipNext){
-    player.skipNext = false;
-    nextTurn(roomCode);
-    return;
-  }
-
-  const dice = Math.floor(Math.random()*6)+1;
-  io.to(roomCode).emit('diceRolled', { playerId: socket.id, dice });
-});
+    io.to(roomCode).emit('diceRolled', { playerId: socket.id, dice });
+  });
 
   socket.on('playerMoved', ({roomCode, position, hype, skipNext})=>{
     const room = rooms[roomCode];
@@ -74,32 +65,33 @@ io.on('connection', (socket) => {
     nextTurn(roomCode);
   });
 
+  // 🔥 ПРАВИЛЬНЫЙ nextTurn
   function nextTurn(roomCode){
-  const room = rooms[roomCode];
-  if(!room || room.players.length === 0) return;
+    const room = rooms[roomCode];
+    if(!room || room.players.length === 0) return;
 
-  let nextPlayer;
+    let nextPlayer;
+    let attempts = 0;
 
-  let attempts = 0;
+    while(attempts < room.players.length){
+      room.turn = (room.turn + 1) % room.players.length;
+      nextPlayer = room.players[room.turn];
 
-  while(attempts < room.players.length){
-    room.turn = (room.turn + 1) % room.players.length;
-    nextPlayer = room.players[room.turn];
+      if(nextPlayer.skipNext){
+        io.to(roomCode).emit('playerSkipped', nextPlayer.id);
 
-    // ✅ ЕСЛИ ПРОПУСК — СООБЩАЕМ И ПРОПУСКАЕМ
-    if(nextPlayer.skipNext){
-      io.to(roomCode).emit('playerSkipped', nextPlayer.id);
+        nextPlayer.skipNext = false;
+        attempts++;
+        continue;
+      }
 
-      nextPlayer.skipNext = false; // сбрасываем ТОЛЬКО ТУТ
-      attempts++;
-      continue;
+      break;
     }
 
-    break;
+    io.to(roomCode).emit('nextTurn', nextPlayer.id);
   }
 
-  io.to(roomCode).emit('nextTurn', nextPlayer.id);
-}
+});
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, ()=>console.log("🚀 Server started on port " + PORT));
