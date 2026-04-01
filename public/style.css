@@ -531,3 +531,61 @@ button:hover {
   font-size:32px;
   font-weight:bold;
 }
+
+/* --- ЭКРАН ПОБЕДЫ --- */
+.winScreenBox{
+  width:500px;
+  padding:40px;
+  border-radius:25px;
+
+  background:linear-gradient(145deg,#000,#1a1a1a);
+  text-align:center;
+
+  box-shadow:
+    0 0 30px #ffe600,
+    0 0 60px #ffae00,
+    0 0 100px rgba(255,200,0,0.6);
+
+  animation:winPop 0.5s ease;
+}
+
+.winTitle{
+  font-size:50px;
+  color:#ffe600;
+  text-shadow:0 0 20px #ffae00;
+}
+
+.winName{
+  font-size:40px;
+  margin-top:20px;
+  color:#00ffcc;
+  text-shadow:0 0 15px #00eaff;
+}
+
+.winText{
+  margin-top:10px;
+  font-size:24px;
+}
+
+.winBtn{
+  margin-top:30px;
+  padding:15px 30px;
+  font-size:20px;
+  border:none;
+  border-radius:15px;
+  cursor:pointer;
+
+  background:linear-gradient(145deg,#00eaff,#00ffcc);
+  color:black;
+  font-weight:bold;
+
+  box-shadow:
+    0 0 20px #00eaff,
+    0 0 40px #00ffcc;
+
+  transition:0.2s;
+}
+
+.winBtn:hover{
+  transform:scale(1.1);
+}
