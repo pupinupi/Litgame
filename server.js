@@ -81,17 +81,31 @@ io.on('connection', (socket) => {
   });
 
   function nextTurn(roomCode){
-    const room = rooms[roomCode];
-    if(!room) return;
+  const room = rooms[roomCode];
+  if(!room || room.players.length === 0) return;
 
-    room.turn = (room.turn + 1) % room.players.length;
+  let nextIndex = room.turn;
 
-    const nextPlayer = room.players[room.turn];
+  for(let i = 0; i < room.players.length; i++){
+    nextIndex = (nextIndex + 1) % room.players.length;
 
-    io.to(roomCode).emit('nextTurn', nextPlayer.id);
+    const player = room.players[nextIndex];
+
+    if(player.skipNext){
+      io.to(roomCode).emit('playerSkipped', player.id);
+      player.skipNext = false;
+      continue;
+    }
+
+    room.turn = nextIndex;
+    io.to(roomCode).emit('nextTurn', player.id);
+    return;
   }
 
-});
+  // если ВСЕ пропускают
+  room.turn = (room.turn + 1) % room.players.length;
+  io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
+}
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, ()=>console.log("🚀 Server started on port " + PORT));
