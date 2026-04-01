@@ -99,29 +99,75 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // --- КЛЕТКИ ---
-  const cells = [
-    { x: 82, y: 587, type: 'start' },
-    { x: 97, y: 464, type: 'plus', value: 3 },
-    { x: 86, y: 348, type: 'plus', value: 2 },
-    { x: 93, y: 224, type: 'scandal' },
-    { x: 87, y: 129, type: 'risk' },
-    { x: 219, y: 101, type: 'plus', value: 2 },
-    { x: 364, y: 107, type: 'scandal' },
-    { x: 494, y: 95, type: 'plus', value: 3 },
-    { x: 652, y: 96, type: 'plus', value: 5 },
-    { x: 815, y: 89, type: 'minus', value: 10 },
-    { x: 930, y: 135, type: 'minusSkip', value: 8 },
-    { x: 936, y: 247, type: 'plus', value: 3 },
-    { x: 936, y: 357, type: 'risk' },
-    { x: 941, y: 480, type: 'plus', value: 3 },
-    { x: 937, y: 610, type: 'skip' },
-    { x: 794, y: 624, type: 'plus', value: 2 },
-    { x: 636, y: 635, type: 'scandal' },
-    { x: 517, y: 627, type: 'plus', value: 8 },
-    { x: 355, y: 619, type: 'minus', value: 10 },
-    { x: 210, y: 626, type: 'plus', value: 4 }
-  ];
+  // --- КЛЕТКИ ---
+const cells = [
+  { type: 'start', hype: 10, skipNext: false },      // 1
+  { type: 'plus', hype: 3, skipNext: false },        // 2
+  { type: 'plus', hype: 2, skipNext: false },        // 3
+  { type: 'scandal', hype: -3, skipNext: false },    // 4
+  { type: 'risk', skipNext: false },                 // 5
+  { type: 'plus', hype: 2, skipNext: false },        // 6
+  { type: 'scandal', hype: -3, skipNext: false },    // 7
+  { type: 'plus', hype: 3, skipNext: false },        // 8
+  { type: 'plus', hype: 5, skipNext: false },        // 9
+  { type: 'minus', hype: Infinity, skipNext: false },// 10 - весь хайп
+  { type: 'minusSkip', hypePercent: 50, skipNext: true }, // 11 - Тюрьма: -50% и пропуск
+  { type: 'plus', hype: 3, skipNext: false },        // 12
+  { type: 'risk', skipNext: false },                 // 13
+  { type: 'plus', hype: 3, skipNext: false },        // 14
+  { type: 'skip', skipNext: true },                  // 15 - Суд: пропуск
+  { type: 'plus', hype: 2, skipNext: false },        // 16
+  { type: 'scandal', hype: -3, skipNext: false },    // 17
+  { type: 'plus', hype: 8, skipNext: false },        // 18
+  { type: 'minus', hype: Infinity, skipNext: false },// 19 - весь хайп
+  { type: 'plus', hype: 4, skipNext: false }         // 20
+];
 
+// --- ОБРАБОТКА КЛЕТКИ ---
+function handleCell(p) {
+  const cell = cells[p.position];
+  let text = '';
+
+  switch (cell.type) {
+    case 'start':
+      p.hype += cell.hype;
+      text = `🚀 +${cell.hype}`;
+      break;
+    case 'plus':
+      p.hype += cell.hype;
+      text = `➕ ${cell.hype}`;
+      break;
+    case 'minus':
+      p.hype = 0;
+      text = '➖ весь хайп';
+      break;
+    case 'minusSkip':
+      p.hype = Math.floor(p.hype * (1 - cell.hypePercent/100));
+      p.skipNext = true;
+      text = `🛑 Суд -50%`;
+      break;
+    case 'skip':
+      p.skipNext = true;
+      text = '🛑 Пропуск хода';
+      break;
+    case 'risk':
+      showRiskModal(p);
+      return;
+    case 'scandal':
+      showScandalModal(p);
+      return;
+  }
+
+  renderHypeBars();
+  if (text) showModal(text);
+
+  socket.emit('playerMoved', {
+    roomCode,
+    position: p.position,
+    hype: p.hype,
+    skipNext: p.skipNext
+  });
+}
   // --- ДВИЖЕНИЕ ---
   function movePlayer(steps) {
     const me = players.find(p => p.id === socket.id);
