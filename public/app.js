@@ -29,7 +29,7 @@ document.getElementById('joinBtn').onclick = () => {
   roomCode = document.getElementById('roomCode').value.trim();
 
   if (!username || !roomCode || !color) {
-    alert("Заполни все поля и выбери фишку");
+    alert("Заполни всё и выбери фишку");
     return;
   }
 
@@ -57,7 +57,7 @@ socket.on('updatePlayers', pl => {
   renderLobbyPlayers();
 });
 
-socket.on('playerSkipped', playerId => {
+socket.on('playerSkipped', (playerId) => {
   if (playerId === socket.id) {
     showModal('🛑 Пропуск хода!');
     document.getElementById('rollBtn').disabled = true;
@@ -79,38 +79,40 @@ socket.on('diceRolled', ({ playerId, dice }) => {
   if (playerId !== socket.id) return;
 
   const diceEl = document.getElementById('diceResult');
+
   diceSound.currentTime = 0;
   diceSound.play();
 
   diceEl.innerText = "🎲 " + dice;
+
   movePlayer(dice);
 });
 
-// --- КЛЕТКИ ---
+// --- КЛЕТКИ (ТВОИ КООРДИНАТЫ) ---
 const cells = [
-  { x: 50, y: 550, type: 'start', hype: 0, skipNext: false },
-  { x: 150, y: 550, type: 'plus', hype: 3, skipNext: false },
-  { x: 250, y: 550, type: 'plus', hype: 2, skipNext: false },
-  { x: 350, y: 550, type: 'scandal', skipNext: false },
-  { x: 450, y: 550, type: 'risk', skipNext: false },
-  { x: 550, y: 550, type: 'plus', hype: 2, skipNext: false },
-  { x: 650, y: 550, type: 'scandal', skipNext: false },
-  { x: 750, y: 550, type: 'plus', hype: 3, skipNext: false },
-  { x: 850, y: 550, type: 'plus', hype: 5, skipNext: false },
-  { x: 950, y: 550, type: 'minus', hype: 10, skipNext: false },
-  { x: 950, y: 450, type: 'minusSkip', hype: 8, skipNext: true },
-  { x: 850, y: 450, type: 'plus', hype: 3, skipNext: false },
-  { x: 750, y: 450, type: 'risk', skipNext: false },
-  { x: 650, y: 450, type: 'plus', hype: 3, skipNext: false },
-  { x: 550, y: 450, type: 'skip', skipNext: true },
-  { x: 450, y: 450, type: 'plus', hype: 2, skipNext: false },
-  { x: 350, y: 450, type: 'scandal', skipNext: false },
-  { x: 250, y: 450, type: 'plus', hype: 8, skipNext: false },
-  { x: 150, y: 450, type: 'minus', hype: 10, skipNext: false },
-  { x: 50, y: 450, type: 'plus', hype: 4, skipNext: false },
+  { x: 111, y: 596, type: 'start' },
+  { x: 114, y: 454, type: 'plus', hype: 3 },
+  { x: 106, y: 363, type: 'plus', hype: 2 },
+  { x: 91,  y: 239, type: 'scandal' },
+  { x: 101, y: 143, type: 'risk' },
+  { x: 226, y: 100, type: 'plus', hype: 2 },
+  { x: 374, y: 101, type: 'scandal' },
+  { x: 509, y: 107, type: 'plus', hype: 3 },
+  { x: 653, y: 106, type: 'plus', hype: 5 },
+  { x: 789, y: 103, type: 'minus', hype: 10 },
+  { x: 933, y: 128, type: 'minusSkip', hype: 8 },
+  { x: 938, y: 252, type: 'plus', hype: 3 },
+  { x: 948, y: 356, type: 'risk' },
+  { x: 943, y: 480, type: 'plus', hype: 3 },
+  { x: 923, y: 598, type: 'skip' },
+  { x: 794, y: 619, type: 'plus', hype: 2 },
+  { x: 644, y: 617, type: 'scandal' },
+  { x: 513, y: 617, type: 'plus', hype: 8 },
+  { x: 351, y: 624, type: 'minus', hype: 10 },
+  { x: 232, y: 620, type: 'plus', hype: 4 }
 ];
 
-// --- ДВИЖЕНИЕ ПО КООРДИНАТАМ ---
+// --- ДВИЖЕНИЕ ---
 function movePlayer(steps) {
   const me = players.find(p => p.id === socket.id);
   if (!me) return;
@@ -126,6 +128,7 @@ function movePlayer(steps) {
     }
 
     me.position = (me.position + 1) % cells.length;
+
     renderPlayers();
     count++;
     setTimeout(step, 300);
@@ -137,36 +140,49 @@ function movePlayer(steps) {
 // --- ОБРАБОТКА КЛЕТКИ ---
 function handleCell(p) {
   const cell = cells[p.position];
+  if (!cell) return;
+
   let text = '';
+
+  // ❗ СБРОС skip
+  p.skipNext = false;
 
   switch (cell.type) {
     case 'start':
       text = '🚀 Старт';
       break;
+
     case 'plus':
       p.hype += cell.hype;
-      text = `➕ ${cell.hype} хайпа`;
+      text = `➕ ${cell.hype}`;
       break;
+
     case 'minus':
       p.hype = Math.max(0, p.hype - cell.hype);
-      text = `➖ ${cell.hype} хайпа`;
+      text = `➖ ${cell.hype}`;
       break;
+
     case 'minusSkip':
       p.hype = Math.max(0, p.hype - cell.hype);
       p.skipNext = true;
-      text = `🛑 Суд: -${cell.hype} хайпа и пропуск хода`;
+      text = `🛑 Суд: -${cell.hype}`;
       break;
+
     case 'skip':
       p.skipNext = true;
       text = '🛑 Пропуск хода';
       break;
+
     case 'risk':
       showRiskModal(p);
       return;
+
     case 'scandal':
       showScandalModal(p);
       return;
   }
+
+  p.hype = Math.max(0, p.hype);
 
   renderHypeBars();
   if (text) showModal(text);
@@ -187,11 +203,20 @@ function handleCell(p) {
 // --- РИСК ---
 function showRiskModal(p) {
   showModal('🎲 Риск: 1-3 -5, 4-6 +5');
+
   setTimeout(() => {
     const dice = Math.floor(Math.random() * 6) + 1;
-    p.hype += dice <= 3 ? -5 : 5;
+
+    if (dice <= 3) {
+      p.hype = Math.max(0, p.hype - 5);
+      showModal('➖ 5 хайпа');
+    } else {
+      p.hype += 5;
+      showModal('➕ 5 хайпа');
+    }
+
     renderHypeBars();
-    showModal(dice <= 3 ? '-5 хайпа' : '+5 хайпа');
+
     socket.emit('playerMoved', {
       roomCode,
       position: p.position,
@@ -207,26 +232,29 @@ function showScandalModal(p) {
   scandalSound.play();
 
   const scandals = [
-    { text: 'перегрел аудиторию🔥', hype: -1, skip: false },
-    { text: 'громкий заголовок🫣', hype: -2, skip: false },
-    { text: 'это монтаж 😱', hype: -3, skip: false },
-    { text: 'меня взломали #️⃣', hype: -3, skip: false, all: true },
-    { text: 'подписчики в шоке 😮', hype: -4, skip: false },
-    { text: 'удаляй пока не поздно 🤫', hype: -5, skip: false },
-    { text: 'это контент, вы не понимаете 🙄', hype: -5, skip: true }
+    { text: 'перегрел аудиторию🔥', hype: -1 },
+    { text: 'громкий заголовок🫣', hype: -2 },
+    { text: 'это монтаж 😱', hype: -3 },
+    { text: 'меня взломали #️⃣', hype: -3, all: true },
+    { text: 'подписчики в шоке 😮', hype: -4 },
+    { text: 'удаляй пока не поздно 🤫', hype: -5 },
+    { text: 'это контент 🙄', hype: -5, skip: true }
   ];
 
   const s = scandals[Math.floor(Math.random() * scandals.length)];
 
   if (s.all) {
-    players.forEach(pl => pl.hype = Math.max(0, pl.hype + s.hype));
+    players.forEach(pl => {
+      pl.hype = Math.max(0, pl.hype + s.hype);
+    });
   } else {
     p.hype = Math.max(0, p.hype + s.hype);
     if (s.skip) p.skipNext = true;
   }
 
   renderHypeBars();
-  showModal(`${s.text} (${s.hype > 0 ? '+' : ''}${s.hype} хайпа)`);
+  showModal(`${s.text} (${s.hype})`);
+
   socket.emit('playerMoved', {
     roomCode,
     position: p.position,
@@ -241,6 +269,7 @@ function renderPlayers() {
 
   players.forEach((p, i) => {
     let el = document.getElementById(p.id);
+
     if (!el) {
       el = document.createElement('div');
       el.className = `player ${p.color}`;
@@ -249,9 +278,9 @@ function renderPlayers() {
     }
 
     const c = cells[p.position];
-    el.style.left = c.x + 'px';
-    el.style.top = c.y + 'px';
-    el.style.zIndex = (p.id === currentTurnId ? 10 : 1);
+
+    el.style.left = (c.x + i * 8) + 'px';
+    el.style.top = (c.y) + 'px';
   });
 }
 
@@ -269,6 +298,7 @@ function renderHypeBars() {
 
     bar.innerHTML = `<div>${p.username}: ${p.hype}/70</div>`;
     bar.appendChild(fill);
+
     container.appendChild(bar);
   });
 }
@@ -284,59 +314,4 @@ function showModal(text) {
   m.classList.add('active');
 
   setTimeout(() => m.classList.remove('active'), 2000);
-}
-
-// --- РЕЖИМ СБОРА КООРДИНАТ (ДЛЯ ТЕЛЕФОНА) ---
-let coordMode = true;
-
-if (coordMode) {
-  const board = document.getElementById('gameBoard');
-
-  // создаем панель
-  const panel = document.createElement('div');
-  panel.style.position = 'fixed';
-  panel.style.bottom = '0';
-  panel.style.left = '0';
-  panel.style.width = '100%';
-  panel.style.maxHeight = '40%';
-  panel.style.overflowY = 'auto';
-  panel.style.background = 'black';
-  panel.style.color = '#00eaff';
-  panel.style.fontSize = '14px';
-  panel.style.padding = '10px';
-  panel.style.zIndex = '9999';
-
-  panel.innerHTML = `
-    <div style="margin-bottom:5px;">📍 Координаты:</div>
-    <textarea id="coordsOutput" style="width:100%; height:120px;"></textarea>
-    <button id="copyCoords">📋 Копировать</button>
-    <button id="clearCoords">🗑 Очистить</button>
-  `;
-
-  document.body.appendChild(panel);
-
-  const output = document.getElementById('coordsOutput');
-
-  // клик по полю
-  board.addEventListener('click', (e) => {
-    const rect = board.getBoundingClientRect();
-
-    const x = Math.floor(e.clientX - rect.left);
-    const y = Math.floor(e.clientY - rect.top);
-
-    const line = `{ x: ${x}, y: ${y} },\n`;
-    output.value += line;
-  });
-
-  // копировать
-  document.getElementById('copyCoords').onclick = () => {
-    output.select();
-    document.execCommand('copy');
-    alert('Скопировано!');
-  };
-
-  // очистить
-  document.getElementById('clearCoords').onclick = () => {
-    output.value = '';
-  };
 }
