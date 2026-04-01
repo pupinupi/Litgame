@@ -10,24 +10,32 @@ let rooms = {};
 io.on('connection', (socket) => {
 
   socket.on('joinRoom', ({username, roomCode, color}) => {
-    if(!rooms[roomCode]){
-      rooms[roomCode] = { players: [], turn: 0 };
-    }
+  if(!rooms[roomCode]){
+    rooms[roomCode] = { players: [], turn: 0 };
+  }
 
-    const player = {
-      id: socket.id,
-      username,
-      color,
-      position: 0,
-      hype: 0,
-      skipNext: false
-    };
+  const room = rooms[roomCode];
 
-    rooms[roomCode].players.push(player);
-    socket.join(roomCode);
+  // ❌ если цвет уже занят
+  if(room.players.find(p => p.color === color)){
+    socket.emit('colorTaken');
+    return;
+  }
 
-    io.to(roomCode).emit('updatePlayers', rooms[roomCode].players);
-  });
+  const player = {
+    id: socket.id,
+    username,
+    color,
+    position: 0,
+    hype: 0,
+    skipNext: false
+  };
+
+  room.players.push(player);
+  socket.join(roomCode);
+
+  io.to(roomCode).emit('updatePlayers', room.players);
+});
 
   socket.on('startGame', (roomCode)=>{
     const room = rooms[roomCode];
