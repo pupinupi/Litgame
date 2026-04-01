@@ -1,43 +1,50 @@
-const scandalSound = new Audio('scandal.mp3');
-scandalSound.volume = 0.8;
+window.onload = () => {
 
-const diceSound = new Audio('dice.mp3');
-diceSound.volume = 0.7;
+  // 🔊 звуки
+  const scandalSound = new Audio('scandal.mp3');
+  scandalSound.volume = 0.8;
 
-const socket = io();
+  const diceSound = new Audio('dice.mp3');
+  diceSound.volume = 0.7;
 
-let players = [];
-let currentTurnId = null;
-let username, roomCode, color;
+  const socket = io();
 
-let isAnimating = false;
-let gameOver = false;
+  let players = [];
+  let currentTurnId = null;
+  let username, roomCode, color;
 
-// --- ВЫБОР ФИШКИ ---
-document.querySelectorAll('.chip').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-    btn.classList.add('selected');
-    color = btn.dataset.color;
+  let isAnimating = false;
+  let gameOver = false;
+
+  // --- ВЫБОР ФИШКИ ---
+  document.querySelectorAll('.chip').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+      btn.classList.add('selected');
+      color = btn.dataset.color;
+    };
+  });
+
+  // --- ВХОД ---
+  document.getElementById('joinBtn').onclick = () => {
+    username = document.getElementById('username').value;
+    roomCode = document.getElementById('roomCode').value;
+
+    if (!username || !roomCode || !color) {
+      alert("Заполни всё");
+      return;
+    }
+
+    socket.emit('joinRoom', { username, roomCode, color });
   };
-});
 
-// --- ВХОД ---
-document.getElementById('joinBtn').onclick = () => {
-  username = document.getElementById('username').value;
-  roomCode = document.getElementById('roomCode').value;
+  // --- СТАРТ ---
+  document.getElementById('startBtn').onclick = () => {
+    socket.emit('startGame', roomCode);
+  };
 
-  if (!username || !roomCode || !color) {
-    alert("Заполни всё");
-    return;
-  }
+  // дальше оставь весь остальной код БЕЗ изменений
 
-  socket.emit('joinRoom', { username, roomCode, color });
-};
-
-// --- СТАРТ ---
-document.getElementById('startBtn').onclick = () => {
-  socket.emit('startGame', roomCode);
 };
 
 // --- КУБИК ---
