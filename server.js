@@ -31,7 +31,9 @@ io.on('connection', (socket) => {
 
   socket.on('startGame', (roomCode)=>{
     const room = rooms[roomCode];
-    if(!room) return;
+    if(!room || room.players.length === 0) return;
+
+    room.turn = 0;
 
     io.to(roomCode).emit('gameStarted');
     io.to(roomCode).emit('nextTurn', room.players[0].id);
@@ -41,12 +43,21 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     if(!room) return;
 
-    const player = room.players.find(p=>p.id===socket.id);
-    if(!player) return;
+    const player = room.players[room.turn];
+
+    // ❌ не твой ход
+    if(player.id !== socket.id) return;
+
+    // 🛑 ПРОПУСК ХОДА
+    if(player.skipNext){
+      io.to(roomCode).emit('playerSkipped', player.id);
+      player.skipNext = false;
+      nextTurn(roomCode);
+      return;
+    }
 
     const dice = Math.floor(Math.random()*6)+1;
-
-    io.to(roomCode).emit('diceRolled', { playerId: socket.id, dice });
+    io.to(roomCode).emit('diceRolled', { playerId: player.id, dice });
   });
 
   socket.on('playerMoved', ({roomCode, position, hype, skipNext})=>{
@@ -61,7 +72,6 @@ io.on('connection', (socket) => {
     player.skipNext = skipNext;
 
     io.to(roomCode).emit('updatePlayers', room.players);
-
     nextTurn(roomCode);
   });
 
@@ -70,19 +80,7 @@ io.on('connection', (socket) => {
     if(!room) return;
 
     room.turn = (room.turn + 1) % room.players.length;
-
     const nextPlayer = room.players[room.turn];
-
-    // 🔥 ПРОПУСК ХОДА
-    if(nextPlayer.skipNext){
-      io.to(roomCode).emit('playerSkipped', nextPlayer.id);
-
-      nextPlayer.skipNext = false;
-
-      // сразу следующий игрок
-      return nextTurn(roomCode);
-    }
-
     io.to(roomCode).emit('nextTurn', nextPlayer.id);
   }
 
