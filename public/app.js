@@ -201,9 +201,9 @@ function handleCell(p) {
   if (text) showModal(text);
 
   if (p.hype >= 70) {
-    gameOver = true;
-    showModal(`🏆 ${p.username} выиграл!`);
-  }
+  gameOver = true;
+  showWinScreen(p.username);
+}
 
   socket.emit('playerMoved', {
     roomCode,
@@ -363,4 +363,22 @@ function showModal(text) {
   m.classList.add('active');
 
   setTimeout(() => m.classList.remove('active'), 2000);
+}
+
+function showWinScreen(winnerName) {
+  const m = document.getElementById('modal');
+
+  m.innerHTML = `
+    <div class="winScreenBox">
+      <div class="winTitle">🏆 ПОБЕДА</div>
+      <div class="winName">${winnerName}</div>
+      <div class="winText">набрал 70 хайпа!</div>
+
+      <button class="winBtn" onclick="location.reload()">
+        🔄 Играть снова
+      </button>
+    </div>
+  `;
+
+  m.classList.add('active');
 }
