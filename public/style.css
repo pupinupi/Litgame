@@ -497,3 +497,37 @@ button:hover {
 .shake {
   animation: screenShake 0.5s;
 }
+
+/* --- РИСК КАРТОЧКА --- */
+.riskCard{
+  width:300px;
+  padding:30px;
+  border-radius:20px;
+  text-align:center;
+
+  background:linear-gradient(145deg,#001f2f,#003b5c);
+  color:white;
+
+  box-shadow:
+    0 0 20px #00eaff,
+    0 0 40px #00ffcc;
+
+  animation:pop 0.3s ease;
+}
+
+.riskTitle{
+  font-size:28px;
+  font-weight:bold;
+  color:#00eaff;
+}
+
+.riskText{
+  margin-top:10px;
+  font-size:18px;
+}
+
+.riskValue{
+  margin-top:15px;
+  font-size:32px;
+  font-weight:bold;
+}
