@@ -17,10 +17,21 @@ let gameOver = false;
 // --- ВЫБОР ФИШКИ ---
 document.querySelectorAll('.chip').forEach(btn => {
   btn.onclick = () => {
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-    btn.classList.add('selected');
-    color = btn.dataset.color;
+    if (!btn.classList.contains('selected')) {
+      socket.emit('trySelectColor', btn.dataset.color); // проверка через сервер
+    }
   };
+});
+
+socket.on('colorAccepted', selectedColor => {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  const btn = [...document.querySelectorAll('.chip')].find(c => c.dataset.color === selectedColor);
+  if(btn) btn.classList.add('selected');
+  color = selectedColor;
+});
+
+socket.on('colorTaken', () => {
+  alert('Этот цвет уже занят!');
 });
 
 // --- ВХОД ---
@@ -61,6 +72,7 @@ socket.on('playerSkipped', (playerId) => {
   if (playerId === socket.id) {
     showModal('🛑 Пропуск хода!');
     document.getElementById('rollBtn').disabled = true;
+    setTimeout(() => socket.emit('nextTurnRequest', roomCode), 1000);
   }
 });
 
@@ -71,28 +83,21 @@ socket.on('gameStarted', () => {
 
 socket.on('nextTurn', id => {
   currentTurnId = id;
-  document.getElementById('rollBtn').disabled = (id !== socket.id || gameOver);
+  const myTurn = id === socket.id;
+  document.getElementById('rollBtn').disabled = !myTurn || gameOver;
   renderPlayers();
 });
 
 socket.on('diceRolled', ({ playerId, dice }) => {
   if (playerId !== socket.id) return;
-
   const diceEl = document.getElementById('diceResult');
-
   diceSound.currentTime = 0;
   diceSound.play();
-
   diceEl.innerText = "🎲 " + dice;
-
   movePlayer(dice);
 });
 
-socket.on('colorTaken', () => {
-  alert('Этот цвет уже занят!');
-});
-
-// --- КЛЕТКИ (КООРДИНАТЫ) ---
+// --- КЛЕТКИ ---
 const cells = [
   { x: 111, y: 596, type: 'start' },
   { x: 114, y: 454, type: 'plus', hype: 3 },
@@ -152,9 +157,8 @@ function handleCell(p) {
   const cell = cells[p.position];
   if (!cell) return;
 
-  let text = '';
-
   p.skipNext = false;
+  let text = '';
 
   switch (cell.type) {
     case 'start':
@@ -186,8 +190,6 @@ function handleCell(p) {
       return;
   }
 
-  p.hype = Math.max(0, p.hype);
-
   renderHypeBars();
   if (text) showModal(text);
 
@@ -207,8 +209,6 @@ function handleCell(p) {
 // --- РИСК ---
 function showRiskModal(p) {
   const m = document.getElementById('modal');
-
-  // Правила
   m.innerHTML = `
     <div class="riskCard">
       <div class="riskTitle">🎲 РИСК</div>
@@ -236,7 +236,6 @@ function showRiskModal(p) {
 
     setTimeout(() => {
       m.classList.remove('active');
-
       socket.emit('playerMoved', {
         roomCode,
         position: p.position,
@@ -244,7 +243,6 @@ function showRiskModal(p) {
         skipNext: p.skipNext
       });
     }, 1500);
-
   }, 1500);
 }
 
@@ -267,9 +265,7 @@ function showScandalModal(p) {
   const m = document.getElementById('modal');
 
   if (s.all) {
-    players.forEach(pl => {
-      pl.hype = Math.max(0, pl.hype + s.hype);
-    });
+    players.forEach(pl => { pl.hype = Math.max(0, pl.hype + s.hype); });
   } else {
     p.hype = Math.max(0, p.hype + s.hype);
     if (s.skip) p.skipNext = true;
@@ -288,52 +284,43 @@ function showScandalModal(p) {
 
   setTimeout(() => {
     m.classList.remove('active');
-
     socket.emit('playerMoved', {
       roomCode,
       position: p.position,
       hype: p.hype,
       skipNext: p.skipNext
     });
-
   }, 2000);
 }
 
 // --- UI ---
 function renderPlayers() {
   const b = document.getElementById('gameBoard');
-
   players.forEach((p, i) => {
     let el = document.getElementById(p.id);
-
     if (!el) {
       el = document.createElement('div');
       el.className = `player ${p.color}`;
       el.id = p.id;
       b.appendChild(el);
     }
-
     const c = cells[p.position];
     el.style.left = (c.x + i * 8) + 'px';
-    el.style.top = (c.y) + 'px';
+    el.style.top = c.y + 'px';
   });
 }
 
 function renderHypeBars() {
   const container = document.getElementById('hypeBars');
   container.innerHTML = '';
-
   players.forEach(p => {
     const bar = document.createElement('div');
     bar.className = 'hypeBar';
-
     const fill = document.createElement('div');
     fill.className = 'hypeFill';
     fill.style.width = Math.min(p.hype, 70) / 70 * 100 + '%';
-
     bar.innerHTML = `<div>${p.username}: ${p.hype}/70</div>`;
     bar.appendChild(fill);
-
     container.appendChild(bar);
   });
 }
@@ -347,13 +334,11 @@ function showModal(text) {
   const m = document.getElementById('modal');
   m.innerHTML = `<div class="modalContent">${text}</div>`;
   m.classList.add('active');
-
   setTimeout(() => m.classList.remove('active'), 2000);
 }
 
 function showWinScreen(winnerName) {
   const m = document.getElementById('modal');
-
   m.innerHTML = `
     <div class="winScreenBox">
       <div class="winTitle">🏆 ПОБЕДА</div>
@@ -362,6 +347,5 @@ function showWinScreen(winnerName) {
       <button class="winBtn" onclick="location.reload()">🔄 Играть снова</button>
     </div>
   `;
-
   m.classList.add('active');
 }
