@@ -69,15 +69,9 @@ socket.on('gameStarted', () => {
   document.getElementById('game').style.display = 'flex';
 });
 
-  socket.on('nextTurn', id => {
+socket.on('nextTurn', id => {
   currentTurnId = id;
-
-  const myTurn = id === socket.id;
-
-  document.getElementById('rollBtn').disabled = !myTurn || gameOver;
-
-  console.log("МОЙ ХОД?", myTurn);
-
+  document.getElementById('rollBtn').disabled = (id !== socket.id || gameOver);
   renderPlayers();
 });
 
@@ -94,7 +88,11 @@ socket.on('diceRolled', ({ playerId, dice }) => {
   movePlayer(dice);
 });
 
-// --- КЛЕТКИ (ТВОИ КООРДИНАТЫ) ---
+socket.on('colorTaken', () => {
+  alert('Этот цвет уже занят!');
+});
+
+// --- КЛЕТКИ (КООРДИНАТЫ) ---
 const cells = [
   { x: 111, y: 596, type: 'start' },
   { x: 114, y: 454, type: 'plus', hype: 3 },
@@ -134,10 +132,8 @@ function movePlayer(steps) {
     }
 
     const prev = me.position;
-
     me.position = (me.position + 1) % cells.length;
 
-    // ✅ ПРОХОД ЧЕРЕЗ СТАРТ (работает ВСЕГДА)
     if (prev === cells.length - 1 && me.position === 0) {
       me.hype += 7;
       showModal('🔁 +7 хайпа за круг');
@@ -150,6 +146,7 @@ function movePlayer(steps) {
 
   step();
 }
+
 // --- ОБРАБОТКА КЛЕТКИ ---
 function handleCell(p) {
   const cell = cells[p.position];
@@ -157,47 +154,36 @@ function handleCell(p) {
 
   let text = '';
 
-  // ❗ СБРОС skip
   p.skipNext = false;
 
   switch (cell.type) {
     case 'start':
-      text = '🚀 Старт';
+      p.hype += 10;
+      text = '🚀 +10 хайпа (старт)';
       break;
-
     case 'plus':
       p.hype += cell.hype;
       text = `➕ ${cell.hype}`;
       break;
-
     case 'minus':
       p.hype = Math.max(0, p.hype - cell.hype);
       text = `➖ ${cell.hype}`;
       break;
-
     case 'minusSkip':
       p.hype = Math.max(0, p.hype - cell.hype);
       p.skipNext = true;
       text = `🛑 Суд: -${cell.hype}`;
       break;
-
     case 'skip':
       p.skipNext = true;
       text = '🛑 Пропуск хода';
       break;
-
     case 'risk':
       showRiskModal(p);
       return;
-
     case 'scandal':
       showScandalModal(p);
       return;
-
-     case 'start':
-  p.hype += 10;
-  text = '🚀 +10 хайпа (старт)';
-  break; 
   }
 
   p.hype = Math.max(0, p.hype);
@@ -206,9 +192,9 @@ function handleCell(p) {
   if (text) showModal(text);
 
   if (p.hype >= 70) {
-  gameOver = true;
-  showWinScreen(p.username);
-}
+    gameOver = true;
+    showWinScreen(p.username);
+  }
 
   socket.emit('playerMoved', {
     roomCode,
@@ -218,15 +204,11 @@ function handleCell(p) {
   });
 }
 
-socket.on('colorTaken', () => {
-  alert('Этот цвет уже занят!');
-});
-
 // --- РИСК ---
 function showRiskModal(p) {
   const m = document.getElementById('modal');
 
-  // Шаг 1 — правила
+  // Правила
   m.innerHTML = `
     <div class="riskCard">
       <div class="riskTitle">🎲 РИСК</div>
@@ -238,10 +220,8 @@ function showRiskModal(p) {
   `;
   m.classList.add('active');
 
-  // Шаг 2 — бросок
   setTimeout(() => {
     const dice = Math.floor(Math.random() * 6) + 1;
-
     const result = dice <= 3 ? -5 : 5;
     p.hype = Math.max(0, p.hype + result);
 
@@ -263,7 +243,6 @@ function showRiskModal(p) {
         hype: p.hype,
         skipNext: p.skipNext
       });
-
     }, 1500);
 
   }, 1500);
@@ -305,7 +284,6 @@ function showScandalModal(p) {
   `;
 
   m.classList.add('active');
-
   renderHypeBars();
 
   setTimeout(() => {
@@ -336,7 +314,6 @@ function renderPlayers() {
     }
 
     const c = cells[p.position];
-
     el.style.left = (c.x + i * 8) + 'px';
     el.style.top = (c.y) + 'px';
   });
@@ -382,10 +359,7 @@ function showWinScreen(winnerName) {
       <div class="winTitle">🏆 ПОБЕДА</div>
       <div class="winName">${winnerName}</div>
       <div class="winText">набрал 70 хайпа!</div>
-
-      <button class="winBtn" onclick="location.reload()">
-        🔄 Играть снова
-      </button>
+      <button class="winBtn" onclick="location.reload()">🔄 Играть снова</button>
     </div>
   `;
 
