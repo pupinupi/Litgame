@@ -285,3 +285,58 @@ function showModal(text) {
 
   setTimeout(() => m.classList.remove('active'), 2000);
 }
+
+// --- РЕЖИМ СБОРА КООРДИНАТ (ДЛЯ ТЕЛЕФОНА) ---
+let coordMode = true;
+
+if (coordMode) {
+  const board = document.getElementById('gameBoard');
+
+  // создаем панель
+  const panel = document.createElement('div');
+  panel.style.position = 'fixed';
+  panel.style.bottom = '0';
+  panel.style.left = '0';
+  panel.style.width = '100%';
+  panel.style.maxHeight = '40%';
+  panel.style.overflowY = 'auto';
+  panel.style.background = 'black';
+  panel.style.color = '#00eaff';
+  panel.style.fontSize = '14px';
+  panel.style.padding = '10px';
+  panel.style.zIndex = '9999';
+
+  panel.innerHTML = `
+    <div style="margin-bottom:5px;">📍 Координаты:</div>
+    <textarea id="coordsOutput" style="width:100%; height:120px;"></textarea>
+    <button id="copyCoords">📋 Копировать</button>
+    <button id="clearCoords">🗑 Очистить</button>
+  `;
+
+  document.body.appendChild(panel);
+
+  const output = document.getElementById('coordsOutput');
+
+  // клик по полю
+  board.addEventListener('click', (e) => {
+    const rect = board.getBoundingClientRect();
+
+    const x = Math.floor(e.clientX - rect.left);
+    const y = Math.floor(e.clientY - rect.top);
+
+    const line = `{ x: ${x}, y: ${y} },\n`;
+    output.value += line;
+  });
+
+  // копировать
+  document.getElementById('copyCoords').onclick = () => {
+    output.select();
+    document.execCommand('copy');
+    alert('Скопировано!');
+  };
+
+  // очистить
+  document.getElementById('clearCoords').onclick = () => {
+    output.value = '';
+  };
+}
