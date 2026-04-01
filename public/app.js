@@ -71,10 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   socket.on('playerSkipped', playerId => {
-    if (playerId === socket.id) {
-      showModal('🛑 Пропуск хода!');
-      document.getElementById('rollBtn').disabled = true;
-    }
+    showModal('🛑 Пропуск хода!');
+    // сразу обновляем текущий ход
+    socket.emit('requestNextTurn', roomCode);
   });
 
   socket.on('gameStarted', () => {
@@ -266,5 +265,12 @@ document.addEventListener('DOMContentLoaded', () => {
       skipNext: p.skipNext
     });
   }
+
+  // --- ДОПОЛНИТЕЛЬНЫЙ СОКЕТ: запрос следующего хода ---
+  socket.on('connect', () => {
+    socket.on('requestNextTurn', () => {
+      socket.emit('requestNextTurn', roomCode);
+    });
+  });
 
 });
