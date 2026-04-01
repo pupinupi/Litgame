@@ -127,7 +127,15 @@ function movePlayer(steps) {
       return;
     }
 
+    const prev = me.position;
+
     me.position = (me.position + 1) % cells.length;
+
+    // 🔥 ПРОХОД ЧЕРЕЗ СТАРТ (круг)
+    if (me.position === 0 && prev !== 0) {
+      me.hype += 7;
+      showModal('🔁 +7 хайпа за круг');
+    }
 
     renderPlayers();
     count++;
@@ -180,6 +188,11 @@ function handleCell(p) {
     case 'scandal':
       showScandalModal(p);
       return;
+
+     case 'start':
+  p.hype += 10;
+  text = '🚀 +10 хайпа (старт)';
+  break; 
   }
 
   p.hype = Math.max(0, p.hype);
