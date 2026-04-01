@@ -97,18 +97,24 @@ function nextTurn(roomCode) {
   const room = rooms[roomCode];
   if (!room || room.players.length === 0) return;
 
-  do {
-    room.turnIndex = (room.turnIndex + 1) % room.players.length;
-  } while (room.players[room.turnIndex].skipNext && !room.players[room.turnIndex].skipNextHandled);
+  // следующий игрок
+  room.turnIndex = (room.turnIndex + 1) % room.players.length;
+  const player = room.players[room.turnIndex];
 
-  const currentPlayer = room.players[room.turnIndex];
-  if (currentPlayer.skipNext) {
-    currentPlayer.skipNextHandled = true;
-    io.to(roomCode).emit('playerSkipped', currentPlayer.id);
-  } else {
-    currentPlayer.skipNextHandled = false;
-    io.to(roomCode).emit('nextTurn', currentPlayer.id);
+  // если у него пропуск
+  if (player.skipNext) {
+    player.skipNext = false;
+
+    io.to(roomCode).emit('playerSkipped', player.id);
+
+    // ⛔ ВАЖНО: сразу переходим к следующему
+    setTimeout(() => {
+      nextTurn(roomCode);
+    }, 1000);
+
+    return;
   }
-}
 
-server.listen(3000, () => console.log('Server running on port 3000'));
+  // ✅ нормальный ход
+  io.to(roomCode).emit('nextTurn', player.id);
+}
