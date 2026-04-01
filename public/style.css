@@ -171,16 +171,21 @@ button{
 
 /* ШКАЛА ХАЙПА */
 /* --- ШКАЛА ХАЙПА (АПГРЕЙД) --- */
+/* --- ШКАЛА ХАЙПА (АДАПТИВ) --- */
 #hypeBars{
   display:flex;
   flex-direction:column;
   gap:10px;
+
+  width:100%;
+  align-items:center;
 }
 
-/* контейнер */
 .hypeBar{
-  width:650px;           /* БЫЛО 450 */
-  height:35px;           /* БЫЛО 25 */
+  width:90%;          /* 🔥 вместо 650px */
+  max-width:700px;    /* чтобы на компе была большая */
+
+  height:35px;
 
   background:#111;
   border-radius:25px;
@@ -192,14 +197,13 @@ button{
     0 0 15px #00eaff,
     0 0 30px #00ffcc,
     inset 0 0 10px rgba(0,255,255,0.2);
+
+  position:relative;
 }
 
-/* заполнение */
 .hypeFill{
   height:100%;
-
   background:linear-gradient(90deg,#00eaff,#00ffcc,#00ff88);
-
   transition:width 0.5s;
 
   box-shadow:
@@ -207,10 +211,13 @@ button{
     0 0 40px #00ffcc;
 }
 
-/* текст */
+/* текст по центру */
 .hypeBar div{
   position:absolute;
-  width:650px;
+  width:100%;
+  top:0;
+  left:0;
+
   text-align:center;
 
   font-weight:bold;
@@ -221,6 +228,8 @@ button{
   text-shadow:
     0 0 5px #000,
     0 0 10px rgba(0,0,0,0.5);
+
+  line-height:35px;
 }
 
 /* --- КАРТОЧКА СКАНДАЛА (УЛУЧШЕННАЯ) --- */
