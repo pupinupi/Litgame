@@ -131,8 +131,8 @@ function movePlayer(steps) {
 
     me.position = (me.position + 1) % cells.length;
 
-    // 🔥 ПРОХОД ЧЕРЕЗ СТАРТ (круг)
-    if (me.position === 0 && prev !== 0) {
+    // ✅ ПРОХОД ЧЕРЕЗ СТАРТ (работает ВСЕГДА)
+    if (prev === cells.length - 1 && me.position === 0) {
       me.hype += 7;
       showModal('🔁 +7 хайпа за круг');
     }
@@ -144,7 +144,6 @@ function movePlayer(steps) {
 
   step();
 }
-
 // --- ОБРАБОТКА КЛЕТКИ ---
 function handleCell(p) {
   const cell = cells[p.position];
