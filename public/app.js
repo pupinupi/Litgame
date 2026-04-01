@@ -76,7 +76,7 @@ socket.on('nextTurn', id => {
   renderPlayers();
 });
 
-socket.on('diceRolled', ({ playerId, dice }) => {
+socket.on('diceRolled', ({ playerId, dice, position }) => {
   if (playerId !== socket.id) return;
 
   const diceEl = document.getElementById('diceResult');
@@ -84,9 +84,16 @@ socket.on('diceRolled', ({ playerId, dice }) => {
   diceSound.currentTime = 0;
   diceSound.play();
 
-  diceEl.innerText = "🎲 " + dice;
+  diceEl.classList.add('rolling');
+  diceEl.innerText = "🎲 ...";
 
-  movePlayer(dice);
+  setTimeout(() => {
+    diceEl.classList.remove('rolling');
+    diceEl.innerText = "🎲 " + dice;
+
+    // 🔥 теперь не считаем сами
+    movePlayerTo(position);
+  }, 600);
 });
 
 // --- КЛЕТКИ ---
@@ -114,19 +121,28 @@ const cells = [
 ];
 
 // --- ДВИЖЕНИЕ ---
-function movePlayer(steps) {
+function movePlayerTo(targetPosition) {
   const me = players.find(p => p.id === socket.id);
   if (!me) return;
 
   isAnimating = true;
-  let count = 0;
 
   function step() {
-    if (count >= steps) {
+    if (me.position === targetPosition) {
       isAnimating = false;
       handleCell(me);
       return;
     }
+
+    me.position = (me.position + 1) % cells.length;
+
+    renderPlayers();
+
+    setTimeout(step, 200);
+  }
+
+  step();
+}
 
     const prev = me.position;
     me.position = (me.position + 1) % cells.length;
