@@ -69,9 +69,15 @@ socket.on('gameStarted', () => {
   document.getElementById('game').style.display = 'flex';
 });
 
-socket.on('nextTurn', id => {
+  socket.on('nextTurn', id => {
   currentTurnId = id;
-  document.getElementById('rollBtn').disabled = id !== socket.id || gameOver;
+
+  const myTurn = id === socket.id;
+
+  document.getElementById('rollBtn').disabled = !myTurn || gameOver;
+
+  console.log("МОЙ ХОД?", myTurn);
+
   renderPlayers();
 });
 
@@ -211,6 +217,10 @@ function handleCell(p) {
     skipNext: p.skipNext
   });
 }
+
+socket.on('colorTaken', () => {
+  alert('Этот цвет уже занят!');
+});
 
 // --- РИСК ---
 function showRiskModal(p) {
