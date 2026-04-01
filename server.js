@@ -31,37 +31,22 @@ io.on('connection', (socket) => {
 
   socket.on('startGame', (roomCode)=>{
     const room = rooms[roomCode];
-    if(!room || room.players.length === 0) return;
-
-    room.turn = 0;
+    if(!room) return;
 
     io.to(roomCode).emit('gameStarted');
     io.to(roomCode).emit('nextTurn', room.players[0].id);
   });
 
   socket.on('rollDice', (roomCode)=>{
-  const room = rooms[roomCode];
-  if(!room) return;
+    const room = rooms[roomCode];
+    if(!room) return;
 
-  const player = room.players.find(p=>p.id===socket.id);
-  if(!player) return;
-
-  const dice = Math.floor(Math.random()*6)+1;
-
-  // 🔥 сервер сам считает позицию
-  const totalCells = 20;
-  player.position = (player.position + dice) % totalCells;
-
-  io.to(roomCode).emit('diceRolled', {
-    playerId: socket.id,
-    dice,
-    position: player.position
-  });
-});
+    const player = room.players.find(p=>p.id===socket.id);
+    if(!player) return;
 
     const dice = Math.floor(Math.random()*6)+1;
 
-    io.to(roomCode).emit('diceRolled', { playerId: player.id, dice });
+    io.to(roomCode).emit('diceRolled', { playerId: socket.id, dice });
   });
 
   socket.on('playerMoved', ({roomCode, position, hype, skipNext})=>{
@@ -81,31 +66,27 @@ io.on('connection', (socket) => {
   });
 
   function nextTurn(roomCode){
-  const room = rooms[roomCode];
-  if(!room || room.players.length === 0) return;
+    const room = rooms[roomCode];
+    if(!room) return;
 
-  let nextIndex = room.turn;
+    room.turn = (room.turn + 1) % room.players.length;
 
-  for(let i = 0; i < room.players.length; i++){
-    nextIndex = (nextIndex + 1) % room.players.length;
+    const nextPlayer = room.players[room.turn];
 
-    const player = room.players[nextIndex];
+    // 🔥 ПРОПУСК ХОДА
+    if(nextPlayer.skipNext){
+      io.to(roomCode).emit('playerSkipped', nextPlayer.id);
 
-    if(player.skipNext){
-      io.to(roomCode).emit('playerSkipped', player.id);
-      player.skipNext = false;
-      continue;
+      nextPlayer.skipNext = false;
+
+      // сразу следующий игрок
+      return nextTurn(roomCode);
     }
 
-    room.turn = nextIndex;
-    io.to(roomCode).emit('nextTurn', player.id);
-    return;
+    io.to(roomCode).emit('nextTurn', nextPlayer.id);
   }
 
-  // если ВСЕ пропускают
-  room.turn = (room.turn + 1) % room.players.length;
-  io.to(roomCode).emit('nextTurn', room.players[room.turn].id);
-}
+});
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, ()=>console.log("🚀 Server started on port " + PORT));
