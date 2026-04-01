@@ -202,27 +202,48 @@ function handleCell(p) {
 
 // --- РИСК ---
 function showRiskModal(p) {
-  showModal('🎲 Риск: 1-3 -5, 4-6 +5');
+  const m = document.getElementById('modal');
 
+  // Шаг 1 — правила
+  m.innerHTML = `
+    <div class="riskCard">
+      <div class="riskTitle">🎲 РИСК</div>
+      <div class="riskText">
+        Выпадет 1-3 → -5 хайпа<br>
+        Выпадет 4-6 → +5 хайпа
+      </div>
+    </div>
+  `;
+  m.classList.add('active');
+
+  // Шаг 2 — бросок
   setTimeout(() => {
     const dice = Math.floor(Math.random() * 6) + 1;
 
-    if (dice <= 3) {
-      p.hype = Math.max(0, p.hype - 5);
-      showModal('➖ 5 хайпа');
-    } else {
-      p.hype += 5;
-      showModal('➕ 5 хайпа');
-    }
+    const result = dice <= 3 ? -5 : 5;
+    p.hype = Math.max(0, p.hype + result);
+
+    m.innerHTML = `
+      <div class="riskCard">
+        <div class="riskTitle">🎲 Выпало: ${dice}</div>
+        <div class="riskValue">${result > 0 ? '+' : ''}${result} хайпа</div>
+      </div>
+    `;
 
     renderHypeBars();
 
-    socket.emit('playerMoved', {
-      roomCode,
-      position: p.position,
-      hype: p.hype,
-      skipNext: p.skipNext
-    });
+    setTimeout(() => {
+      m.classList.remove('active');
+
+      socket.emit('playerMoved', {
+        roomCode,
+        position: p.position,
+        hype: p.hype,
+        skipNext: p.skipNext
+      });
+
+    }, 1500);
+
   }, 1500);
 }
 
@@ -242,6 +263,7 @@ function showScandalModal(p) {
   ];
 
   const s = scandals[Math.floor(Math.random() * scandals.length)];
+  const m = document.getElementById('modal');
 
   if (s.all) {
     players.forEach(pl => {
@@ -252,15 +274,29 @@ function showScandalModal(p) {
     if (s.skip) p.skipNext = true;
   }
 
-  renderHypeBars();
-  showModal(`${s.text} (${s.hype})`);
+  m.innerHTML = `
+    <div class="scandalCard">
+      <div class="scandalTitle">💥 СКАНДАЛ</div>
+      <div class="scandalText">${s.text}</div>
+      <div class="scandalValue">${s.hype}</div>
+    </div>
+  `;
 
-  socket.emit('playerMoved', {
-    roomCode,
-    position: p.position,
-    hype: p.hype,
-    skipNext: p.skipNext
-  });
+  m.classList.add('active');
+
+  renderHypeBars();
+
+  setTimeout(() => {
+    m.classList.remove('active');
+
+    socket.emit('playerMoved', {
+      roomCode,
+      position: p.position,
+      hype: p.hype,
+      skipNext: p.skipNext
+    });
+
+  }, 2000);
 }
 
 // --- UI ---
