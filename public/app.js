@@ -1,6 +1,6 @@
 // --- ЗВУКИ ---
 const scandalSound = new Audio('scandal.mp3');
-scandalSound.volume = 0.8;
+scandalSound.volume = 0.6;
 
 const diceSound = new Audio('dice.mp3');
 diceSound.volume = 0.9;
