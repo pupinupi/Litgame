@@ -83,21 +83,22 @@ io.on('connection', socket => {
 
   // --- ДВИЖЕНИЕ ---
   socket.on('playerMoved', ({ roomCode, position, hype, skipNext }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
+  const room = rooms[roomCode];
+  if (!room) return;
 
-    const player = room.players.find(p => p.id === socket.id);
-    if (!player) return;
+  const player = room.players.find(p => p.id === socket.id);
+  if (!player) return;
 
-    player.position = position;
-    player.hype = hype;
-    player.skipNext = skipNext;
+  player.position = position;
+  player.hype = hype;
+  player.skipNext = skipNext;
 
-    io.to(roomCode).emit('updatePlayers', room.players);
+  // ✅ СНАЧАЛА обновляем всех
+  io.to(roomCode).emit('updatePlayers', room.players);
 
-    nextTurn(roomCode);
-  });
-
+  // ✅ ПОТОМ ход
+  nextTurn(roomCode);
+});
   // --- ВЫХОД ---
   socket.on('disconnect', () => {
     for (let code in rooms) {
