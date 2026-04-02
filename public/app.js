@@ -15,19 +15,21 @@ let isAnimating = false;
 let gameOver = false;
 
 // --- ВЫБОР ФИШКИ ---
+// --- ВЫБОР ФИШКИ ---
 document.querySelectorAll('.chip').forEach(btn => {
-  btn.onclick = () => {
-    socket.emit('trySelectColor', btn.dataset.color);
-  };
-});
+  btn.addEventListener('click', () => {
 
-socket.on('colorAccepted', selectedColor => {
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-  const btn = [...document.querySelectorAll('.chip')].find(c => c.dataset.color === selectedColor);
-  if(btn) btn.classList.add('selected');
-  color = selectedColor;
-});
+    // убрать подсветку у всех
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
 
+    // подсветить выбранную
+    btn.classList.add('selected');
+
+    // сохранить цвет
+    color = btn.getAttribute('data-color');
+
+  });
+});
 socket.on('colorTaken', () => {
   alert('Этот цвет уже занят!');
 });
