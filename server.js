@@ -113,6 +113,8 @@ io.on('connection', socket => {
     });
 });
 
+// 💥 ВОТ ЭТА СКОБКА ЧАСТО ТЕРЯЕТСЯ
+
 // --- NEXT TURN ---
 function nextTurn(roomCode) {
     const room = rooms[roomCode];
@@ -130,5 +132,5 @@ function nextTurn(roomCode) {
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(🚀 Server running on port ${PORT});
 });
