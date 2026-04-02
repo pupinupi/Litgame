@@ -103,20 +103,23 @@ io.on('connection', socket => {
 });
   // --- ВЫХОД ---
   socket.on('disconnect', () => {
-    for (let code in rooms) {
-      const room = rooms[code];
+  for (let code in rooms) {
+    const room = rooms[code];
 
-      const index = room.players.findIndex(p => p.id === socket.id);
+    const idx = room.players.findIndex(p => p.id === socket.id);
 
-      if (index !== -1) {
-        room.players.splice(index, 1);
+    if (idx !== -1) {
+      room.players.splice(idx, 1);
 
-        io.to(code).emit('updatePlayers', room.players);
+      // 💥 ФИКС: если очередь сломалась
+      if (room.turnIndex >= room.players.length) {
+        room.turnIndex = 0;
       }
-    }
-  });
-});
 
+      io.to(code).emit('updatePlayers', room.players);
+    }
+  }
+});
 // --- СЛЕДУЮЩИЙ ХОД ---
 function nextTurn(roomCode) {
   const room = rooms[roomCode];
