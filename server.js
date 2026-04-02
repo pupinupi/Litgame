@@ -55,31 +55,33 @@ io.on('connection', socket => {
 
   // --- КУБИК ---
   socket.on('rollDice', roomCode => {
-    const room = rooms[roomCode];
-    if (!room) return;
+  const room = rooms[roomCode];
+  if (!room) return;
 
-    const player = room.players[room.turnIndex];
+  const player = room.players[room.turnIndex];
 
-    // ❌ не его ход
-    if (!player || socket.id !== player.id) return;
+  if (!player) return; // 💥 защита
 
-    // 🛑 ПРОПУСК
-    if (player.skipNext) {
-      player.skipNext = false;
+  if (socket.id !== player.id) return;
 
-      io.to(roomCode).emit('playerSkipped', player.id);
+  if (player.skipNext) {
+    player.skipNext = false;
 
-      nextTurn(roomCode);
-      return;
-    }
+    io.to(roomCode).emit('playerSkipped', player.id);
 
-    const dice = Math.floor(Math.random() * 6) + 1;
+    nextTurn(roomCode);
+    return;
+  }
 
-    io.to(roomCode).emit('diceRolled', {
-      playerId: player.id,
-      dice
-    });
+  const dice = Math.floor(Math.random() * 6) + 1;
+
+  io.to(roomCode).emit('diceRolled', {
+    playerId: player.id,
+    dice
   });
+});
+
+  
 
   // --- ДВИЖЕНИЕ ---
   socket.on('playerMoved', ({ roomCode, position, hype, skipNext }) => {
