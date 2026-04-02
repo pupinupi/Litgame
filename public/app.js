@@ -78,29 +78,29 @@ socket.on('diceRolled', ({ playerId, dice }) => {
 });
 
 // --- КЛЕТКИ ---
+// --- КЛЕТКИ (СТАРЫЕ, РАБОЧИЕ) ---
 const cells = [
-  { x: 82, y: 587, type: 'start' },
-  { x: 97, y: 464, type: 'plus', value: 3 },
-  { x: 86, y: 348, type: 'plus', value: 2 },
-  { x: 93, y: 224, type: 'scandal' },
-  { x: 87, y: 129, type: 'risk' },
-  { x: 219, y: 101, type: 'plus', value: 2 },
-  { x: 364, y: 107, type: 'scandal' },
-  { x: 494, y: 95, type: 'plus', value: 3 },
-  { x: 652, y: 96, type: 'plus', value: 5 },
-  { x: 815, y: 89, type: 'minus', value: 10 },
-  { x: 930, y: 135, type: 'minusSkip', value: 8 },
-  { x: 936, y: 247, type: 'plus', value: 3 },
-  { x: 936, y: 357, type: 'risk' },
-  { x: 941, y: 480, type: 'plus', value: 3 },
-  { x: 937, y: 610, type: 'skip' },
-  { x: 794, y: 624, type: 'plus', value: 2 },
-  { x: 636, y: 635, type: 'scandal' },
-  { x: 517, y: 627, type: 'plus', value: 8 },
-  { x: 355, y: 619, type: 'minus', value: 10 },
-  { x: 210, y: 626, type: 'plus', value: 4 }
+  { x: 111, y: 596, type: 'start' },
+  { x: 114, y: 454, type: 'plus', value: 3 },
+  { x: 106, y: 363, type: 'plus', value: 2 },
+  { x: 91,  y: 239, type: 'scandal' },
+  { x: 101, y: 143, type: 'risk' },
+  { x: 226, y: 100, type: 'plus', value: 2 },
+  { x: 374, y: 101, type: 'scandal' },
+  { x: 509, y: 107, type: 'plus', value: 3 },
+  { x: 653, y: 106, type: 'plus', value: 5 },
+  { x: 789, y: 103, type: 'minus', value: 10 },
+  { x: 933, y: 128, type: 'minusSkip', value: 8 },
+  { x: 938, y: 252, type: 'plus', value: 3 },
+  { x: 948, y: 356, type: 'risk' },
+  { x: 943, y: 480, type: 'plus', value: 3 },
+  { x: 923, y: 598, type: 'skip' },
+  { x: 794, y: 619, type: 'plus', value: 2 },
+  { x: 644, y: 617, type: 'scandal' },
+  { x: 513, y: 617, type: 'plus', value: 8 },
+  { x: 351, y: 624, type: 'minus', value: 10 },
+  { x: 232, y: 620, type: 'plus', value: 4 }
 ];
-
 // --- МАСШТАБИРОВАНИЕ КЛЕТОК ---
 function getScaledPosition(cellX, cellY) {
   const board = document.getElementById('gameBoard');
@@ -294,6 +294,9 @@ function renderPlayers() {
       el.id = p.id;
       b.appendChild(el);
     }
+    const board = document.getElementById('gameBoard');
+const scaleX = board.offsetWidth / 1024;
+const scaleY = board.offsetHeight / 1024;
     const cell = cells[p.position];
     if (!cell) return;
     const pos = getScaledPosition(cell.x, cell.y);
