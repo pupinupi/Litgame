@@ -6,14 +6,14 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static('public')); // папка с index.html, app.js, стилями и звуками
+app.use(express.static('public'));
 
 const rooms = {}; // { roomCode: { players: [], turnIndex: 0 } }
 
 io.on('connection', socket => {
   console.log('New connection:', socket.id);
 
-  // --- JOIN ---
+  // --- ПРИСОЕДИНЕНИЕ ---
   socket.on('joinRoom', ({ username, roomCode, color }) => {
     if (!rooms[roomCode]) rooms[roomCode] = { players: [], turnIndex: 0 };
     const room = rooms[roomCode];
@@ -34,20 +34,22 @@ io.on('connection', socket => {
 
     room.players.push(player);
     socket.join(roomCode);
+
     io.to(roomCode).emit('updatePlayers', room.players);
   });
 
-  // --- START ---
+  // --- СТАРТ ИГРЫ ---
   socket.on('startGame', roomCode => {
     const room = rooms[roomCode];
     if (!room || room.players.length === 0) return;
 
     room.turnIndex = 0;
+
     io.to(roomCode).emit('gameStarted');
-    io.to(roomCode).emit('nextTurn', room.players[0].id);
+    sendNextTurn(roomCode);
   });
 
-  // --- DICE ---
+  // --- БРОСОК КУБИКА ---
   socket.on('rollDice', roomCode => {
     const room = rooms[roomCode];
     if (!room) return;
@@ -55,10 +57,12 @@ io.on('connection', socket => {
     const player = room.players[room.turnIndex];
     if (!player || socket.id !== player.id) return;
 
+    // Если пропуск хода
     if (player.skipNext) {
       player.skipNext = false;
       io.to(roomCode).emit('playerSkipped', player.id);
-      nextTurn(roomCode);
+
+      setTimeout(() => sendNextTurn(roomCode), 1000);
       return;
     }
 
@@ -66,7 +70,7 @@ io.on('connection', socket => {
     io.to(roomCode).emit('diceRolled', { playerId: player.id, dice });
   });
 
-  // --- MOVE ---
+  // --- ХОД ИГРОКА ---
   socket.on('playerMoved', ({ roomCode, position, hype, skipNext }) => {
     const room = rooms[roomCode];
     if (!room) return;
@@ -80,26 +84,28 @@ io.on('connection', socket => {
 
     io.to(roomCode).emit('updatePlayers', room.players);
 
-    nextTurn(roomCode);
+    setTimeout(() => sendNextTurn(roomCode), 200); // ждём завершения модалок
   });
 
-  // --- DISCONNECT ---
+  // --- ОТСЛЕЖИВАНИЕ ОТКЛЮЧЕНИЯ ---
   socket.on('disconnect', () => {
     for (let code in rooms) {
       const room = rooms[code];
       const idx = room.players.findIndex(p => p.id === socket.id);
+
       if (idx !== -1) {
         room.players.splice(idx, 1);
+
         if (room.turnIndex >= room.players.length) room.turnIndex = 0;
+
         io.to(code).emit('updatePlayers', room.players);
       }
     }
   });
+});
 
-}); // конец connection
-
-// --- NEXT TURN ---
-function nextTurn(roomCode) {
+// --- ФУНКЦИЯ ОТПРАВКИ ХОДА ---
+function sendNextTurn(roomCode) {
   const room = rooms[roomCode];
   if (!room || room.players.length === 0) return;
 
@@ -110,13 +116,17 @@ function nextTurn(roomCode) {
   if (player.skipNext) {
     player.skipNext = false;
     io.to(roomCode).emit('playerSkipped', player.id);
-    setTimeout(() => nextTurn(roomCode), 1000);
+
+    // сразу переход к следующему через 1 сек
+    setTimeout(() => sendNextTurn(roomCode), 1000);
     return;
   }
 
   io.to(roomCode).emit('nextTurn', player.id);
 }
 
-// --- START SERVER ---
+// --- СТАРТ СЕРВЕРА ---
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
