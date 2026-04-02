@@ -116,21 +116,24 @@ function nextTurn(roomCode) {
 
   room.turnIndex = (room.turnIndex + 1) % room.players.length;
   const player = room.players[room.turnIndex];
+
   if (!player) return;
 
-  // если игрок должен пропустить ход
+  // 🔥 ПРОПУСК ХОДА
   if (player.skipNext) {
     player.skipNext = false;
+
     io.to(roomCode).emit('playerSkipped', player.id);
 
-    // через секунду переходим к следующему
-    setTimeout(() => nextTurn(roomCode), 1000);
+    setTimeout(() => {
+      nextTurn(roomCode);
+    }, 1000);
+
     return;
   }
 
   io.to(roomCode).emit('nextTurn', player.id);
 }
-
 // --- START SERVER ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server running on port ${PORT}`));
