@@ -1,9 +1,9 @@
 // --- ЗВУКИ ---
 const scandalSound = new Audio('scandal.mp3');
-scandalSound.volume = 0.6;
+scandalSound.volume = 0.8;
 
 const diceSound = new Audio('dice.mp3');
-diceSound.volume = 1.3;
+diceSound.volume = 0.9;
 
 const socket = io();
 
