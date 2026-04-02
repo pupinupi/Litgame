@@ -8,16 +8,20 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
-const rooms = {}; // { roomCode: { players: [], turnIndex: 0 } }
+const rooms = {};
 
 io.on('connection', socket => {
   console.log('New connection:', socket.id);
 
-  // --- ПРИСОЕДИНЕНИЕ ---
+  // --- JOIN ---
   socket.on('joinRoom', ({ username, roomCode, color }) => {
-    if (!rooms[roomCode]) rooms[roomCode] = { players: [], turnIndex: 0 };
+    if (!rooms[roomCode]) {
+      rooms[roomCode] = { players: [], turnIndex: 0 };
+    }
+
     const room = rooms[roomCode];
 
+    // ❌ цвет занят
     if (room.players.find(p => p.color === color)) {
       socket.emit('colorTaken');
       return;
@@ -38,39 +42,37 @@ io.on('connection', socket => {
     io.to(roomCode).emit('updatePlayers', room.players);
   });
 
-  // --- СТАРТ ИГРЫ ---
+  // --- START ---
   socket.on('startGame', roomCode => {
     const room = rooms[roomCode];
     if (!room || room.players.length === 0) return;
 
-    room.turnIndex = 0;
-
+    room.turnIndex = -1; // 💥 важно
     io.to(roomCode).emit('gameStarted');
-    sendNextTurn(roomCode);
+
+    setTimeout(() => nextTurn(roomCode), 300);
   });
 
-  // --- БРОСОК КУБИКА ---
+  // --- КУБИК ---
   socket.on('rollDice', roomCode => {
     const room = rooms[roomCode];
     if (!room) return;
 
     const player = room.players[room.turnIndex];
-    if (!player || socket.id !== player.id) return;
+    if (!player) return;
 
-    // Если пропуск хода
-    if (player.skipNext) {
-      player.skipNext = false;
-      io.to(roomCode).emit('playerSkipped', player.id);
-
-      setTimeout(() => sendNextTurn(roomCode), 1000);
-      return;
-    }
+    // ❌ не твой ход
+    if (socket.id !== player.id) return;
 
     const dice = Math.floor(Math.random() * 6) + 1;
-    io.to(roomCode).emit('diceRolled', { playerId: player.id, dice });
+
+    io.to(roomCode).emit('diceRolled', {
+      playerId: player.id,
+      dice
+    });
   });
 
-  // --- ХОД ИГРОКА ---
+  // --- ПОСЛЕ ХОДА ---
   socket.on('playerMoved', ({ roomCode, position, hype, skipNext }) => {
     const room = rooms[roomCode];
     if (!room) return;
@@ -84,19 +86,22 @@ io.on('connection', socket => {
 
     io.to(roomCode).emit('updatePlayers', room.players);
 
-    setTimeout(() => sendNextTurn(roomCode), 200); // ждём завершения модалок
+    // ⏳ ждём модалки
+    setTimeout(() => nextTurn(roomCode), 500);
   });
 
-  // --- ОТСЛЕЖИВАНИЕ ОТКЛЮЧЕНИЯ ---
+  // --- DISCONNECT ---
   socket.on('disconnect', () => {
     for (let code in rooms) {
       const room = rooms[code];
-      const idx = room.players.findIndex(p => p.id === socket.id);
+      const index = room.players.findIndex(p => p.id === socket.id);
 
-      if (idx !== -1) {
-        room.players.splice(idx, 1);
+      if (index !== -1) {
+        room.players.splice(index, 1);
 
-        if (room.turnIndex >= room.players.length) room.turnIndex = 0;
+        if (room.turnIndex >= room.players.length) {
+          room.turnIndex = 0;
+        }
 
         io.to(code).emit('updatePlayers', room.players);
       }
@@ -104,29 +109,37 @@ io.on('connection', socket => {
   });
 });
 
-// --- ФУНКЦИЯ ОТПРАВКИ ХОДА ---
-function sendNextTurn(roomCode) {
+// --- ЛОГИКА ХОДОВ ---
+function nextTurn(roomCode) {
   const room = rooms[roomCode];
   if (!room || room.players.length === 0) return;
 
+  // 👉 следующий игрок
   room.turnIndex = (room.turnIndex + 1) % room.players.length;
+
   const player = room.players[room.turnIndex];
   if (!player) return;
 
+  console.log("Ход игрока:", player.username);
+
+  // 🛑 ПРОПУСК ХОДА
   if (player.skipNext) {
     player.skipNext = false;
+
     io.to(roomCode).emit('playerSkipped', player.id);
 
-    // сразу переход к следующему через 1 сек
-    setTimeout(() => sendNextTurn(roomCode), 1000);
+    // 🔥 автоматически дальше
+    setTimeout(() => nextTurn(roomCode), 1200);
     return;
   }
 
+  // ✅ нормальный ход
   io.to(roomCode).emit('nextTurn', player.id);
 }
 
-// --- СТАРТ СЕРВЕРА ---
+// --- START SERVER ---
 const PORT = process.env.PORT || 3000;
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
