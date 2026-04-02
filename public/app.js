@@ -286,22 +286,22 @@ function showModal(text, callback) {
 // --- UI ---
 function renderPlayers() {
   const b = document.getElementById('gameBoard');
+
   players.forEach((p, i) => {
     let el = document.getElementById(p.id);
+
     if (!el) {
       el = document.createElement('div');
       el.className = `player ${p.color}`;
       el.id = p.id;
       b.appendChild(el);
     }
-    const board = document.getElementById('gameBoard');
-const scaleX = board.offsetWidth / 1024;
-const scaleY = board.offsetHeight / 1024;
-    const cell = cells[p.position];
-    if (!cell) return;
-    const pos = getScaledPosition(cell.x, cell.y);
-    el.style.left = (pos.x + i * 8) + 'px';
-    el.style.top = pos.y + 'px';
+
+    const c = cells[p.position];
+
+    // 🔥 ВОТ ЭТО САМОЕ ВАЖНОЕ
+    el.style.left = (c.x + i * 8) + 'px';
+    el.style.top = c.y + 'px';
   });
 }
 
