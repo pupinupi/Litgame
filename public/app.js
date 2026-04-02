@@ -37,7 +37,7 @@ document.getElementById('joinBtn').onclick = () => {
   username = document.getElementById('username').value.trim();
   roomCode = document.getElementById('roomCode').value.trim();
 
-  if (!username || !roomCode || !color || color === undefined) {
+  if (!username || !roomCode || !color) {
     alert("Заполни всё и выбери фишку");
     return;
   }
