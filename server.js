@@ -6,59 +6,82 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static('public')); // папка с index.html, app.js, стилями и звуками
+app.use(express.static('public'));
 
-const rooms = {}; // { roomCode: { players: [], turnIndex: 0 } }
+const rooms = {};
 
 io.on('connection', socket => {
   console.log('New connection:', socket.id);
 
-  // --- ВЫБОР ЦВЕТА ---
-  socket.on('trySelectColor', color => {
-    for (let roomCode in rooms) {
-      const room = rooms[roomCode];
-      if (room.players.find(p => p.color === color)) {
-        socket.emit('colorTaken');
-        return;
-      }
-    }
-    socket.emit('colorAccepted', color);
-  });
-
-  // --- ПРИСОЕДИНЕНИЕ К КОМНАТЕ ---
+  // --- ВХОД В КОМНАТУ ---
   socket.on('joinRoom', ({ username, roomCode, color }) => {
-    if (!rooms[roomCode]) rooms[roomCode] = { players: [], turnIndex: 0 };
+    if (!rooms[roomCode]) {
+      rooms[roomCode] = { players: [], turnIndex: 0 };
+    }
+
     const room = rooms[roomCode];
 
-    if (room.players.find(p => p.id === socket.id)) return;
+    // ❌ цвет занят В ЭТОЙ комнате
+    if (room.players.find(p => p.color === color)) {
+      socket.emit('colorTaken');
+      return;
+    }
 
-    room.players.push({ id: socket.id, username, color, position: 0, hype: 0, skipNext: false });
+    const player = {
+      id: socket.id,
+      username,
+      color,
+      position: 0,
+      hype: 0,
+      skipNext: false
+    };
+
+    room.players.push(player);
     socket.join(roomCode);
+
     io.to(roomCode).emit('updatePlayers', room.players);
   });
 
-  // --- СТАРТ ИГРЫ ---
+  // --- СТАРТ ---
   socket.on('startGame', roomCode => {
     const room = rooms[roomCode];
     if (!room || room.players.length === 0) return;
+
     room.turnIndex = 0;
+
     io.to(roomCode).emit('gameStarted');
-    const firstPlayer = room.players[room.turnIndex].id;
-    io.to(roomCode).emit('nextTurn', firstPlayer);
+    io.to(roomCode).emit('nextTurn', room.players[0].id);
   });
 
-  // --- ХОД КУБИКА ---
+  // --- КУБИК ---
   socket.on('rollDice', roomCode => {
     const room = rooms[roomCode];
     if (!room) return;
+
     const player = room.players[room.turnIndex];
-    if (socket.id !== player.id) return; // только текущий игрок
+
+    // ❌ не его ход
+    if (!player || socket.id !== player.id) return;
+
+    // 🛑 ПРОПУСК
+    if (player.skipNext) {
+      player.skipNext = false;
+
+      io.to(roomCode).emit('playerSkipped', player.id);
+
+      nextTurn(roomCode);
+      return;
+    }
 
     const dice = Math.floor(Math.random() * 6) + 1;
-    io.to(roomCode).emit('diceRolled', { playerId: socket.id, dice });
+
+    io.to(roomCode).emit('diceRolled', {
+      playerId: player.id,
+      dice
+    });
   });
 
-  // --- ИГРОК ДВИНУЛСЯ ---
+  // --- ДВИЖЕНИЕ ---
   socket.on('playerMoved', ({ roomCode, position, hype, skipNext }) => {
     const room = rooms[roomCode];
     if (!room) return;
@@ -70,51 +93,44 @@ io.on('connection', socket => {
     player.hype = hype;
     player.skipNext = skipNext;
 
-    // --- ПРОВЕРКА ПЕРЕКЛЮЧЕНИЯ ХОДА ---
-    nextTurn(roomCode);
     io.to(roomCode).emit('updatePlayers', room.players);
-  });
 
-  // --- ПРИСЛУШИВАНИЕ К СЛЕДУЮЩЕМУ ХОДУ ---
-  socket.on('nextTurnRequest', roomCode => {
     nextTurn(roomCode);
   });
 
+  // --- ВЫХОД ---
   socket.on('disconnect', () => {
     for (let code in rooms) {
       const room = rooms[code];
-      const idx = room.players.findIndex(p => p.id === socket.id);
-      if (idx !== -1) {
-        room.players.splice(idx, 1);
+
+      const index = room.players.findIndex(p => p.id === socket.id);
+
+      if (index !== -1) {
+        room.players.splice(index, 1);
+
         io.to(code).emit('updatePlayers', room.players);
       }
     }
   });
 });
 
-// --- ФУНКЦИЯ СЛЕДУЮЩЕГО ХОДА ---
+// --- СЛЕДУЮЩИЙ ХОД ---
 function nextTurn(roomCode) {
   const room = rooms[roomCode];
   if (!room || room.players.length === 0) return;
 
-  // следующий игрок
   room.turnIndex = (room.turnIndex + 1) % room.players.length;
+
   const player = room.players[room.turnIndex];
 
-  // если у него пропуск
-  if (player.skipNext) {
-    player.skipNext = false;
+  if (!player) return;
 
-    io.to(roomCode).emit('playerSkipped', player.id);
-
-    // ⛔ ВАЖНО: сразу переходим к следующему
-    setTimeout(() => {
-      nextTurn(roomCode);
-    }, 1000);
-
-    return;
-  }
-
-  // ✅ нормальный ход
   io.to(roomCode).emit('nextTurn', player.id);
 }
+
+// --- СТАРТ СЕРВЕРА (ВАЖНО ДЛЯ RENDER) ---
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
