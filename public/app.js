@@ -15,7 +15,13 @@ try {
   diceSound = { play: () => {} };
 }
 
-const socket = io();
+let socket;
+
+try {
+  socket = io();
+} catch(e) {
+  alert("Ошибка подключения к серверу");
+}
 
 let players = [];
 let currentTurnId = null;
