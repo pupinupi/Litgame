@@ -357,3 +357,5 @@ function showWinScreen(name) {
     </div>`;
   m.classList.add('active');
 }
+
+document.getElementById('game').style.display = 'flex';
