@@ -1,8 +1,19 @@
-// --- ЗВУКИ ---
-const scandalSound = new Audio('scandal.mp3');
-scandalSound.volume = 0.6;
-const diceSound = new Audio('dice.mp3');
-diceSound.volume = 0.9;
+// --- ЗВУКИ (БЕЗ КРАША) ---
+let scandalSound, diceSound;
+
+try {
+  scandalSound = new Audio('scandal.mp3');
+  scandalSound.volume = 0.6;
+} catch(e) {
+  scandalSound = { play: () => {} };
+}
+
+try {
+  diceSound = new Audio('dice.mp3');
+  diceSound.volume = 0.9;
+} catch(e) {
+  diceSound = { play: () => {} };
+}
 
 const socket = io();
 
