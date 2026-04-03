@@ -37,9 +37,7 @@ document.getElementById('joinBtn').onclick = () => {
 };
 
 // --- СТАРТ ---
-document.getElementById('startBtn').onclick = () => {
-  socket.emit('startGame', roomCode);
-};
+document.getElementById('startBtn').onclick = () => socket.emit('startGame', roomCode);
 
 // --- КУБИК ---
 document.getElementById('rollBtn').onclick = () => {
@@ -73,16 +71,11 @@ socket.on('nextTurn', id => {
 
   rollBtn.disabled = !isMyTurn || gameOver;
 
-  if (!isMyTurn) {
-    rollBtn.classList.add('disabled');
-  } else {
-    rollBtn.classList.remove('disabled');
-  }
+  if (!isMyTurn) rollBtn.classList.add('disabled');
+  else rollBtn.classList.remove('disabled');
 
   const player = players.find(p => p.id === id);
-  if (player) {
-    showModal(`🎯 Ходит: ${player.username}`);
-  }
+  if (player) showModal(`🎯 Ходит: ${player.username}`);
 
   renderPlayers();
 });
@@ -119,7 +112,7 @@ const cells = [
   { x: 232, y: 620, type: 'plus', value: 4 }
 ];
 
-// --- МАСШТАБ ---
+// --- МАСШТАБИРОВАНИЕ КЛЕТОК ---
 function getScaledPosition(cellX, cellY) {
   const board = document.getElementById('gameBoard');
   const scaleX = board.clientWidth / 1000;
@@ -167,33 +160,13 @@ function handleCell(p) {
   let text = '';
 
   switch (cell.type) {
-    case 'start':
-      p.hype += 10;
-      text = '🚀 +10 хайпа (старт)';
-      break;
-    case 'plus':
-      p.hype += cell.value;
-      text = `➕ ${cell.value}`;
-      break;
-    case 'minus':
-      p.hype = Math.max(0, p.hype - cell.value);
-      text = `➖ ${cell.value}`;
-      break;
-    case 'minusSkip':
-      p.hype = Math.max(0, p.hype - cell.value);
-      p.skipNext = true;
-      showModal(`🚨 ${p.username} пропускает ход`);
-      break;
-    case 'skip':
-      p.skipNext = true;
-      showModal(`🚨 ${p.username} пропускает ход`);
-      break;
-    case 'risk':
-      showRiskModal(p);
-      return;
-    case 'scandal':
-      showScandalModal(p);
-      return;
+    case 'start': p.hype += 10; text = '🚀 +10 хайпа (старт)'; break;
+    case 'plus': p.hype += cell.value; text = `➕ ${cell.value}`; break;
+    case 'minus': p.hype = Math.max(0, p.hype - cell.value); text = `➖ ${cell.value}`; break;
+    case 'minusSkip': p.hype = Math.max(0, p.hype - cell.value); p.skipNext = true; showModal(`🚨 ${p.username} попал в тюрьму и пропускает ход`); break;
+    case 'skip': p.skipNext = true; showModal(`🚨 ${p.username} попал в тюрьму и пропускает ход`); break;
+    case 'risk': showRiskModal(p); return;
+    case 'scandal': showScandalModal(p); return;
   }
 
   renderHypeBars();
@@ -203,40 +176,81 @@ function handleCell(p) {
       showWinScreen(p.username);
       return;
     }
-    socket.emit('playerMoved', {
-      roomCode,
-      position: p.position,
-      hype: p.hype,
-      skipNext: p.skipNext
-    });
+    socket.emit('playerMoved', { roomCode, position: p.position, hype: p.hype, skipNext: p.skipNext });
   });
 }
 
-// --- 🔥 ГЛАВНЫЙ ФИКС ЗДЕСЬ ---
-function renderPlayers() {
-  const b = document.getElementById('gameBoard');
+// --- РИСК ---
+function showRiskModal(p) {
+  const m = document.getElementById('modal');
+  m.innerHTML = `<div class="riskCard"><div class="riskTitle">🎲 РИСК</div><div class="riskText">1-3 → -5<br>4-6 → +5</div></div>`;
+  m.classList.add('active');
 
+  setTimeout(() => {
+    const dice = Math.floor(Math.random() * 6) + 1;
+    const result = dice <= 3 ? -5 : 5;
+    p.hype = Math.max(0, p.hype + result);
+    m.innerHTML = `<div class="riskCard"><div class="riskTitle">🎲 Выпало: ${dice}</div><div class="riskValue">${result > 0 ? '+' : ''}${result}</div></div>`;
+    renderHypeBars();
+    setTimeout(() => { m.classList.remove('active'); socket.emit('playerMoved', { roomCode, position: p.position, hype: p.hype, skipNext: p.skipNext }); }, 1500);
+  }, 1500);
+}
+
+// --- СКАНДАЛ ---
+function showScandalModal(p) {
+  scandalSound.play();
+  const effects = [
+    { text: 'перегрел аудиторию🔥', hype: -1 },
+    { text: 'громкий заголовок🫣', hype: -2 },
+    { text: 'это монтаж 😱', hype: -3 },
+    { text: 'меня взломали #️⃣', hype: -3, all: true },
+    { text: 'подписчики в шоке 😮', hype: -4 },
+    { text: 'удаляй пока не поздно 🤫', hype: -5 },
+    { text: 'это контент 🙄', hype: -5, skip: true }
+  ];
+  const s = effects[Math.floor(Math.random() * effects.length)];
+  const m = document.getElementById('modal');
+
+  if (s.all) players.forEach(pl => pl.hype = Math.max(0, pl.hype + s.hype));
+  else { p.hype = Math.max(0, p.hype + s.hype); if (s.skip) p.skipNext = true; }
+
+  m.innerHTML = `<div class="scandalCard"><div class="scandalTitle">💥 СКАНДАЛ</div><div class="scandalText">${s.text}</div><div class="scandalValue">${s.hype}</div></div>`;
+  m.classList.add('active');
+  renderHypeBars();
+
+  setTimeout(() => {
+    m.classList.remove('active');
+    socket.emit('playerMoved', { roomCode, position: p.position, hype: p.hype, skipNext: p.skipNext });
+  }, 2000);
+}
+
+// --- МОДАЛКА ---
+function showModal(text, callback) {
+  const m = document.getElementById('modal');
+  m.innerHTML = `<div class="modalContent">${text}</div>`;
+  m.classList.add('active');
+  setTimeout(() => { m.classList.remove('active'); if(callback) callback(); }, 2000);
+}
+
+// --- UI ---
+function renderPlayers() {
+  const board = document.getElementById('gameBoard');
   players.forEach((p, i) => {
     let el = document.getElementById(p.id);
-
     if (!el) {
       el = document.createElement('div');
       el.className = `player ${p.color}`;
       el.id = p.id;
-      b.appendChild(el);
+      board.appendChild(el);
     }
-
     const c = cells[p.position];
     if (!c) return;
-
     const pos = getScaledPosition(c.x, c.y);
-
     el.style.left = (pos.x + i * 8) + 'px';
     el.style.top = pos.y + 'px';
   });
 }
 
-// --- UI ---
 function renderHypeBars() {
   const container = document.getElementById('hypeBars');
   container.innerHTML = '';
@@ -245,7 +259,7 @@ function renderHypeBars() {
     bar.className = 'hypeBar';
     const fill = document.createElement('div');
     fill.className = 'hypeFill';
-    fill.style.width = Math.min(p.hype, 70) / 70 * 100 + '%';
+    fill.style.width = Math.min(p.hype, 70)/70*100 + '%';
     bar.innerHTML = `<div>${p.username}: ${p.hype}/70</div>`;
     bar.appendChild(fill);
     container.appendChild(bar);
@@ -257,24 +271,8 @@ function renderLobbyPlayers() {
   list.innerHTML = players.map(p => `<div style="color:${p.color}">${p.username}</div>`).join('');
 }
 
-function showModal(text, callback) {
-  const m = document.getElementById('modal');
-  m.innerHTML = `<div class="modalContent">${text}</div>`;
-  m.classList.add('active');
-  setTimeout(() => {
-    m.classList.remove('active');
-    if (callback) callback();
-  }, 2000);
-}
-
 function showWinScreen(name) {
   const m = document.getElementById('modal');
-  m.innerHTML = `
-    <div class="winScreenBox">
-      <div class="winTitle">🏆 ПОБЕДА</div>
-      <div class="winName">${name}</div>
-      <div class="winText">70 хайпа!</div>
-      <button class="winBtn" onclick="location.reload()">🔄 Снова</button>
-    </div>`;
+  m.innerHTML = `<div class="winScreenBox"><div class="winTitle">🏆 ПОБЕДА</div><div class="winName">${name}</div><div class="winText">70 хайпа!</div><button class="winBtn" onclick="location.reload()">🔄 Снова</button></div>`;
   m.classList.add('active');
 }
