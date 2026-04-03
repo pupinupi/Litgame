@@ -65,7 +65,25 @@ socket.on('gameStarted', () => {
 
 socket.on('nextTurn', id => {
   currentTurnId = id;
-  document.getElementById('rollBtn').disabled = id !== socket.id || gameOver;
+
+  const isMyTurn = id === socket.id;
+  const rollBtn = document.getElementById('rollBtn');
+
+  rollBtn.disabled = !isMyTurn || gameOver;
+
+  // 💥 серый стиль
+  if (!isMyTurn) {
+    rollBtn.classList.add('disabled');
+  } else {
+    rollBtn.classList.remove('disabled');
+  }
+
+  // 🔥 показываем кто ходит
+  const player = players.find(p => p.id === id);
+  if (player) {
+    showModal(`🎯 Ходит: ${player.username}`);
+  }
+
   renderPlayers();
 });
 
