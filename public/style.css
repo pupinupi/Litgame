@@ -169,6 +169,12 @@ button{
   color:#00eaff;
 }
 
+#rollBtn.disabled {
+  background: #555 !important;
+  box-shadow: none !important;
+  opacity: 0.6;
+}
+
 /* ШКАЛА ХАЙПА */
 /* --- ШКАЛА ХАЙПА (АПГРЕЙД) --- */
 /* --- ШКАЛА ХАЙПА (АДАПТИВ) --- */
