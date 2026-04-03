@@ -321,9 +321,10 @@ function renderPlayers() {
     const c = cells[p.position];
 
     // 🔥 ВОТ ЭТО САМОЕ ВАЖНОЕ
-    el.style.left = (c.x + i * 8) + 'px';
-    el.style.top = c.y + 'px';
-  });
+    const pos = getScaledPosition(c.x, c.y);
+
+el.style.left = (pos.x + i * 8) + 'px';
+el.style.top = pos.y + 'px';
 }
 
 function renderHypeBars() {
