@@ -180,14 +180,17 @@ function handleCell(p) {
       text = `➖ ${cell.value}`;
       break;
     case 'minusSkip':
-      p.hype = Math.max(0, p.hype - cell.value);
-      p.skipNext = true;
-      text = '🚨 Тюрьма: пропуск хода';
-      break;
-    case 'skip':
-      p.skipNext = true;
-      text = '🚨 Тюрьма: пропуск хода';
-      break;
+  p.hype = Math.max(0, p.hype - cell.value);
+  p.skipNext = true;
+
+  showModal(`🚨 ${p.username} попал в тюрьму и пропускает ход`);
+  break;
+
+case 'skip':
+  p.skipNext = true;
+
+  showModal(`🚨 ${p.username} попал в тюрьму и пропускает ход`);
+  break;
     case 'risk':
       showRiskModal(p);
       return;
