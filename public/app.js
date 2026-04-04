@@ -241,18 +241,19 @@ function renderPlayers(){
 
   document.querySelectorAll('.player').forEach(p=>p.remove());
 
-  players.forEach(p=>{
+  players.forEach((p, index)=>{
     const div = document.createElement('div');
     div.className = `player ${p.color} ${p.id===currentTurnId?'active':''}`;
 
     const cell = cells[p.position];
-    div.style.left = cell.x + 'px';
-    div.style.top = cell.y + 'px';
+
+    // 🔥 центрируем фишку + небольшой сдвиг если несколько игроков
+    div.style.left = (cell.x - 15 + index*6) + 'px';
+    div.style.top = (cell.y - 15 + index*6) + 'px';
 
     board.appendChild(div);
   });
 }
-
 // --- ХАЙП ---
 function renderHypeBars(){
   const container = document.getElementById('hypeBars');
