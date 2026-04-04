@@ -1,5 +1,3 @@
-// app.js
-
 const scandalSound = new Audio('scandal.mp3');
 scandalSound.volume = 0.8;
 
@@ -11,7 +9,6 @@ const socket = io();
 let players = [];
 let currentTurnId = null;
 let username, roomCode, color;
-
 let isAnimating = false;
 let gameOver = false;
 
@@ -39,10 +36,6 @@ document.getElementById('joinBtn').onclick = () => {
 
 // --- СТАРТ ---
 document.getElementById('startBtn').onclick = () => {
-  if(players.length < 1){
-    alert("Нужен хотя бы один игрок");
-    return;
-  }
   socket.emit('startGame', roomCode);
 };
 
@@ -57,8 +50,9 @@ document.getElementById('rollBtn').onclick = () => {
 // --- СОКЕТЫ ---
 socket.on('updatePlayers', pl => {
   players = pl;
-  renderLobbyPlayers();
+  renderPlayers();
   renderHypeBars();
+  renderLobbyPlayers();
 });
 
 socket.on('playerSkipped', (playerId) => {
@@ -71,7 +65,7 @@ socket.on('playerSkipped', (playerId) => {
 socket.on('gameStarted', () => {
   document.getElementById('lobby').style.display = 'none';
   document.getElementById('game').style.display = 'flex';
-  renderPlayers(); // отрисовка фишек
+  renderPlayers();
 });
 
 socket.on('nextTurn', id => {
@@ -82,18 +76,25 @@ socket.on('nextTurn', id => {
 
 socket.on('diceRolled', ({ playerId, dice }) => {
   if (playerId !== socket.id) return;
-
   const diceEl = document.getElementById('diceResult');
-
   diceSound.currentTime = 0;
   diceSound.play();
-
   diceEl.innerText = "🎲 " + dice;
-  diceEl.classList.add('rolling');
-  setTimeout(()=> diceEl.classList.remove('rolling'), 600);
-
   movePlayer(dice);
 });
+
+// --- ЛОББИ ---
+function renderLobbyPlayers() {
+  const list = document.getElementById('playersList');
+  list.innerHTML = '';
+  players.forEach(p => {
+    const el = document.createElement('div');
+    el.innerText = p.username;
+    el.style.color = p.color;
+    el.style.fontWeight = 'bold';
+    list.appendChild(el);
+  });
+}
 
 // --- КЛЕТКИ ---
 const cells = [
@@ -119,57 +120,20 @@ const cells = [
   { x: 210, y: 626, type: 'plus', value: 4 }
 ];
 
-// --- ОТРисовка игроков на поле ---
+// --- РЕНДЕР ФИШЕК ---
 function renderPlayers() {
   const board = document.getElementById('gameBoard');
   if(!board) return;
 
-  // Удаляем старые фишки
-  document.querySelectorAll('.player').forEach(p=>p.remove());
+  document.querySelectorAll('.player').forEach(p => p.remove());
 
-  players.forEach(p=>{
+  players.forEach(p => {
     const el = document.createElement('div');
     el.className = `player ${p.color}`;
     if(p.id === currentTurnId) el.classList.add('active');
     el.style.left = cells[p.position].x + 'px';
     el.style.top = cells[p.position].y + 'px';
     board.appendChild(el);
-  });
-}
-
-// --- В ЛОББИ ---
-function renderLobbyPlayers() {
-  const list = document.getElementById('playersList');
-  list.innerHTML = '';
-
-  players.forEach(p => {
-    const el = document.createElement('div');
-    el.innerText = p.username;
-    el.style.color = p.color;
-    el.style.fontWeight = 'bold';
-    el.style.marginBottom = '5px';
-    list.appendChild(el);
-  });
-}
-
-// --- ХАЙП ---
-function renderHypeBars() {
-  const container = document.getElementById('hypeBars');
-  container.innerHTML = '';
-
-  players.forEach(p => {
-    const bar = document.createElement('div');
-    bar.className = 'hypeBar';
-    const fill = document.createElement('div');
-    fill.className = 'hypeFill';
-    fill.style.width = p.hype*2 + 'px'; // масштабируем
-    bar.appendChild(fill);
-
-    const text = document.createElement('div');
-    text.innerText = `${p.username}: ${p.hype}`;
-    bar.appendChild(text);
-
-    container.appendChild(bar);
   });
 }
 
@@ -207,38 +171,45 @@ function movePlayer(steps) {
 // --- ОБРАБОТКА КЛЕТКИ ---
 function handleCell(p) {
   const cell = cells[p.position];
-  let text = '';
-
   switch (cell.type) {
-    case 'start': p.hype += 10; text = '🚀 +10'; break;
-    case 'plus': p.hype += cell.value; text = `➕ ${cell.value}`; break;
-    case 'minus': p.hype = Math.max(0, p.hype - cell.value); text = `➖ ${cell.value}`; break;
-    case 'skip': p.skipNext = true; text = '🛑 Пропуск'; break;
-    case 'minusSkip': p.hype = Math.max(0, p.hype - cell.value); p.skipNext = true; text = `➖ ${cell.value} + 🛑`; break;
-    case 'scandal':
-      const scandal = Math.floor(Math.random()*10)+1;
-      p.hype = Math.max(0, p.hype - scandal);
-      text = `💥 Скандал -${scandal}`;
-      scandalSound.currentTime = 0;
-      scandalSound.play();
-      break;
-    case 'risk':
-      const risk = Math.random() < 0.5 ? cell.value : -cell.value;
-      p.hype = Math.max(0, p.hype + risk);
-      text = risk>0? `⚠️ +${risk}` : `⚠️ ${risk}`;
-      break;
+    case 'start': p.hype += 10; break;
+    case 'plus': p.hype += cell.value; break;
+    case 'minus': p.hype = Math.max(0, p.hype - cell.value); break;
+    case 'skip': p.skipNext = true; break;
   }
 
-  renderHypeBars();
-  showModal(text);
+  socket.emit('playerMoved', {
+    roomCode,
+    position: p.position,
+    hype: p.hype,
+    skipNext: p.skipNext
+  });
 
-  socket.emit('playerMoved', { roomCode, position: p.position, hype: p.hype, skipNext: p.skipNext });
+  renderHypeBars();
+}
+
+// --- ХАЙП-БАРЫ ---
+function renderHypeBars() {
+  const container = document.getElementById('hypeBars');
+  container.innerHTML = '';
+  players.forEach(p => {
+    const bar = document.createElement('div');
+    bar.className = 'hypeBar';
+    const fill = document.createElement('div');
+    fill.className = 'hypeFill';
+    fill.style.width = Math.min(p.hype, 100) + '%';
+    const text = document.createElement('div');
+    text.innerText = `${p.username} (${p.hype} HP)`;
+    bar.appendChild(fill);
+    bar.appendChild(text);
+    container.appendChild(bar);
+  });
 }
 
 // --- МОДАЛКА ---
 function showModal(text) {
   const modal = document.getElementById('modal');
-  modal.innerHTML = `<div class="modalContent">${text}</div>`;
   modal.classList.add('active');
-  setTimeout(()=> modal.classList.remove('active'), 1200);
+  modal.innerHTML = `<div class="modalContent">${text}</div>`;
+  setTimeout(()=> modal.classList.remove('active'), 2000);
 }
