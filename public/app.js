@@ -175,7 +175,21 @@ function handleCell(p) {
     case 'start': p.hype += 10; break;
     case 'plus': p.hype += cell.value; break;
     case 'minus': p.hype = Math.max(0, p.hype - cell.value); break;
-    case 'skip': p.skipNext = true; break;
+    case 'skip': 
+      p.skipNext = true;
+      showModal('🛑 Пропуск хода!'); 
+      break;
+    case 'risk':
+      handleRisk(p);
+      break;
+    case 'scandal':
+      handleScandal(p);
+      break;
+    case 'minusSkip':
+      p.hype = Math.max(0, p.hype - cell.value);
+      p.skipNext = true;
+      showModal(`🛑 Суд: пропуск хода и -${cell.value} хайпа`);
+      break;
   }
 
   socket.emit('playerMoved', {
@@ -188,28 +202,38 @@ function handleCell(p) {
   renderHypeBars();
 }
 
-// --- ХАЙП-БАРЫ ---
-function renderHypeBars() {
-  const container = document.getElementById('hypeBars');
-  container.innerHTML = '';
-  players.forEach(p => {
-    const bar = document.createElement('div');
-    bar.className = 'hypeBar';
-    const fill = document.createElement('div');
-    fill.className = 'hypeFill';
-    fill.style.width = Math.min(p.hype, 100) + '%';
-    const text = document.createElement('div');
-    text.innerText = `${p.username} (${p.hype} HP)`;
-    bar.appendChild(fill);
-    bar.appendChild(text);
-    container.appendChild(bar);
-  });
+// --- РИСК ---
+function handleRisk(player) {
+  const dice = Math.floor(Math.random()*6)+1;
+  let delta = (dice <= 3) ? -5 : 5;
+  player.hype = Math.max(0, player.hype + delta);
+  showModal(`⚠️ Риск! Выпало ${dice}, ${delta>0?'+5':'-5'} хайпа`);
 }
 
-// --- МОДАЛКА ---
-function showModal(text) {
-  const modal = document.getElementById('modal');
-  modal.classList.add('active');
-  modal.innerHTML = `<div class="modalContent">${text}</div>`;
-  setTimeout(()=> modal.classList.remove('active'), 2000);
+// --- СКАНДАЛ ---
+function handleScandal(player) {
+  scandalSound.currentTime = 0;
+  scandalSound.play();
+
+  const scandalList = [
+    {text:"🔥 Перегрел аудиторию", value:-1, skip:false},
+    {text:"🫣 Громкий заголовок", value:-2, skip:false},
+    {text:"😱 Это монтаж", value:-3, skip:false},
+    {text:"#️⃣ Меня взломали", value:-3, skip:false, all:true},
+    {text:"😮 Подписчики в шоке", value:-4, skip:false},
+    {text:"🤫 Удаляй пока не поздно", value:-5, skip:false},
+    {text:"🙄 Это контент, вы не понимаете", value:-5, skip:true}
+  ];
+
+  const choice = scandalList[Math.floor(Math.random()*scandalList.length)];
+  
+  if(choice.all){
+    players.forEach(p => p.hype = Math.max(0, p.hype + choice.value));
+  } else {
+    player.hype = Math.max(0, player.hype + choice.value);
+  }
+
+  if(choice.skip) player.skipNext = true;
+
+  showModal(`💣 Скандал! ${choice.text} (${choice.value>0?'+':'-'}${Math.abs(choice.value)} хайпа) ${choice.skip?'🛑 Пропуск хода':''}`);
 }
