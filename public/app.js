@@ -11,7 +11,6 @@ let currentTurnId = null;
 let username, roomCode, color;
 
 let isAnimating = false;
-let gameOver = false;
 
 // --- ВЫБОР ФИШКИ ---
 document.querySelectorAll('.chip').forEach(btn => {
@@ -42,7 +41,7 @@ document.getElementById('startBtn').onclick = () => {
 
 // --- КУБИК ---
 document.getElementById('rollBtn').onclick = () => {
-  if (gameOver || isAnimating) return;
+  if (isAnimating) return;
   if (currentTurnId !== socket.id) return;
 
   socket.emit('rollDice', roomCode);
@@ -56,18 +55,6 @@ socket.on('updatePlayers', pl => {
   renderLobbyPlayers();
 });
 
-socket.on('playerSkipped', (playerId) => {
-  const p = players.find(p => p.id === playerId);
-
-  if (playerId === socket.id) {
-    showModal('🛑 Пропуск хода!');
-  }
-
-  if (p) {
-    showTurnMessage(`⚖️ ${p.username} пропускает ход`, 2000);
-  }
-});
-
 socket.on('gameStarted', () => {
   document.getElementById('lobby').style.display = 'none';
   document.getElementById('game').style.display = 'flex';
@@ -76,30 +63,24 @@ socket.on('gameStarted', () => {
 socket.on('nextTurn', id => {
   currentTurnId = id;
 
-  document.getElementById('rollBtn').disabled = id !== socket.id || gameOver;
+  document.getElementById('rollBtn').disabled = id !== socket.id;
 
-  const player = players.find(p => p.id === id);
-  if (player) {
-    showTurnMessage(`🎯 Ходит ${player.username}`);
-  }
-
+  updateTurnUI();
   renderPlayers();
 });
 
 socket.on('diceRolled', ({ playerId, dice }) => {
   if (playerId !== socket.id) return;
 
-  const diceEl = document.getElementById('diceResult');
-
   diceSound.currentTime = 0;
   diceSound.play();
 
-  diceEl.innerText = "🎲 " + dice;
+  document.getElementById('diceResult').innerText = "🎲 " + dice;
 
   movePlayer(dice);
 });
 
-// --- ТВОИ КООРДИНАТЫ (НЕ ТРОГАЕМ) ---
+// --- КЛЕТКИ ---
 const cells = [
   { x: 82, y: 587, type: 'start' },
   { x: 97, y: 464, type: 'plus', value: 3 },
@@ -138,13 +119,7 @@ function movePlayer(steps) {
       return;
     }
 
-    const prev = me.position;
     me.position = (me.position + 1) % cells.length;
-
-    if (me.position === 0 && prev !== 0) {
-      me.hype += 7;
-      showModal('🔁 +7 хайпа за круг');
-    }
 
     renderPlayers();
     count++;
@@ -160,67 +135,51 @@ function handleCell(p) {
 
   switch (cell.type) {
 
-    case 'start':
-      p.hype += 10;
-      showTurnMessage(`🚀 +10 хайпа`);
-      break;
-
     case 'plus':
       p.hype += cell.value;
-      showTurnMessage(`➕ ${cell.value}`);
+      showToast(`+${cell.value} хайпа`, "plus");
       break;
 
     case 'minus':
       p.hype = Math.max(0, p.hype - cell.value);
-      showTurnMessage(`➖ ${cell.value}`);
+      showToast(`-${cell.value} хайпа`, "minus");
       break;
 
     case 'skip':
       p.skipNext = true;
-      showModal('🛑 Пропуск хода!');
-      showTurnMessage(`⚖️ ${p.username} в тюрьме`, 2000);
-      break;
-
-    case 'minusSkip':
-      p.hype = Math.max(0, p.hype - cell.value);
-      p.skipNext = true;
-      showModal(`🛑 Суд: -${cell.value} и пропуск`);
-      showTurnMessage(`⚖️ ${p.username} в тюрьме`, 2000);
+      showToast("🛑 Пропуск хода", "minus");
       break;
 
     case 'risk':
       const roll = Math.floor(Math.random()*6)+1;
       const delta = roll <= 3 ? -5 : 5;
-      p.hype = Math.max(0, p.hype + delta);
 
-      showModal(`⚠️ Риск!\nВыпало ${roll}\n${delta > 0 ? '+' : ''}${delta} хайпа`);
+      p.hype = Math.max(0, p.hype + delta);
+      showRisk(roll, delta);
       break;
 
     case 'scandal':
       const scandals = [
-        {t:"🔥 Перегрел аудиторию", h:-1},
-        {t:"🫣 Громкий заголовок", h:-2},
-        {t:"😱 Это монтаж", h:-3},
-        {t:"#️⃣ Меня взломали", h:-3, all:true},
-        {t:"😮 Подписчики в шоке", h:-4},
-        {t:"🤫 Удаляй пока не поздно", h:-5},
-        {t:"🙄 Это контент", h:-5, skip:true}
+        {text:"🔥 перегрел аудиторию", hype:-1},
+        {text:"🫣 громкий заголовок", hype:-2},
+        {text:"😱 это монтаж", hype:-3},
+        {text:"#️⃣ меня взломали", hype:-3, all:true},
+        {text:"😮 подписчики в шоке", hype:-4},
+        {text:"🤫 удаляй пока не поздно", hype:-5},
+        {text:"🙄 это контент", hype:-5, skip:true}
       ];
 
       const s = scandals[Math.floor(Math.random()*scandals.length)];
 
-      scandalSound.currentTime = 0;
-      scandalSound.play();
-
-      if (s.all) {
-        players.forEach(pl => pl.hype = Math.max(0, pl.hype + s.h));
+      if(s.all){
+        players.forEach(pl => pl.hype = Math.max(0, pl.hype + s.hype));
       } else {
-        p.hype = Math.max(0, p.hype + s.h);
+        p.hype = Math.max(0, p.hype + s.hype);
       }
 
-      if (s.skip) p.skipNext = true;
+      if(s.skip) p.skipNext = true;
 
-      showScandalCard(s.t, s.h);
+      showScandalCard(s);
       break;
   }
 
@@ -235,26 +194,23 @@ function handleCell(p) {
   });
 }
 
-// --- РЕНДЕР ФИШЕК ---
+// --- UI ---
 function renderPlayers(){
   const board = document.getElementById('gameBoard');
-
   document.querySelectorAll('.player').forEach(p=>p.remove());
 
-  players.forEach((p, index)=>{
+  players.forEach((p, i)=>{
     const div = document.createElement('div');
     div.className = `player ${p.color} ${p.id===currentTurnId?'active':''}`;
 
     const cell = cells[p.position];
-
-    // 🔥 центрируем фишку + небольшой сдвиг если несколько игроков
-    div.style.left = (cell.x - 15 + index*6) + 'px';
-    div.style.top = (cell.y - 15 + index*6) + 'px';
+    div.style.left = (cell.x - 15 + i*5) + 'px';
+    div.style.top = (cell.y - 15 + i*5) + 'px';
 
     board.appendChild(div);
   });
 }
-// --- ХАЙП ---
+
 function renderHypeBars(){
   const container = document.getElementById('hypeBars');
   container.innerHTML = '';
@@ -276,42 +232,68 @@ function renderHypeBars(){
   });
 }
 
-// --- ЛОББИ ---
 function renderLobbyPlayers(){
   const list = document.getElementById('playersList');
-  list.innerHTML = players.map(p=>`<div>${p.username} (${p.color})</div>`).join('');
+
+  list.innerHTML = players.map(p => `
+    <div style="color:${p.color}; font-weight:bold;">
+      ${p.username}
+    </div>
+  `).join('');
 }
 
-// --- UI ---
-function showModal(text){
+function updateTurnUI(){
+  const el = document.getElementById('turnInfo');
+  const p = players.find(p=>p.id===currentTurnId);
+  if(p) el.innerText = `Ходит: ${p.username}`;
+}
+
+// --- ЭФФЕКТЫ ---
+function showToast(text, type="plus"){
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerText = text;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1500);
+}
+
+function showScandalCard(data){
   const modal = document.getElementById('modal');
-  modal.innerHTML = `<div class="modalContent">${text}</div>`;
-  modal.classList.add('active');
-  setTimeout(()=>modal.classList.remove('active'),2000);
-}
 
-function showTurnMessage(msg, duration=1000){
-  const el = document.getElementById('turnMessage');
-  el.innerText = msg;
-  el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'), duration);
-}
-
-function showScandalCard(text, hype){
-  const modal = document.getElementById('modal');
+  scandalSound.currentTime = 0;
+  scandalSound.play();
 
   modal.innerHTML = `
-    <div class="scandalCard">
-      <div class="scandalTitle">💥 Скандал</div>
-      <div class="scandalText">${text}</div>
-      <div class="scandalValue">${hype}</div>
+    <div class="scandalCard shake">
+      <div class="scandalTitle">💥 СКАНДАЛ</div>
+      <div class="scandalText">${data.text}</div>
+      <div class="scandalValue">${data.hype}</div>
       <button class="scandalBtn">ОК</button>
     </div>
   `;
 
   modal.classList.add('active');
 
-  modal.querySelector('.scandalBtn').onclick = () => {
+  modal.querySelector('button').onclick = () => {
+    modal.classList.remove('active');
+  };
+}
+
+function showRisk(roll, delta){
+  const modal = document.getElementById('modal');
+
+  modal.innerHTML = `
+    <div class="riskCard">
+      <div class="riskTitle">⚠️ РИСК</div>
+      <div class="riskText">Выпало: ${roll}</div>
+      <div class="riskValue">${delta > 0 ? '+' : ''}${delta}</div>
+      <button class="scandalBtn">ОК</button>
+    </div>
+  `;
+
+  modal.classList.add('active');
+
+  modal.querySelector('button').onclick = () => {
     modal.classList.remove('active');
   };
 }
