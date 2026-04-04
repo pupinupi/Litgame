@@ -56,45 +56,39 @@ socket.on('updatePlayers', pl => {
 });
 
 socket.on('playerSkipped', (playerId) => {
+  const p = players.find(p=>p.id===playerId);
   if(playerId === socket.id){
     showModal('🛑 Пропуск хода!');
-    document.getElementById('rollBtn').disabled = true;
   }
+  if(p) showTurnMessage(`⚖️ Игрок ${p.username} пропускает ход`, 2000);
 });
 
 socket.on('gameStarted', () => {
   document.getElementById('lobby').style.display = 'none';
   document.getElementById('game').style.display = 'flex';
-  renderPlayers();
 });
 
 socket.on('nextTurn', id => {
   currentTurnId = id;
   document.getElementById('rollBtn').disabled = id !== socket.id || gameOver;
+
+  const player = players.find(p => p.id === id);
+  if(player) showTurnMessage(`🎯 Ходит ${player.username}`);
   renderPlayers();
 });
 
 socket.on('diceRolled', ({ playerId, dice }) => {
   if (playerId !== socket.id) return;
+
   const diceEl = document.getElementById('diceResult');
+
   diceSound.currentTime = 0;
   diceSound.play();
+
   diceEl.innerText = "🎲 " + dice;
+
   movePlayer(dice);
 });
-
-// --- ЛОББИ ---
-function renderLobbyPlayers() {
-  const list = document.getElementById('playersList');
-  list.innerHTML = '';
-  players.forEach(p => {
-    const el = document.createElement('div');
-    el.innerText = p.username;
-    el.style.color = p.color;
-    el.style.fontWeight = 'bold';
-    list.appendChild(el);
-  });
-}
 
 // --- КЛЕТКИ ---
 const cells = [
@@ -119,23 +113,6 @@ const cells = [
   { x: 355, y: 619, type: 'minus', value: 10 },
   { x: 210, y: 626, type: 'plus', value: 4 }
 ];
-
-// --- РЕНДЕР ФИШЕК ---
-function renderPlayers() {
-  const board = document.getElementById('gameBoard');
-  if(!board) return;
-
-  document.querySelectorAll('.player').forEach(p => p.remove());
-
-  players.forEach(p => {
-    const el = document.createElement('div');
-    el.className = `player ${p.color}`;
-    if(p.id === currentTurnId) el.classList.add('active');
-    el.style.left = cells[p.position].x + 'px';
-    el.style.top = cells[p.position].y + 'px';
-    board.appendChild(el);
-  });
-}
 
 // --- ДВИЖЕНИЕ ---
 function movePlayer(steps) {
@@ -171,69 +148,86 @@ function movePlayer(steps) {
 // --- ОБРАБОТКА КЛЕТКИ ---
 function handleCell(p) {
   const cell = cells[p.position];
+  let text = '';
+
   switch (cell.type) {
-    case 'start': p.hype += 10; break;
-    case 'plus': p.hype += cell.value; break;
-    case 'minus': p.hype = Math.max(0, p.hype - cell.value); break;
+    case 'start': 
+      p.hype += 10; 
+      showTurnMessage(`🚀 +10 хайпа`); 
+      break;
+    case 'plus': 
+      p.hype += cell.value; 
+      showTurnMessage(`➕ ${cell.value} хайпа`); 
+      break;
+    case 'minus': 
+      p.hype = Math.max(0, p.hype - cell.value); 
+      showTurnMessage(`➖ ${cell.value} хайпа`); 
+      break;
     case 'skip': 
-      p.skipNext = true;
-      showModal('🛑 Пропуск хода!'); 
+      p.skipNext = true; 
+      showModal('🛑 Пропуск хода!');
+      showTurnMessage(`⚖️ Игрок ${p.username} попал в тюрьму и пропускает ход`, 2000);
+      break;
+    case 'minusSkip': 
+      p.hype=Math.max(0,p.hype-cell.value); 
+      p.skipNext=true; 
+      showModal(`🛑 Суд: пропуск хода и -${cell.value} хайпа`);
+      showTurnMessage(`⚖️ Игрок ${p.username} попал в тюрьму и пропускает ход`, 2000);
       break;
     case 'risk':
-      handleRisk(p);
+      const dice = Math.floor(Math.random()*6)+1;
+      const delta = (dice <= 3)? -5 : 5;
+      p.hype = Math.max(0, p.hype + delta);
+      showModal(`⚠️ Риск! Выпало ${dice}\n${delta>0?'+':'-'}${Math.abs(delta)} хайпа`);
       break;
     case 'scandal':
-      handleScandal(p);
-      break;
-    case 'minusSkip':
-      p.hype = Math.max(0, p.hype - cell.value);
-      p.skipNext = true;
-      showModal(`🛑 Суд: пропуск хода и -${cell.value} хайпа`);
+      const scandals = [
+        {text:"🔥 Перегрел аудиторию", hype:-1, skip:false},
+        {text:"🫣 Громкий заголовок", hype:-2, skip:false},
+        {text:"😱 Это монтаж", hype:-3, skip:false},
+        {text:"#️⃣ Меня взломали", hype:-3, skip:false, all:true},
+        {text:"😮 Подписчики в шоке", hype:-4, skip:false},
+        {text:"🤫 Удаляй пока не поздно", hype:-5, skip:false},
+        {text:"🙄 Это контент, вы не понимаете", hype:-5, skip:true},
+      ];
+      const s = scandals[Math.floor(Math.random()*scandals.length)];
+      scandalSound.currentTime=0; scandalSound.play();
+      if(s.all) players.forEach(pl=>pl.hype=Math.max(0, pl.hype+s.hype));
+      else p.hype=Math.max(0, p.hype+s.hype);
+      if(s.skip) p.skipNext=true;
+      showScandalCard(s.text, s.hype, s.skip);
       break;
   }
 
+  renderPlayers();
+  renderHypeBars();
+
+  // отправляем обновление на сервер
   socket.emit('playerMoved', {
     roomCode,
     position: p.position,
     hype: p.hype,
     skipNext: p.skipNext
   });
-
-  renderHypeBars();
 }
 
-// --- РИСК ---
-function handleRisk(player) {
-  const dice = Math.floor(Math.random()*6)+1;
-  let delta = (dice <= 3) ? -5 : 5;
-  player.hype = Math.max(0, player.hype + delta);
-  showModal(`⚠️ Риск! Выпало ${dice}, ${delta>0?'+5':'-5'} хайпа`);
+// --- ФУНКЦИИ СООБЩЕНИЙ ---
+function showTurnMessage(msg, duration=1000){
+  const el = document.getElementById('turnMessage');
+  el.innerText = msg;
+  el.classList.add('show');
+  setTimeout(()=>{ el.classList.remove('show'); }, duration);
 }
 
-// --- СКАНДАЛ ---
-function handleScandal(player) {
-  scandalSound.currentTime = 0;
-  scandalSound.play();
-
-  const scandalList = [
-    {text:"🔥 Перегрел аудиторию", value:-1, skip:false},
-    {text:"🫣 Громкий заголовок", value:-2, skip:false},
-    {text:"😱 Это монтаж", value:-3, skip:false},
-    {text:"#️⃣ Меня взломали", value:-3, skip:false, all:true},
-    {text:"😮 Подписчики в шоке", value:-4, skip:false},
-    {text:"🤫 Удаляй пока не поздно", value:-5, skip:false},
-    {text:"🙄 Это контент, вы не понимаете", value:-5, skip:true}
-  ];
-
-  const choice = scandalList[Math.floor(Math.random()*scandalList.length)];
-  
-  if(choice.all){
-    players.forEach(p => p.hype = Math.max(0, p.hype + choice.value));
-  } else {
-    player.hype = Math.max(0, player.hype + choice.value);
-  }
-
-  if(choice.skip) player.skipNext = true;
-
-  showModal(`💣 Скандал! ${choice.text} (${choice.value>0?'+':'-'}${Math.abs(choice.value)} хайпа) ${choice.skip?'🛑 Пропуск хода':''}`);
+function showScandalCard(text, hype, skip){
+  const modal = document.getElementById('modal');
+  modal.innerHTML = `
+    <div class="scandalCard">
+      <div class="scandalTitle">💥 Скандал!</div>
+      <div class="scandalText">${text}</div>
+      <div class="scandalValue">${hype>0?'+':'-'}${Math.abs(hype)}</div>
+      <button class="scandalBtn">ОК</button>
+    </div>`;
+  modal.classList.add('active');
+  modal.querySelector('.scandalBtn').onclick = ()=>modal.classList.remove('active');
 }
