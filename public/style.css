@@ -89,19 +89,24 @@ button{
   display:none;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
-  height:100vh;
-  gap:10px;
-}
 
+  gap:10px;
+
+  padding:10px;
+  box-sizing:border-box;
+
+  min-height:100vh; /* 🔥 вместо height */
+}
 /* ПОЛЕ */
 #gameBoard{
   position:relative;
 
   width:100%;
-  max-width:500px;   /* 🔥 адаптив */
+  max-width:350px;   /* 🔥 адаптив */
   aspect-ratio:1/1;  /* квадрат */
 
+  margin: 10px 0;
+  
   border-radius:20px;
   overflow:hidden;
 
