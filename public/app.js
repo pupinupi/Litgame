@@ -268,15 +268,14 @@ function showScandalCard(data){
       <div class="scandalTitle">💥 СКАНДАЛ</div>
       <div class="scandalText">${data.text}</div>
       <div class="scandalValue">${data.hype}</div>
-      <button class="scandalBtn">ОК</button>
     </div>
   `;
 
   modal.classList.add('active');
 
-  modal.querySelector('button').onclick = () => {
+  setTimeout(() => {
     modal.classList.remove('active');
-  };
+  }, 2000);
 }
 
 function showRisk(roll, delta){
@@ -287,13 +286,12 @@ function showRisk(roll, delta){
       <div class="riskTitle">⚠️ РИСК</div>
       <div class="riskText">Выпало: ${roll}</div>
       <div class="riskValue">${delta > 0 ? '+' : ''}${delta}</div>
-      <button class="scandalBtn">ОК</button>
     </div>
   `;
 
   modal.classList.add('active');
 
-  modal.querySelector('button').onclick = () => {
+  setTimeout(() => {
     modal.classList.remove('active');
-  };
+  }, 2000);
 }
