@@ -8,11 +8,8 @@ app.use(express.static('public'));
 let rooms = {};
 
 io.on('connection', (socket) => {
-
   socket.on('joinRoom', ({username, roomCode, color}) => {
-    if(!rooms[roomCode]){
-      rooms[roomCode] = { players: [], turn: 0 };
-    }
+    if(!rooms[roomCode]) rooms[roomCode] = { players: [], turn: 0 };
 
     const player = {
       id: socket.id,
@@ -34,7 +31,6 @@ io.on('connection', (socket) => {
     if(!room || room.players.length === 0) return;
 
     room.turn = 0;
-
     io.to(roomCode).emit('gameStarted');
     io.to(roomCode).emit('nextTurn', room.players[0].id);
   });
@@ -44,7 +40,6 @@ io.on('connection', (socket) => {
     if(!room) return;
 
     const player = room.players[room.turn];
-
     if(player.id !== socket.id) return;
 
     if(player.skipNext){
@@ -76,12 +71,10 @@ io.on('connection', (socket) => {
   function nextTurn(roomCode){
     const room = rooms[roomCode];
     if(!room) return;
-
     room.turn = (room.turn + 1) % room.players.length;
     const nextPlayer = room.players[room.turn];
     io.to(roomCode).emit('nextTurn', nextPlayer.id);
   }
-
 });
 
 const PORT = process.env.PORT || 3000;
