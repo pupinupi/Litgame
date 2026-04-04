@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>🔥 Литвин: Путь к хайпу</title>
-
 <link rel="stylesheet" href="style.css">
-
 <script src="/socket.io/socket.io.js"></script>
 <script defer src="app.js"></script>
 </head>
@@ -14,67 +12,36 @@
 <!-- ЛОББИ -->
 <div id="lobby">
   <h1 class="title">🔥 ЛИТВИН: ПУТЬ К ХАЙПУ 🔥</h1>
-
   <input id="username" placeholder="Имя">
   <input id="roomCode" placeholder="Код комнаты">
-
   <div class="chips">
     <div class="chip red" data-color="red"></div>
     <div class="chip blue" data-color="blue"></div>
     <div class="chip yellow" data-color="yellow"></div>
     <div class="chip purple" data-color="purple"></div>
   </div>
-
   <div class="buttons">
     <button id="joinBtn">ВОЙТИ</button>
     <button id="startBtn">НАЧАТЬ</button>
   </div>
-
   <div id="playersList"></div>
-
   <div class="rules">
-  <div class="rulesTitle">🎮 Правила игры</div>
-
-  <div class="rulesText">
-    <p>🔥 <b>Цель:</b> первым набрать 70 хайпа</p>
-
-    <p>🎲 Бросай кубик и двигайся по полю</p>
-
-    <p>📊 Шкала сверху показывает твой хайп</p>
-
-    <p>🔁 За круг: <b>+7 хайпа</b></p>
-
-    <p>➕ Клетки дают хайп</p>
-
-    <p>💥 Скандал: <b>-1 до -5 хайпа</b></p>
-
-    <p>🎲 Риск:  
-    1–3 → -5  
-    4–6 → +5</p>
-
-    <p>📵 Блокировка: <b>-10 хайпа</b></p>
-
-    <p>🚀 Старт: <b>+10 хайпа</b></p>
-
-    <p>🚨 Тюрьма: <b>-8 хайпа + пропуск</b></p>
-
-    <p>⚖️ Суд: пропуск хода</p>
-
-    <p>🏆 Побеждает тот, кто набрал 70!</p>
+    <h2>📜 Правила</h2>
+    <p>🎲 Бросай кубик</p>
+    <p>🔥 Собери 70 хайпа</p>
+    <p>💥 Скандалы уменьшают хайп</p>
+    <p>⚠️ Риск: +5 или -5</p>
+    <p>🛑 Суд: пропуск хода</p>
   </div>
 </div>
 
-    
 <!-- ИГРА -->
-  <div id="game" style="display:flex;">
+<div id="game">
   <div id="hypeBars"></div>
-
   <div id="gameBoard">
     <img src="board.jpg">
   </div>
-
   <div id="diceResult"></div>
-
   <button id="rollBtn">🎲 БРОСИТЬ</button>
 </div>
 
