@@ -49,26 +49,65 @@ socket.on('updatePlayers', pl => {
   renderLobbyPlayers();
 });
 
-// --- КЛЕТКИ (ПРОСТО) ---
+// --- КУБИК (ПРОСТОЙ) ---
+document.getElementById('rollBtn').onclick = () => {
+  const me = players.find(p => p.id === socket.id);
+  if (!me) return;
+
+  const dice = Math.floor(Math.random() * 6) + 1;
+
+  document.getElementById('diceResult').innerText = "🎲 " + dice;
+
+  me.position = (me.position + dice) % cells.length;
+
+  renderPlayers();
+
+  socket.emit('playerMoved', {
+    roomCode,
+    position: me.position,
+    hype: me.hype || 0,
+    skipNext: false
+  });
+};
+
+// --- КЛЕТКИ (ПОД ТВОЮ КАРТИНКУ) ---
 const cells = [
-  { x: 100, y: 600 },
-  { x: 100, y: 500 },
-  { x: 100, y: 400 },
-  { x: 100, y: 300 },
-  { x: 100, y: 200 },
-  { x: 200, y: 100 },
-  { x: 400, y: 100 },
-  { x: 600, y: 100 },
-  { x: 800, y: 100 },
-  { x: 900, y: 200 },
-  { x: 900, y: 400 },
-  { x: 900, y: 600 },
-  { x: 700, y: 650 },
-  { x: 500, y: 650 },
-  { x: 300, y: 650 }
+  { x: 82, y: 587 },
+  { x: 97, y: 464 },
+  { x: 86, y: 348 },
+  { x: 93, y: 224 },
+  { x: 87, y: 129 },
+  { x: 219, y: 101 },
+  { x: 364, y: 107 },
+  { x: 494, y: 95 },
+  { x: 652, y: 96 },
+  { x: 815, y: 89 },
+  { x: 930, y: 135 },
+  { x: 936, y: 247 },
+  { x: 936, y: 357 },
+  { x: 941, y: 480 },
+  { x: 937, y: 610 },
+  { x: 794, y: 624 },
+  { x: 636, y: 635 },
+  { x: 517, y: 627 },
+  { x: 355, y: 619 },
+  { x: 210, y: 626 }
 ];
 
-// --- РЕНДЕР ФИШЕК (БЕЗ ЛОМАЮЩЕГО КОДА) ---
+// --- МАСШТАБ ПОД КАРТИНКУ ---
+function getScaledPosition(x, y) {
+  const board = document.getElementById('gameBoard');
+
+  const scaleX = board.clientWidth / 1024;
+  const scaleY = board.clientHeight / 1024;
+
+  return {
+    x: x * scaleX,
+    y: y * scaleY
+  };
+}
+
+// --- РЕНДЕР ФИШЕК ---
 function renderPlayers() {
   const board = document.getElementById('gameBoard');
   if (!board) return;
@@ -84,9 +123,10 @@ function renderPlayers() {
     }
 
     const cell = cells[p.position] || cells[0];
+    const pos = getScaledPosition(cell.x, cell.y);
 
-    el.style.left = (cell.x + i * 10) + 'px';
-    el.style.top = cell.y + 'px';
+    el.style.left = (pos.x + i * 10) + 'px';
+    el.style.top = pos.y + 'px';
   });
 }
 
