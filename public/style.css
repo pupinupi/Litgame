@@ -25,3 +25,22 @@ button:hover{ transform: scale(1.1); box-shadow:0 0 20px #00eaff, 0 0 40px #00ff
 .hypeBar{ width:650px; height:35px; background:#111; border-radius:25px; overflow:hidden; border:2px solid #00eaff; box-shadow:0 0 15px #00eaff, 0 0 30px #00ffcc, inset 0 0 10px rgba(0,255,255,0.2);}
 .hypeFill{ height:100%; background:linear-gradient(90deg,#00eaff,#00ffcc,#00ff88); transition:width 0.5s; box-shadow:0 0 20px #00eaff,0 0 40px #00ffcc;}
 .hypeBar div{ position:absolute; width:650px; text-align:center; font-weight:bold; font-size:16px; color:white; text-shadow:0 0 5px #000,0 0 10px rgba(0,0,0,0.5);}
+.turnMessage{
+  position:absolute;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  padding:10px 20px;
+  border-radius:15px;
+  font-size:24px;
+  font-weight:bold;
+  color:#00ffcc;
+  text-shadow:0 0 10px #00eaff;
+  opacity:0;
+  transition: opacity 0.3s;
+  pointer-events:none;
+}
+.turnMessage.show{
+  opacity:1;
+}
