@@ -278,3 +278,26 @@ button:hover{
     transform:scale(0.5);
   }
 }
+
+/* --- ЦЕНТРОВКА ПОЛЯ --- */
+#game{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+  overflow:hidden;
+}
+
+/* --- МАСШТАБ (НЕ ЛОМАЕТ КООРДИНАТЫ) --- */
+@media (max-width: 1200px){
+  #gameBoard{
+    transform: scale(0.75);
+  }
+}
+
+@media (max-width: 800px){
+  #gameBoard{
+    transform: scale(0.55);
+  }
+}
