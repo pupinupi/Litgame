@@ -2,24 +2,40 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Литвин игра</title>
+<title>Литвин: Путь к хайпу</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<!-- ЛОББИ -->
 <div id="lobby">
+  <h1>🔥 ВЫБЕРИ ФИШКУ</h1>
+
+  <div id="skins">
+    <div class="skin red selected" onclick="selectSkin('red', this)"></div>
+    <div class="skin cyan" onclick="selectSkin('cyan', this)"></div>
+    <div class="skin lime" onclick="selectSkin('lime', this)"></div>
+    <div class="skin magenta" onclick="selectSkin('magenta', this)"></div>
+  </div>
+
   <input id="name" placeholder="Имя">
-  <button onclick="join()">Играть</button>
+  <button onclick="join()">🚀 ВОЙТИ В ИГРУ</button>
 </div>
 
-<div id="game">
+<!-- ИГРА -->
+<div id="game" class="hidden">
+
   <img src="board.jpg" id="board">
 
   <div id="tokens"></div>
 
   <div id="topUI">
     <div id="turn"></div>
-    <div id="hypeBar"><div id="hypeFill"></div></div>
+
+    <div id="hypeBar">
+      <div id="hypeFill"></div>
+    </div>
+
     <div id="hype"></div>
   </div>
 
@@ -27,6 +43,7 @@
     <button onclick="roll()">🎲 БРОСИТЬ</button>
     <div id="dice"></div>
   </div>
+
 </div>
 
 <div id="modal" class="hidden"></div>
