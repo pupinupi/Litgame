@@ -1,303 +1,93 @@
-/* --- БАЗА --- */
 body{
   margin:0;
-  font-family:Arial;
-  background:#0a0a0a;
+  background:#000;
   color:white;
-}
-
-/* --- ЛОББИ (КАК БЫЛО) --- */
-#lobby{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-  gap:10px;
-}
-
-.title{
-  font-size:32px;
-  text-shadow:0 0 15px #00eaff;
-}
-
-input{
-  padding:10px;
-  font-size:18px;
-  border-radius:10px;
-  border:none;
-  width:250px;
-}
-
-/* --- ФИШКИ --- */
-.chips{
-  display:flex;
-  gap:15px;
-  margin:10px;
-}
-
-.chip{
-  width:50px;
-  height:50px;
-  border-radius:50%;
-  cursor:pointer;
-  border:3px solid white;
-  transition:0.2s;
-}
-
-.chip:hover{
-  transform:scale(1.2);
-}
-
-.chip.selected{
-  box-shadow:0 0 20px #00ffcc;
-}
-
-.red{background:red;}
-.blue{background:blue;}
-.yellow{background:yellow;}
-.purple{background:purple;}
-
-/* --- КНОПКИ --- */
-button{
-  padding:10px 20px;
-  font-size:20px;
-  border:none;
-  border-radius:15px;
-  cursor:pointer;
-
-  background:linear-gradient(145deg,#00eaff,#00ffcc);
-}
-
-button:hover{
-  transform:scale(1.1);
-}
-
-/* --- СПИСОК ИГРОКОВ --- */
-#playersList{
-  margin-top:10px;
-  font-size:18px;
-}
-
-/* --- ПРАВИЛА (СРАЗУ ПОД КНОПКАМИ) --- */
-.rules{
-  margin-top:10px;
-  font-size:16px;
+  font-family:sans-serif;
   text-align:center;
 }
 
-/* --- ИГРА --- */
-#game{
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-}
-
-/* --- ПОЛЕ (ВОЗВРАТ КАК БЫЛО) --- */
-#gameBoard{
-  position:relative;
-
+#board{
   width:1024px;
-  height:1024px;
-
-  border-radius:20px;
-  overflow:hidden;
-
-  border:4px solid white;
-
-  box-shadow:
-    0 0 20px #00eaff,
-    0 0 40px #00ffcc,
-    0 0 80px rgba(0,255,255,0.6),
-    inset 0 0 30px rgba(0,255,255,0.3);
-
-  transform-origin: top center;
-}
-
-#gameBoard img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
-
-/* --- ФИШКИ --- */
-.player{
   position:absolute;
-  width:30px;
-  height:30px;
+  left:50%;
+  transform:translateX(-50%);
+  box-shadow:0 0 60px orange;
+}
+
+.token{
+  width:22px;
+  height:22px;
   border-radius:50%;
-  border:2px solid white;
-  box-shadow:0 0 10px white;
-  z-index:10;
-}
-
-.player.active{
-  transform:scale(1.3);
-  box-shadow:
-    0 0 20px #fff,
-    0 0 40px #00eaff;
-}
-
-/* --- ХАЙП --- */
-#hypeBars{
   position:absolute;
+  transition:0.25s;
+  box-shadow:0 0 15px white;
+}
+
+.me{
+  box-shadow:0 0 25px yellow;
+  transform:scale(1.3);
+}
+
+#topUI{
+  position:fixed;
   top:10px;
   left:50%;
   transform:translateX(-50%);
-  display:flex;
-  flex-direction:column;
-  gap:10px;
 }
 
-.hypeBar{
-  width:650px;
-  height:35px;
-  background:#111;
-  border-radius:25px;
-  overflow:hidden;
-  border:2px solid #00eaff;
-}
-
-.hypeFill{
-  height:100%;
-  background:linear-gradient(90deg,#00eaff,#00ffcc,#00ff88);
-}
-
-.hypeBar div{
-  position:absolute;
-  width:650px;
-  text-align:center;
-  font-weight:bold;
-}
-
-/* --- КУБИК --- */
-#diceResult{
-  font-size:30px;
-  color:#00eaff;
-}
-
-/* --- ХОД --- */
-#turnInfo{
+#bottomUI{
   position:fixed;
   bottom:20px;
   left:50%;
   transform:translateX(-50%);
-  font-size:24px;
-  background:rgba(0,0,0,0.7);
+}
+
+button{
   padding:10px 20px;
+  font-size:18px;
+  background:orange;
+  border:none;
   border-radius:10px;
+  box-shadow:0 0 20px orange;
 }
 
-/* --- ТОСТ --- */
-.toast{
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  padding:15px 30px;
-  border-radius:15px;
-  font-size:28px;
-  font-weight:bold;
-  z-index:9999;
-}
-
-.toast.plus{
-  background:#00ff88;
-  color:black;
-}
-
-.toast.minus{
-  background:#ff3b3b;
-}
-
-/* --- СКАНДАЛ (МЕНЬШЕ) --- */
-.scandalCard{
-  width:260px;
-  height:320px;
+#hypeBar{
+  width:300px;
+  height:20px;
   background:#111;
-  border-radius:20px;
-  border:3px solid red;
-  box-shadow:0 0 30px red;
-  text-align:center;
-  padding:15px;
+  border-radius:10px;
+  overflow:hidden;
+  margin:10px auto;
+  box-shadow:0 0 20px cyan;
 }
 
-.scandalTitle{font-size:22px;}
-.scandalText{font-size:18px;margin-top:15px;}
-.scandalValue{font-size:28px;color:#ffe600;}
-
-/* --- РИСК --- */
-.riskCard{
-  width:260px;
-  height:300px;
-  background:#0a0a0a;
-  border-radius:20px;
-  border:3px solid #00eaff;
-  box-shadow:0 0 30px #00eaff;
-  text-align:center;
-  padding:15px;
+#hypeFill{
+  height:100%;
+  width:0%;
+  background:cyan;
+  box-shadow:0 0 20px cyan;
+  transition:0.5s;
 }
 
-/* --- МОДАЛКА (ЦЕНТР!) --- */
 #modal{
   position:fixed;
-  top:0;
-  left:0;
-  width:100vw;
-  height:100vh;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  background:rgba(0,0,0,0.6);
-
-  z-index:9999;
-
-  opacity:0;
-  pointer-events:none;
+  top:40%;
+  left:50%;
+  transform:translate(-50%,-50%);
 }
 
-#modal.active{
-  opacity:1;
-  pointer-events:all;
+.card{
+  background:linear-gradient(red,orange);
+  padding:30px;
+  border-radius:15px;
+  font-size:22px;
+  box-shadow:0 0 50px red;
+  animation:glow 1s infinite alternate;
 }
 
-/* --- МОБИЛЬНЫЙ ФИКС (ГЛАВНОЕ!) --- */
-@media (max-width:1100px){
-  #gameBoard{
-    transform:scale(0.7);
-  }
+@keyframes glow{
+  from{ box-shadow:0 0 20px red;}
+  to{ box-shadow:0 0 60px orange;}
 }
 
-@media (max-width:700px){
-  #gameBoard{
-    transform:scale(0.5);
-  }
-}
-
-/* --- ЦЕНТРОВКА ПОЛЯ --- */
-#game{
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-  overflow:hidden;
-}
-
-/* --- МАСШТАБ (НЕ ЛОМАЕТ КООРДИНАТЫ) --- */
-@media (max-width: 1200px){
-  #gameBoard{
-    transform: scale(0.75);
-  }
-}
-
-@media (max-width: 800px){
-  #gameBoard{
-    transform: scale(0.55);
-  }
-}
+.hidden{display:none;}
