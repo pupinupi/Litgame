@@ -1,68 +1,37 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>🔥 Литвин: Путь к хайпу</title>
-
+<title>Литвин игра</title>
 <link rel="stylesheet" href="style.css">
-
-<script src="/socket.io/socket.io.js"></script>
-<script defer src="app.js"></script>
 </head>
-
 <body>
 
-<!-- ЛОББИ -->
 <div id="lobby">
-  <h1 class="title">🔥 ЛИТВИН: ПУТЬ К ХАЙПУ 🔥</h1>
-
-  <input id="username" placeholder="Имя">
-  <input id="roomCode" placeholder="Код комнаты">
-
-  <div class="chips">
-    <div class="chip red" data-color="red"></div>
-    <div class="chip blue" data-color="blue"></div>
-    <div class="chip yellow" data-color="yellow"></div>
-    <div class="chip purple" data-color="purple"></div>
-  </div>
-
-  <div class="buttons">
-    <button id="joinBtn">ВОЙТИ</button>
-    <button id="startBtn">НАЧАТЬ</button>
-  </div>
-
-  <div id="playersList"></div>
-
-  <!-- ✅ ПРАВИЛА ТЕПЕРЬ ВНУТРИ ЛОББИ -->
-  <div class="rules">
-    <h2>📜 Правила</h2>
-    <p>🎲 Бросай кубик</p>
-    <p>🔥 Собери 70 хайпа</p>
-    <p>💥 Скандалы уменьшают хайп</p>
-    <p>⚠️ Риск: +5 или -5</p>
-    <p>🛑 Суд: пропуск хода</p>
-  </div>
+  <input id="name" placeholder="Имя">
+  <button onclick="join()">Играть</button>
 </div>
 
-<!-- ИГРА -->
 <div id="game">
-  <div id="hypeBars"></div>
+  <img src="board.jpg" id="board">
 
-  <div id="gameBoard">
-    <img src="board.jpg">
+  <div id="tokens"></div>
+
+  <div id="topUI">
+    <div id="turn"></div>
+    <div id="hypeBar"><div id="hypeFill"></div></div>
+    <div id="hype"></div>
   </div>
 
-  <div id="diceResult"></div>
-
-  <button id="rollBtn">🎲 БРОСИТЬ</button>
+  <div id="bottomUI">
+    <button onclick="roll()">🎲 БРОСИТЬ</button>
+    <div id="dice"></div>
+  </div>
 </div>
 
-<div id="turnInfo"></div>
+<div id="modal" class="hidden"></div>
 
-<!-- МОДАЛКА -->
-<div id="modal"></div>
-
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
