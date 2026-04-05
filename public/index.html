@@ -2,57 +2,67 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>🔥 Литвин: Путь к хайпу</title>
+
 <link rel="stylesheet" href="style.css">
+
 <script src="/socket.io/socket.io.js"></script>
 <script defer src="app.js"></script>
 </head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <body>
 
 <!-- ЛОББИ -->
 <div id="lobby">
   <h1 class="title">🔥 ЛИТВИН: ПУТЬ К ХАЙПУ 🔥</h1>
+
   <input id="username" placeholder="Имя">
   <input id="roomCode" placeholder="Код комнаты">
+
   <div class="chips">
     <div class="chip red" data-color="red"></div>
     <div class="chip blue" data-color="blue"></div>
     <div class="chip yellow" data-color="yellow"></div>
     <div class="chip purple" data-color="purple"></div>
   </div>
+
   <div class="buttons">
     <button id="joinBtn">ВОЙТИ</button>
     <button id="startBtn">НАЧАТЬ</button>
   </div>
+
   <div id="playersList"></div>
+
+  <!-- ✅ ПРАВИЛА ТЕПЕРЬ ВНУТРИ ЛОББИ -->
+  <div class="rules">
+    <h2>📜 Правила</h2>
+    <p>🎲 Бросай кубик</p>
+    <p>🔥 Собери 70 хайпа</p>
+    <p>💥 Скандалы уменьшают хайп</p>
+    <p>⚠️ Риск: +5 или -5</p>
+    <p>🛑 Суд: пропуск хода</p>
+  </div>
 </div>
 
-  <div class="rules">
-  <h2>📜 Правила</h2>
-  <p>🎲 Бросай кубик</p>
-  <p>🔥 Собери 70 хайпа</p>
-  <p>💥 Скандалы уменьшают хайп</p>
-  <p>⚠️ Риск: +5 или -5</p>
-  <p>🛑 Суд: пропуск хода</p>
-</div>
-  
 <!-- ИГРА -->
 <div id="game">
   <div id="hypeBars"></div>
+
   <div id="gameBoard">
-    <img src="board.jpg" alt="Поле">
+    <img src="board.jpg">
   </div>
+
   <div id="diceResult"></div>
+
   <button id="rollBtn">🎲 БРОСИТЬ</button>
 </div>
 
-  <div id="turnInfo"></div>
+<div id="turnInfo"></div>
 
 <!-- МОДАЛКА -->
 <div id="modal"></div>
-<!-- ХОД -->
-<div id="turnMessage"></div>
 
 </body>
 </html>
