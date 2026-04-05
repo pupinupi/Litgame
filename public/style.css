@@ -1,50 +1,173 @@
+/* --- БАЗА --- */
 body{
-  margin:0; font-family:Arial; background:#0a0a0a; color:white;
+  margin:0;
+  font-family:Arial;
+  background:#0a0a0a;
+  color:white;
 }
-#lobby, #game{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; height:100vh;}
-.title{font-size:32px;text-shadow:0 0 15px #00eaff;}
-input{padding:10px;font-size:18px;border-radius:10px;border:none;width:250px;}
-.chips{display:flex;gap:15px;margin:10px;}
-.chip{width:50px;height:50px;border-radius:50%;cursor:pointer;border:3px solid white;transition:0.2s;}
-.chip:hover{transform:scale(1.2);}
-.chip.selected{box-shadow:0 0 20px #00ffcc;}
-.red{background:red;} .blue{background:blue;} .yellow{background:yellow;} .purple{background:purple;}
+
+html, body{
+  overflow-x:hidden;
+}
+
+/* --- ЛОББИ --- */
+#lobby{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+
+  padding-top:40px;
+  gap:10px;
+
+  min-height:100vh;
+}
+
+.title{
+  font-size:28px;
+  text-shadow:0 0 15px #00eaff;
+}
+
+input{
+  padding:10px;
+  font-size:16px;
+  border-radius:10px;
+  border:none;
+  width:220px;
+}
+
+/* --- ФИШКИ --- */
+.chips{
+  display:flex;
+  gap:15px;
+  margin:10px;
+}
+
+.chip{
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  cursor:pointer;
+  border:3px solid white;
+  transition:0.2s;
+}
+
+.chip:hover{
+  transform:scale(1.15);
+}
+
+.chip.selected{
+  box-shadow:0 0 20px #00ffcc;
+}
+
+.red{background:red;}
+.blue{background:blue;}
+.yellow{background:yellow;}
+.purple{background:purple;}
+
+/* --- КНОПКИ --- */
+button{
+  padding:10px 20px;
+  font-size:18px;
+  border:none;
+  border-radius:15px;
+  cursor:pointer;
+
+  background:linear-gradient(145deg,#00eaff,#00ffcc);
+}
+
+button:hover{
+  transform:scale(1.1);
+}
+
+/* --- СПИСОК ИГРОКОВ --- */
+#playersList{
+  margin-top:10px;
+  font-size:16px;
+}
+
+/* --- ПРАВИЛА --- */
+.rules{
+  margin-top:15px;
+  width:260px;
+
+  font-size:14px;
+  text-align:left;
+
+  background:rgba(0,0,0,0.4);
+  padding:15px;
+  border-radius:15px;
+
+  box-shadow:0 0 10px rgba(0,255,255,0.3);
+}
+
+/* --- ИГРА --- */
+#game{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+
+/* --- ПОЛЕ --- */
+#gameBoard{
+  position:relative;
+
+  width:90vw;
+  max-width:700px;
+  aspect-ratio:1/1;
+
+  border-radius:20px;
+  overflow:hidden;
+
+  border:4px solid white;
+
+  box-shadow:
+    0 0 20px #00eaff,
+    0 0 40px #00ffcc;
+}
+
+#gameBoard img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+/* --- ФИШКИ НА ПОЛЕ --- */
 .player{
   position:absolute;
-  width:30px;
-  height:30px;
+  width:24px;
+  height:24px;
   border-radius:50%;
   border:2px solid white;
   z-index:10;
 }
-button{padding:10px 20px;font-size:20px;border:none;border-radius:15px;cursor:pointer; background: linear-gradient(145deg, #00eaff, #00ffcc);}
-button:hover{transform:scale(1.1);}
-#playersList{margin-top:10px;font-size:18px;}
-#gameBoard{position:relative;width:1024px;height:1024px;border-radius:20px;overflow:hidden;border:4px solid white;box-shadow:0 0 20px #00eaff,0 0 40px #00ffcc;}
-#gameBoard img{width:100%;height:100%;object-fit:cover;display:block;}
-#hypeBars{display:flex;flex-direction:column;gap:10px;}
-.hypeBar{width:650px;height:35px;background:#111;border-radius:25px;overflow:hidden;border:2px solid #00eaff;}
-.hypeFill{height:100%;background:linear-gradient(90deg,#00eaff,#00ffcc,#00ff88);transition:width 0.5s;}
-.hypeBar div{position:absolute;width:650px;text-align:center;font-weight:bold;font-size:16px;color:white;text-shadow:0 0 5px #000;}
-#turnMessage{position:fixed;top:10%;left:50%;transform:translateX(-50%);font-size:28px;background:rgba(0,0,0,0.6);padding:15px;border-radius:15px;display:none; color:#00ffcc; text-shadow:0 0 10px #00eaff;}
-#turnMessage.show{display:block;}
+
+/* --- ХАЙП БАР --- */
 #hypeBars{
   position:absolute;
   top:10px;
   left:50%;
   transform:translateX(-50%);
+
   display:flex;
   flex-direction:column;
   gap:5px;
+
   z-index:20;
 }
 
 .hypeBar{
-  width:500px;
-  height:20px;
+  width:260px;
+  height:16px;
+
   background:#111;
   border-radius:20px;
   overflow:hidden;
+
+  border:1px solid #00eaff;
 }
 
 .hypeFill{
@@ -52,17 +175,45 @@ button:hover{transform:scale(1.1);}
   background:linear-gradient(90deg,#00eaff,#00ffcc);
 }
 
-/* ТОСТЫ */
+.hypeBar div{
+  position:absolute;
+  width:260px;
+  text-align:center;
+
+  font-size:12px;
+}
+
+/* --- КУБИК --- */
+#diceResult{
+  font-size:24px;
+  margin-top:10px;
+}
+
+/* --- ХОД --- */
+#turnInfo{
+  position:fixed;
+  bottom:15px;
+  left:50%;
+  transform:translateX(-50%);
+
+  font-size:18px;
+
+  background:rgba(0,0,0,0.7);
+  padding:8px 15px;
+  border-radius:10px;
+}
+
+/* --- ТОСТ (+ХАЙП) --- */
 .toast{
   position:fixed;
   top:50%;
   left:50%;
   transform:translate(-50%, -50%);
 
-  padding:15px 30px;
-  border-radius:15px;
+  padding:12px 25px;
+  border-radius:12px;
 
-  font-size:28px;
+  font-size:22px;
   font-weight:bold;
 
   z-index:9999;
@@ -93,45 +244,87 @@ button:hover{transform:scale(1.1);}
   }
 }
 
-
-@keyframes fadeUp{
-  from{opacity:0; transform:translate(-50%,20px);}
-  to{opacity:1; transform:translate(-50%,-20px);}
-}
-
-/* СКАНДАЛ */
+/* --- СКАНДАЛ --- */
 .scandalCard{
-  width:320px;
-  height:420px;
+  width:240px;
+  height:300px;
+
   background:#111;
-  border-radius:25px;
-  border:4px solid red;
-  box-shadow:0 0 40px red, 0 0 80px #ff0000;
+  border-radius:20px;
+
+  border:3px solid red;
+
+  box-shadow:
+    0 0 25px red,
+    0 0 50px #ff0000;
+
   text-align:center;
-  padding:20px;
+  padding:15px;
 }
 
-.scandalTitle{ font-size:28px; color:red; }
-.scandalText{ font-size:24px; margin-top:20px; }
-.scandalValue{ font-size:40px; color:#ffe600; }
+.scandalTitle{
+  font-size:20px;
+  color:red;
+}
 
-/* РИСК */
+.scandalText{
+  font-size:16px;
+  margin-top:15px;
+}
+
+.scandalValue{
+  font-size:26px;
+  margin-top:10px;
+  color:#ffe600;
+}
+
+/* --- РИСК --- */
 .riskCard{
-  width:300px;
-  height:350px;
+  width:240px;
+  height:260px;
+
   background:#0a0a0a;
   border-radius:20px;
+
   border:3px solid #00eaff;
-  box-shadow:0 0 40px #00eaff;
+
+  box-shadow:0 0 30px #00eaff;
+
   text-align:center;
-  padding:20px;
+  padding:15px;
 }
 
-.riskTitle{ font-size:28px; color:#00eaff; }
-.riskText{ font-size:24px; margin-top:20px; }
-.riskValue{ font-size:36px; color:#00ffcc; }
+.riskTitle{ font-size:20px; color:#00eaff; }
+.riskText{ font-size:18px; margin-top:15px; }
+.riskValue{ font-size:26px; color:#00ffcc; }
 
-/* ТРЯСКА */
+/* --- МОДАЛКА (ЦЕНТР ВСЕГДА) --- */
+#modal{
+  position:fixed;
+  top:0;
+  left:0;
+
+  width:100vw;
+  height:100vh;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:rgba(0,0,0,0.6);
+
+  z-index:9999;
+
+  opacity:0;
+  pointer-events:none;
+}
+
+#modal.active{
+  opacity:1;
+  pointer-events:all;
+}
+
+/* --- ТРЯСКА --- */
 .shake{
   animation:shake 0.3s;
 }
@@ -140,40 +333,4 @@ button:hover{transform:scale(1.1);}
   0%{transform:translate(0,0);}
   50%{transform:translate(5px,-5px);}
   100%{transform:translate(0,0);}
-}
-
-/* ХОД */
-#turnInfo{
-  position:fixed;
-  bottom:20px;
-  font-size:24px;
-  background:rgba(0,0,0,0.7);
-  padding:10px 20px;
-  border-radius:10px;
-}
-
-#modal{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(6px);
-
-  opacity:0;
-  pointer-events:none;
-  transition:0.3s;
-
-  z-index:9999;
-}
-
-#modal.active{
-  opacity:1;
-  pointer-events:all;
 }
