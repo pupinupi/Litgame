@@ -51,6 +51,20 @@ socket.on("updatePlayers", (p)=>{
   updateHype();
 });
 
+socket.on("riskRule", ()=>{
+  showCard("РИСК", "1-3 → -5 хайпа\n4-6 → +5 хайпа", "purple");
+});
+
+socket.on("riskResult", ({roll,result})=>{
+  setTimeout(()=>{
+    showCard(
+      "РИСК",
+      `🎲 Выпало ${roll}\n${result>0?"+5 хайпа":"-5 хайпа"}`,
+      "purple"
+    );
+  }, 1200);
+});
+
 socket.on("turn", (id)=>{
   let t = document.getElementById("turn");
 
