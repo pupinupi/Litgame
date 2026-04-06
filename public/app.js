@@ -111,7 +111,17 @@ socket.on("move",({id,from,to,dice})=>{
 
 /* --- SCANDAL --- */
 socket.on("scandal",(text)=>{
-  showModal("💥 " + text);
+  showModal("💥 "+text);
+});
+
+socket.on("riskRule",()=>{
+  showModal("⚠️ 1-3 = -5 | 4-6 = +5","risk");
+});
+
+socket.on("riskResult",({roll,res})=>{
+  setTimeout(()=>{
+    showModal(`🎲 ${roll} → ${res}`,"risk");
+  },1000);
 });
 
 /* --- RISK --- */
@@ -194,18 +204,37 @@ function animateMove(id, from, to){
 /* ================= */
 function updateHype(){
   hypeBars.innerHTML = players.map(p=>{
-    return `<div>${p.name}: ${p.hype}</div>`;
+    return `
+    <div class="playerBar">
+      ${p.name}: ${p.hype}
+      <div class="bar">
+        <div class="fill" style="width:${Math.min(p.hype/70*100,100)}%"></div>
+      </div>
+    </div>`;
   }).join("");
 }
 
 /* ================= */
 /* --- МОДАЛКА --- */
 /* ================= */
-function showModal(text){
-  modal.innerHTML = `<div class="card">${text}</div>`;
-  modal.style.display = "block";
+function showModal(text,type="scandal"){
+  modal.innerHTML = `<div class="card ${type==="risk"?"risk":""}">${text}</div>`;
+  modal.style.display="block";
 
   setTimeout(()=>{
-    modal.style.display = "none";
+    modal.style.display="none";
   },2000);
+}
+
+function floatText(value,x,y){
+  const el = document.createElement("div");
+  el.className="float";
+  el.innerText = value > 0 ? "+"+value : value;
+
+  el.style.left = x+"px";
+  el.style.top = y+"px";
+
+  document.body.appendChild(el);
+
+  setTimeout(()=>el.remove(),1000);
 }
