@@ -32,19 +32,19 @@ function createRoom(){
 /* --- ВОЙТИ --- */
 function joinRoom(){
   const name = nameInput.value.trim();
-  const roomCode = roomInput.value.trim();
+  let roomCode = roomInput.value.trim();
 
   if(!name){
     alert("Введите имя");
     return;
   }
 
+  // 🔥 ЕСЛИ НЕТ КОДА → СОЗДАЕМ КОМНАТУ
   if(!roomCode){
-    alert("Введите код комнаты");
-    return;
+    socket.emit("createRoom",{name,skin:mySkin});
+  } else {
+    socket.emit("joinRoom",{name,room:roomCode,skin:mySkin});
   }
-
-  socket.emit("joinRoom",{name,room:roomCode,skin:mySkin});
 }
 
 /* --- СТАРТ --- */
