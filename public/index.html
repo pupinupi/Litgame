@@ -7,9 +7,18 @@
 </head>
 <body>
 
-<!-- ЛОББИ -->
 <div id="lobby">
-  <h1>🔥 ВЫБЕРИ ФИШКУ</h1>
+  <h1>🔥 ЛОББИ</h1>
+
+  <input id="name" placeholder="Имя">
+
+  <div>
+    <button onclick="createRoom()">Создать комнату</button>
+    <input id="roomInput" placeholder="Код комнаты">
+    <button onclick="joinRoom()">Войти</button>
+  </div>
+
+  <h3 id="roomCode"></h3>
 
 <div id="skins">
   <div class="skin red selected" onclick="selectSkin('red', this)"></div>
@@ -17,9 +26,12 @@
   <div class="skin yellow" onclick="selectSkin('yellow', this)"></div>
   <div class="skin purple" onclick="selectSkin('purple', this)"></div>
 </div>
+  
+  <div id="playersList"></div>
 
-  <input id="name" placeholder="Имя">
-  <button onclick="join()">🚀 ВОЙТИ В ИГРУ</button>
+  <button onclick="startGame()" id="startBtn" style="display:none;">
+    🚀 НАЧАТЬ
+  </button>
 </div>
 
 <!-- ИГРА -->
