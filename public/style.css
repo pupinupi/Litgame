@@ -13,7 +13,25 @@ body{
   left:50%;
   transform:translate(-50%, -50%);
   filter:brightness(1.2) saturate(1.3);
-  box-shadow:0 0 80px orange;
+
+  /* голубое свечение */
+  box-shadow:0 0 80px cyan, 0 0 120px blue;
+}
+
+/* 🔥 АНИМИРОВАННЫЙ ОГОНЬ */
+#board::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle, rgba(0,255,255,0.2), transparent 70%);
+  animation:fire 3s infinite linear;
+  pointer-events:none;
+}
+
+@keyframes fire{
+  0%{transform:translateY(0);}
+  50%{transform:translateY(-10px);}
+  100%{transform:translateY(0);}
 }
 
 /* --- ФИШКИ --- */
