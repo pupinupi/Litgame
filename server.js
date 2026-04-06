@@ -78,17 +78,19 @@ io.on("connection", (socket) => {
     if (cell === "skip") player.skip = true;
 
     if (cell === "risk") {
-      const roll = Math.floor(Math.random() * 6) + 1;
-      const result = roll <= 3 ? -5 : 5;
-      player.hype += result;
 
-      io.emit("risk", { roll, result });
-      io.emit("hypeChange", {
-  id: player.id,
-  value: player.hype
-});
-    }
+  io.emit("riskRule");
 
+  setTimeout(()=>{
+    const roll = Math.floor(Math.random() * 6) + 1;
+    const result = roll <= 3 ? -5 : 5;
+
+    player.hype += result;
+
+    io.emit("riskResult", { roll, result });
+  }, 1500);
+}
+    
     if (cell === "scandal") {
       const cards = [
         { text: "перегрел аудиторию🔥 -1", val: -1 },
