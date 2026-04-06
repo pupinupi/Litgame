@@ -145,13 +145,12 @@ io.on("connection", (socket)=>{
   }
 
   function sendRoom(room){
-    io.to(room).emit("roomData",{
-      room,
-      players: rooms[room].players,
-      isHost: rooms[room].host === socket.id
-    });
-  }
+  if(!rooms[room]) return;
 
-});
-
+  io.to(room).emit("roomData",{
+    room,
+    players: rooms[room].players,
+    isHost: false // ⚠ убираем привязку к одному сокету
+  });
+}
 http.listen(3000);
