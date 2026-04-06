@@ -83,6 +83,10 @@ io.on("connection", (socket) => {
       player.hype += result;
 
       io.emit("risk", { roll, result });
+      io.emit("hypeChange", {
+  id: player.id,
+  value: player.hype
+});
     }
 
     if (cell === "scandal") {
