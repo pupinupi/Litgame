@@ -44,9 +44,9 @@ body{
 }
 
 .neon.red{background:#ff3b3b; box-shadow:0 0 20px #ff3b3b;}
-.neon.cyan{background:#00f7ff; box-shadow:0 0 20px #00f7ff;}
-.neon.lime{background:#39ff14; box-shadow:0 0 20px #39ff14;}
-.neon.magenta{background:#ff00ff; box-shadow:0 0 20px #ff00ff;}
+.neon.blue{background:#3b8bff; box-shadow:0 0 20px #3b8bff;}
+.neon.yellow{background:#ffd93b; box-shadow:0 0 20px #ffd93b;}
+.neon.purple{background:#a93bff; box-shadow:0 0 20px #a93bff;}
 
 .me{
   transform:scale(1.4);
