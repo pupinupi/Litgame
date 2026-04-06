@@ -1,84 +1,61 @@
-/* --- ОСНОВА --- */
 body{
   margin:0;
-  background:#05010a;
+  background:#000;
   color:white;
   font-family:sans-serif;
-}
-
-/* --- ЛОББИ --- */
-#lobby{
   text-align:center;
-  padding-top:40px;
 }
 
-/* ЗАГОЛОВОК */
+/* --- ЗАГОЛОВОК --- */
 .title{
-  font-size:32px;
-  margin-bottom:20px;
-  color:#c77dff;
-  text-shadow:0 0 25px #a855f7, 0 0 60px #7c3aed;
+  margin-top:40px;
+  font-size:28px;
+  color:#7ef9ff;
+  text-shadow:0 0 25px cyan,0 0 60px #00f0ff;
 }
 
 /* INPUT */
 input{
   display:block;
-  margin:10px auto;
+  margin:15px auto;
   padding:12px;
-  width:250px;
+  width:260px;
   border-radius:12px;
   border:none;
   font-size:16px;
-  background:#111;
-  color:white;
+  background:#eee;
 }
 
 /* --- ФИШКИ --- */
 #skins{
   display:flex;
   justify-content:center;
-  gap:25px;
-  margin:25px;
+  gap:20px;
+  margin:20px;
 }
 
 .skin{
   width:55px;
   height:55px;
   border-radius:50%;
+  border:3px solid white;
   cursor:pointer;
   opacity:0.6;
   transition:0.2s;
 }
 
-/* выбранная */
 .skin.selected{
-  transform:scale(1.5);
+  transform:scale(1.3);
   opacity:1;
-  box-shadow:0 0 30px white, 0 0 70px currentColor;
+  box-shadow:0 0 25px white,0 0 60px currentColor;
 }
 
-/* НЕОН */
-.skin.red{
-  background:radial-gradient(circle,#ff0000,#ff4d4d);
-  box-shadow:0 0 30px #ff0000,0 0 60px #ff0000;
-}
+.red{background:red;}
+.blue{background:blue;}
+.yellow{background:yellow;}
+.purple{background:purple;}
 
-.skin.blue{
-  background:radial-gradient(circle,#00aaff,#0066ff);
-  box-shadow:0 0 30px #00aaff,0 0 60px #0066ff;
-}
-
-.skin.yellow{
-  background:radial-gradient(circle,#ffe600,#ffb700);
-  box-shadow:0 0 30px #ffe600,0 0 60px #ffb700;
-}
-
-.skin.purple{
-  background:radial-gradient(circle,#c77dff,#7b2cbf);
-  box-shadow:0 0 30px #c77dff,0 0 60px #7b2cbf;
-}
-
-/* КНОПКИ */
+/* --- КНОПКИ --- */
 .buttons{
   display:flex;
   justify-content:center;
@@ -86,148 +63,40 @@ input{
 }
 
 button{
-  padding:12px 22px;
+  padding:14px 24px;
   border:none;
-  border-radius:12px;
-  background:linear-gradient(45deg,#7b2cbf,#00aaff);
-  color:white;
-  font-size:16px;
-  box-shadow:0 0 25px #7b2cbf,0 0 40px #00aaff;
+  border-radius:14px;
+  font-size:18px;
+  font-weight:bold;
+  color:black;
+  background:linear-gradient(45deg,#00fff0,#00ffa6);
+  box-shadow:0 0 25px #00fff0;
   cursor:pointer;
 }
 
-/* СПИСОК */
-#playersList{
-  margin-top:20px;
-  font-size:16px;
-}
-
-/* СТАРТ */
 #startBtn{
   margin-top:15px;
   display:none;
 }
 
-/* ПРАВИЛА */
+/* --- КОД --- */
+#roomCodeDisplay{
+  margin-top:10px;
+  color:#00fff0;
+  font-weight:bold;
+}
+
+/* --- СПИСОК --- */
+#playersList{
+  margin-top:10px;
+}
+
+/* --- ПРАВИЛА --- */
 #rules{
   margin-top:25px;
   font-size:14px;
   opacity:0.9;
   line-height:1.5;
-}
-
-/* --- ИГРА --- */
-#game{
-  position:relative;
-}
-
-/* ПОЛЕ */
-#board{
-  width:1024px;
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  box-shadow:0 0 80px cyan,0 0 140px blue;
-}
-
-/* ФИШКИ НА ПОЛЕ */
-.token{
-  width:24px;
-  height:24px;
-  border-radius:50%;
-  position:absolute;
-  transition:0.2s;
-}
-
-.token.red{background:#ff3b3b; box-shadow:0 0 25px #ff3b3b;}
-.token.blue{background:#3b8bff; box-shadow:0 0 25px #3b8bff;}
-.token.yellow{background:#ffd93b; box-shadow:0 0 25px #ffd93b;}
-.token.purple{background:#a93bff; box-shadow:0 0 25px #a93bff;}
-
-.me{
-  transform:scale(1.5);
-  box-shadow:0 0 40px white !important;
-}
-
-/* ВЕРХ UI */
-#topUI{
-  position:absolute;
-  top:calc(50% - 560px);
-  left:50%;
-  transform:translateX(-50%);
-  text-align:center;
-}
-
-/* ХОД */
-#turn{
-  font-size:22px;
-  margin-bottom:10px;
-}
-
-/* ХАЙП БАР */
-#hypeBar{
-  width:400px;
-  height:30px;
-  background:#111;
-  border-radius:20px;
-  overflow:hidden;
-  box-shadow:0 0 30px cyan;
-}
-
-#hypeFill{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,cyan,blue);
-  box-shadow:0 0 40px cyan;
-}
-
-#hype{
-  margin-top:8px;
-}
-
-/* КУБИК */
-#bottomUI{
-  position:absolute;
-  top:calc(50% + 560px);
-  left:50%;
-  transform:translateX(-50%);
-  text-align:center;
-}
-
-#dice{
-  margin-top:8px;
-  font-size:26px;
-}
-
-/* МОДАЛКА */
-#modal{
-  position:fixed;
-  top:40%;
-  left:50%;
-  transform:translate(-50%,-50%);
-}
-
-.card{
-  padding:30px;
-  border-radius:20px;
-  background:linear-gradient(#ff004c,#ff7b00);
-  font-size:20px;
-  text-align:center;
-  box-shadow:0 0 60px red;
-}
-
-/* ВСПЛЫВАЮЩИЙ ТЕКСТ */
-.float{
-  position:absolute;
-  color:cyan;
-  font-weight:bold;
-  animation:floatUp 1s forwards;
-}
-
-@keyframes floatUp{
-  from{opacity:1; transform:translateY(0);}
-  to{opacity:0; transform:translateY(-40px);}
 }
 
 .hidden{display:none;}
