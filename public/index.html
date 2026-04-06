@@ -2,19 +2,19 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Игра</title>
+<title>Литвин</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="lobby">
 
-  <h1 class="title">💜 Литвин: Путь к хайпу</h1>
+  <h1 class="title">🔥 ЛИТВИН: ПУТЬ К ХАЙПУ 🔥</h1>
 
   <input id="name" placeholder="Имя">
   <input id="roomInput" placeholder="Код комнаты">
 
-  <!-- ЯРКИЕ ФИШКИ -->
+  <!-- ФИШКИ -->
   <div id="skins">
     <div class="skin red selected" onclick="selectSkin('red', this)"></div>
     <div class="skin blue" onclick="selectSkin('blue', this)"></div>
@@ -23,45 +23,31 @@
   </div>
 
   <div class="buttons">
-    <button onclick="createRoom()">Создать комнату</button>
-    <button onclick="joinRoom()">Войти</button>
+    <button onclick="joinRoom()">ВОЙТИ</button>
+    <button onclick="createRoom()">СОЗДАТЬ</button>
   </div>
 
-  <!-- СПИСОК ИГРОКОВ -->
+  <div id="roomCodeDisplay"></div>
   <div id="playersList"></div>
 
   <button id="startBtn" onclick="startGame()">🚀 НАЧАТЬ</button>
 
   <div id="rules">
-    <h3>📜 Правила</h3>
-    <p>🎯 Цель: первым набрать 70 хайпа</p>
-    <p>🎲 Ход: бросок кубика → движение → эффект клетки</p>
-    <p>➕ Плюс-клетки дают хайп</p>
-    <p>⚠ Скандал — всегда штраф</p>
-    <p>🎰 Риск: 1–3 → -5 | 4–6 → +5</p>
-    <p>⛔ Некоторые клетки — пропуск хода</p>
-    <p>👑 70+ хайпа = победа</p>
+    <h3>🎮 Правила игры</h3>
+    <p>🔥 Цель: первым набрать 70 хайпа</p>
+    <p>🎲 Бросай кубик и двигайся</p>
+    <p>📊 Шкала сверху показывает хайп</p>
+    <p>➕ Клетки дают хайп</p>
+    <p>💥 Скандал: -1…-5</p>
+    <p>🎰 Риск: 1–3 = -5 | 4–6 = +5</p>
+    <p>🚫 Блок: -10 хайпа</p>
+    <p>⛔ Пропуск: пропусти ход</p>
+    <p>🏆 70 хайпа = победа</p>
   </div>
 
 </div>
 
-<div id="game" class="hidden">
-  <img src="board.jpg" id="board">
-  <div id="tokens"></div>
-
-  <div id="topUI">
-    <div id="turn"></div>
-    <div id="hypeBar"><div id="hypeFill"></div></div>
-    <div id="hype"></div>
-  </div>
-
-  <div id="bottomUI">
-    <button onclick="roll()">🎲 БРОСИТЬ</button>
-    <div id="dice"></div>
-  </div>
-</div>
-
-<div id="modal" class="hidden"></div>
+<div id="game" class="hidden"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="app.js"></script>
