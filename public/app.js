@@ -23,6 +23,47 @@ function join(){
     skin: mySkin
   });
 
+  
+let room = null;
+
+function createRoom(){
+  socket.emit("createRoom", {
+    name: document.getElementById("name").value,
+    skin: mySkin
+  });
+}
+
+function joinRoom(){
+  socket.emit("joinRoom", {
+    name: document.getElementById("name").value,
+    room: document.getElementById("roomInput").value,
+    skin: mySkin
+  });
+}
+
+function startGame(){
+  socket.emit("startGame", room);
+}
+
+socket.on("roomData", (data)=>{
+  room = data.room;
+
+  document.getElementById("roomCode").innerText =
+    "КОД: " + data.room;
+
+  document.getElementById("playersList").innerHTML =
+    data.players.map(p=>p.name).join("<br>");
+
+  document.getElementById("startBtn").style.display =
+    data.isHost ? "block" : "none";
+});
+
+socket.on("gameStart", ()=>{
+  document.getElementById("lobby").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+});
+
+
   document.getElementById("lobby").classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
 }
