@@ -176,3 +176,27 @@ function showFloating(text, x, y){
 
   setTimeout(()=>el.remove(),1000);
 }
+
+// --- РЕЖИМ РАЗМЕТКИ КЛЕТОК ---
+let editMode = false;
+let generatedCells = [];
+
+document.addEventListener("keydown", (e)=>{
+  if(e.key === "e"){ // нажми "E" чтобы включить режим
+    editMode = !editMode;
+    console.log("EDIT MODE:", editMode);
+  }
+});
+
+document.getElementById("board").addEventListener("click", (e)=>{
+  if(!editMode) return;
+
+  const rect = e.target.getBoundingClientRect();
+
+  const x = Math.round(e.clientX - rect.left);
+  const y = Math.round(e.clientY - rect.top);
+
+  generatedCells.push({x,y});
+
+  console.log("cells =", JSON.stringify(generatedCells, null, 2));
+});
