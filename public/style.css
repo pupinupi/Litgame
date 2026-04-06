@@ -1,11 +1,118 @@
+/* --- ОСНОВА --- */
 body{
   margin:0;
   background:#050505;
   color:white;
   font-family:sans-serif;
-  overflow:hidden;
+  overflow-x:hidden;
 }
 
+/* --- ЛОББИ --- */
+#lobby{
+  text-align:center;
+  padding-top:40px;
+}
+
+.title{
+  font-size:28px;
+  margin-bottom:20px;
+  color:orange;
+  text-shadow:0 0 20px orange;
+}
+
+/* --- INPUT --- */
+input{
+  display:block;
+  margin:10px auto;
+  padding:10px;
+  width:240px;
+  border-radius:10px;
+  border:none;
+  font-size:16px;
+}
+
+/* --- ФИШКИ --- */
+#skins{
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  margin:20px;
+}
+
+.skin{
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  cursor:pointer;
+  opacity:0.5;
+  transition:0.2s;
+}
+
+.skin.selected{
+  transform:scale(1.3);
+  opacity:1;
+  box-shadow:0 0 25px white;
+}
+
+/* ЦВЕТА */
+.skin.red{background:#ff3b3b;}
+.skin.blue{background:#3b8bff;}
+.skin.yellow{background:#ffd93b;}
+.skin.purple{background:#a93bff;}
+
+/* --- КНОПКИ --- */
+.buttons{
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  margin-top:10px;
+}
+
+button{
+  padding:12px 22px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(45deg, orange, red);
+  color:white;
+  font-size:16px;
+  box-shadow:0 0 25px orange;
+  cursor:pointer;
+}
+
+/* --- СПИСОК ИГРОКОВ --- */
+#playersList{
+  margin-top:15px;
+  font-size:16px;
+}
+
+/* --- КОД КОМНАТЫ --- */
+#roomCode{
+  margin-top:10px;
+  font-size:18px;
+  color:cyan;
+  text-shadow:0 0 10px cyan;
+}
+
+/* --- КНОПКА СТАРТ --- */
+#startBtn{
+  margin-top:15px;
+  display:none;
+}
+
+/* --- ПРАВИЛА --- */
+#rules{
+  margin-top:25px;
+  font-size:14px;
+  opacity:0.9;
+  line-height:1.5;
+}
+
+/* --- ИГРА --- */
+#game{
+  position:relative;
+}
+
+/* --- ПОЛЕ --- */
 #board{
   width:1024px;
   position:absolute;
@@ -18,144 +125,96 @@ body{
   box-shadow:0 0 80px cyan, 0 0 120px blue;
 }
 
-/* 🔥 АНИМИРОВАННЫЙ ОГОНЬ */
+/* 🔥 ЛЁГКАЯ АНИМАЦИЯ */
 #board::after{
   content:"";
   position:absolute;
   inset:0;
-  background:radial-gradient(circle, rgba(0,255,255,0.2), transparent 70%);
+  background:radial-gradient(circle, rgba(0,255,255,0.15), transparent 70%);
   animation:fire 3s infinite linear;
   pointer-events:none;
 }
 
 @keyframes fire{
   0%{transform:translateY(0);}
-  50%{transform:translateY(-10px);}
+  50%{transform:translateY(-8px);}
   100%{transform:translateY(0);}
 }
 
 /* --- ФИШКИ --- */
 .token{
-  width:24px;
-  height:24px;
+  width:22px;
+  height:22px;
   border-radius:50%;
   position:absolute;
   transition:0.2s;
 }
 
-.neon.red{background:#ff3b3b; box-shadow:0 0 20px #ff3b3b;}
-.neon.blue{background:#3b8bff; box-shadow:0 0 20px #3b8bff;}
-.neon.yellow{background:#ffd93b; box-shadow:0 0 20px #ffd93b;}
-.neon.purple{background:#a93bff; box-shadow:0 0 20px #a93bff;}
+/* цвета */
+.token.red{background:#ff3b3b; box-shadow:0 0 20px #ff3b3b;}
+.token.blue{background:#3b8bff; box-shadow:0 0 20px #3b8bff;}
+.token.yellow{background:#ffd93b; box-shadow:0 0 20px #ffd93b;}
+.token.purple{background:#a93bff; box-shadow:0 0 20px #a93bff;}
 
+/* твоя фишка */
 .me{
   transform:scale(1.4);
   box-shadow:0 0 35px yellow !important;
 }
 
-/* --- UI --- */
+/* --- UI НАД ПОЛЕМ --- */
 #topUI{
-  position:fixed;
-  top:10px;
+  position:absolute;
+  top:calc(50% - 560px);
   left:50%;
   transform:translateX(-50%);
   text-align:center;
 }
 
 #turn{
-  font-size:24px;
-  margin-bottom:10px;
+  font-size:22px;
+  margin-bottom:8px;
+  text-shadow:0 0 10px gold;
 }
 
-.myTurn{
-  color:gold;
-  text-shadow:0 0 15px gold;
-}
-
-/* --- ХАЙП БАР --- */
+/* --- ШКАЛА ХАЙПА --- */
 #hypeBar{
   width:380px;
-  height:28px; /* БЫЛО 22 */
+  height:28px;
   background:#111;
   border-radius:20px;
   overflow:hidden;
   box-shadow:0 0 25px cyan;
+  margin:0 auto 10px;
 }
 
 #hypeFill{
   height:100%;
+  width:0%;
   background:linear-gradient(90deg, cyan, blue);
   box-shadow:0 0 40px cyan;
+  transition:0.4s;
 }
 
-/* --- КНОПКА --- */
+#hype{
+  font-size:14px;
+}
+
+/* --- КНОПКА КУБИКА --- */
 #bottomUI{
   position:absolute;
-  top: calc(50% + 550px); /* сразу под полем */
+  top:calc(50% + 560px);
   left:50%;
   transform:translateX(-50%);
   text-align:center;
 }
 
-button{
-  padding:12px 25px;
-  font-size:18px;
-  background:linear-gradient(45deg, orange, red);
-  border:none;
-  border-radius:12px;
-  color:white;
-  box-shadow:0 0 25px orange;
-}
-
-/* --- КУБИК --- */
 #dice{
-  margin-top:10px;
-  font-size:28px;
+  margin-top:8px;
+  font-size:26px;
 }
 
-.diceAnim{
-  animation:shake 0.4s;
-}
-
-@keyframes shake{
-  0%{transform:rotate(0);}
-  25%{transform:rotate(10deg);}
-  50%{transform:rotate(-10deg);}
-  100%{transform:rotate(0);}
-}
-
-/* --- ЛОББИ --- */
-#lobby{
-  text-align:center;
-  margin-top:100px;
-}
-
-#skins{
-  display:flex;
-  justify-content:center;
-  gap:15px;
-  margin:20px;
-}
-
-.skin{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  cursor:pointer;
-  opacity:0.6;
-}
-
-.skin.selected{
-  transform:scale(1.3);
-  opacity:1;
-}
-
-.red{background:red;}
-.cyan{background:cyan;}
-.lime{background:lime;}
-.magenta{background:magenta;}
-
-/* --- КАРТОЧКИ --- */
+/* --- МОДАЛКА --- */
 #modal{
   position:fixed;
   top:40%;
@@ -164,31 +223,22 @@ button{
 }
 
 .card{
-  padding:35px;
-  border-radius:25px;
+  padding:30px;
+  border-radius:20px;
+  background:linear-gradient(red,orange);
+  font-size:20px;
   text-align:center;
+  box-shadow:0 0 60px red;
   animation:pop 0.3s;
-  font-size:22px;
-  box-shadow:0 0 60px rgba(255,255,255,0.3);
 }
-
-.card h2{
-  margin-bottom:10px;
-  font-size:26px;
-}
-
-.card.red{background:linear-gradient(red,orange);}
-.card.purple{background:linear-gradient(purple,blue);}
-.card.gold{background:linear-gradient(gold,orange);}
 
 @keyframes pop{
   from{transform:scale(0.5);}
   to{transform:scale(1);}
 }
 
-.hidden{display:none;}
-
-.floating{
+/* --- ВСПЛЫВАЮЩИЙ ХАЙП --- */
+.float{
   position:absolute;
   color:cyan;
   font-weight:bold;
@@ -200,4 +250,9 @@ button{
 @keyframes floatUp{
   from{opacity:1; transform:translateY(0);}
   to{opacity:0; transform:translateY(-40px);}
+}
+
+/* --- СКРЫТИЕ --- */
+.hidden{
+  display:none;
 }
