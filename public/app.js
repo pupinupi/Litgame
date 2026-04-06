@@ -140,3 +140,16 @@ function showCard(title, text, color){
 
   setTimeout(()=>m.classList.add("hidden"),2500);
 }
+
+function showFloating(text, x, y){
+  let el = document.createElement("div");
+  el.className = "floating";
+  el.innerText = text;
+
+  el.style.left = x+"px";
+  el.style.top = y+"px";
+
+  document.body.appendChild(el);
+
+  setTimeout(()=>el.remove(),1000);
+}
