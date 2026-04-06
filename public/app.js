@@ -1,15 +1,14 @@
 const socket = io();
 
-let myId;
 let room=null;
 let mySkin="red";
-let players=[];
 
-/* --- ВАЖНО: ПОЛУЧАЕМ INPUT --- */
+/* DOM */
 const nameInput = document.getElementById("name");
 const roomInput = document.getElementById("roomInput");
 const playersList = document.getElementById("playersList");
 const startBtn = document.getElementById("startBtn");
+const roomCodeDisplay = document.getElementById("roomCodeDisplay");
 
 /* --- ВЫБОР ФИШКИ --- */
 function selectSkin(color,el){
@@ -53,27 +52,27 @@ function startGame(){
   socket.emit("startGame",room);
 }
 
-/* --- ПОДКЛЮЧЕНИЕ --- */
-socket.on("connect",()=>myId=socket.id);
-
 /* --- ОБНОВЛЕНИЕ ЛОББИ --- */
 socket.on("roomData",(d)=>{
-  room=d.room;
+  room = d.room;
+
+  // ВСТАВЛЯЕМ КОД
+  roomInput.value = room;
+  roomCodeDisplay.innerHTML = "Код комнаты: " + room;
 
   playersList.innerHTML =
-    "<h3>👥 Игроки:</h3>" +
+    "<h3>Игроки:</h3>" +
     d.players.map(p=>`<div>● ${p.name}</div>`).join("");
 
   startBtn.style.display = d.isHost ? "block":"none";
 });
 
+/* --- ОШИБКА --- */
+socket.on("errorMsg",(msg)=>{
+  alert(msg);
+});
+
 /* --- СТАРТ ИГРЫ --- */
 socket.on("gameStart",()=>{
   document.getElementById("lobby").classList.add("hidden");
-  document.getElementById("game").classList.remove("hidden");
-});
-
-/* --- ОШИБКИ --- */
-socket.on("errorMsg",(msg)=>{
-  alert(msg);
 });
