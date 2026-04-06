@@ -22,7 +22,7 @@ const diceResult = document.getElementById("diceResult");
 const hypeBars = document.getElementById("hypeBars");
 const modal = document.getElementById("modal");
 
-/* --- КООРДИНАТЫ (твои) --- */
+/* --- КООРДИНАТЫ --- */
 const cells = [
   {x:111,y:596},{x:114,y:454},{x:106,y:363},{x:91,y:239},{x:101,y:143},
   {x:226,y:100},{x:374,y:101},{x:509,y:107},{x:653,y:106},{x:789,y:103},
@@ -39,12 +39,12 @@ document.querySelectorAll(".chip").forEach(chip=>{
   };
 });
 
-/* --- ПОДКЛЮЧЕНИЕ --- */
+/* --- CONNECT --- */
 socket.on("connect",()=>{
   myId = socket.id;
 });
 
-/* --- ВОЙТИ / СОЗДАТЬ --- */
+/* --- JOIN / CREATE --- */
 joinBtn.onclick = ()=>{
   const name = nameInput.value.trim();
   const roomCode = roomInput.value.trim();
@@ -61,12 +61,12 @@ joinBtn.onclick = ()=>{
   }
 };
 
-/* --- СТАРТ --- */
+/* --- START --- */
 startBtn.onclick = ()=>{
   socket.emit("startGame", room);
 };
 
-/* --- ЛОББИ --- */
+/* --- LOBBY --- */
 socket.on("roomData",(d)=>{
   room = d.room;
 
@@ -80,45 +80,41 @@ socket.on("roomData",(d)=>{
   startBtn.style.display = d.isHost ? "block" : "none";
 });
 
-/* --- СТАРТ ИГРЫ --- */
+/* --- GAME START --- */
 socket.on("gameStart",()=>{
   lobby.style.display = "none";
   game.style.display = "block";
 });
 
-/* --- ОБНОВЛЕНИЕ ИГРОКОВ --- */
+/* --- PLAYERS UPDATE --- */
 socket.on("updatePlayers",(p)=>{
   players = p;
   drawTokens();
   updateHype();
 });
 
-/* --- ХОД --- */
+/* --- TURN --- */
 socket.on("turn",(id)=>{
-  if(id === myId){
-    rollBtn.disabled = false;
-  } else {
-    rollBtn.disabled = true;
-  }
+  rollBtn.disabled = id !== myId;
 });
 
-/* --- БРОСОК --- */
+/* --- ROLL --- */
 rollBtn.onclick = ()=>{
   socket.emit("rollDice", room);
 };
 
-/* --- ДВИЖЕНИЕ --- */
+/* --- MOVE --- */
 socket.on("move",({id,from,to,dice})=>{
   diceResult.innerText = "🎲 " + dice;
   animateMove(id, from, to);
 });
 
-/* --- СКАНДАЛ --- */
+/* --- SCANDAL --- */
 socket.on("scandal",(text)=>{
   showModal("💥 " + text);
 });
 
-/* --- РИСК --- */
+/* --- RISK --- */
 socket.on("riskRule",()=>{
   showModal("⚠️ 1-3 = -5 | 4-6 = +5");
 });
@@ -129,46 +125,51 @@ socket.on("riskResult",({roll,res})=>{
   },1000);
 });
 
-/* --- ПОБЕДА --- */
+/* --- WIN --- */
 socket.on("winner",(name)=>{
-  showModal("🏆 Победитель: " + name);
+  showModal("🏆 " + name);
 });
 
-/* --- ОШИБКИ --- */
+/* --- ERROR --- */
 socket.on("errorMsg",(msg)=>{
   alert(msg);
 });
 
-/* ======================= */
-/* --- РЕНДЕР ФИШЕК --- */
-/* ======================= */
+/* ================= */
+/* --- ФИШКИ --- */
+/* ================= */
 function drawTokens(){
+  // очистка
   document.querySelectorAll(".token").forEach(t=>t.remove());
 
   players.forEach(p=>{
-    let el = document.createElement("div");
+    const el = document.createElement("div");
+
     el.className = "token " + p.skin;
+    el.id = p.id;
 
-    if(p.id === myId){
-      el.style.transform = "scale(1.4)";
-      el.style.boxShadow = "0 0 20px white";
-    }
+    const pos = cells[p.pos];
 
-    let pos = cells[p.pos];
-
+    el.style.position = "absolute";
     el.style.left = pos.x + "px";
     el.style.top = pos.y + "px";
+
+    // подсветка себя
+    if(p.id === myId){
+      el.style.transform = "scale(1.5)";
+      el.style.boxShadow = "0 0 30px white";
+    }
 
     board.appendChild(el);
   });
 }
 
-/* ======================= */
+/* ================= */
 /* --- АНИМАЦИЯ --- */
-/* ======================= */
+/* ================= */
 function animateMove(id, from, to){
-  let token = [...document.querySelectorAll(".token")]
-    .find(t => t.style.boxShadow.includes("white") || true);
+  const el = document.getElementById(id);
+  if(!el) return;
 
   let steps = (to - from + 20) % 20;
   let i = 0;
@@ -177,28 +178,29 @@ function animateMove(id, from, to){
     if(i >= steps) return;
 
     let pos = cells[(from + i + 1) % 20];
-    token.style.left = pos.x + "px";
-    token.style.top = pos.y + "px";
+
+    el.style.left = pos.x + "px";
+    el.style.top = pos.y + "px";
 
     i++;
-    setTimeout(step, 180);
+    setTimeout(step, 200);
   }
 
   step();
 }
 
-/* ======================= */
+/* ================= */
 /* --- ХАЙП --- */
-/* ======================= */
+/* ================= */
 function updateHype(){
   hypeBars.innerHTML = players.map(p=>{
     return `<div>${p.name}: ${p.hype}</div>`;
   }).join("");
 }
 
-/* ======================= */
+/* ================= */
 /* --- МОДАЛКА --- */
-/* ======================= */
+/* ================= */
 function showModal(text){
   modal.innerHTML = `<div class="card">${text}</div>`;
   modal.style.display = "block";
