@@ -2,38 +2,49 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Игра</title>
+<title>Litvin Game</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="lobby">
-  <h1>🔥 ЛОББИ</h1>
 
-  <input id="name" placeholder="Имя">
+  <h1 class="title">🔥 Litvin: Путь к хайпу</h1>
 
+  <input id="name" placeholder="Введите имя">
+
+  <input id="roomInput" placeholder="Код комнаты">
+
+  <!-- ВЫБОР ФИШЕК -->
   <div id="skins">
-    <div class="skin red selected" onclick="selectSkin('red',this)"></div>
-    <div class="skin blue" onclick="selectSkin('blue',this)"></div>
-    <div class="skin yellow" onclick="selectSkin('yellow',this)"></div>
-    <div class="skin purple" onclick="selectSkin('purple',this)"></div>
+    <div class="skin red selected" onclick="selectSkin('red', this)"></div>
+    <div class="skin blue" onclick="selectSkin('blue', this)"></div>
+    <div class="skin yellow" onclick="selectSkin('yellow', this)"></div>
+    <div class="skin purple" onclick="selectSkin('purple', this)"></div>
   </div>
 
-  <button onclick="createRoom()">Создать</button>
-  <input id="roomInput" placeholder="Код">
-  <button onclick="joinRoom()">Войти</button>
+  <div class="buttons">
+    <button onclick="createRoom()">Создать комнату</button>
+    <button onclick="joinRoom()">Войти</button>
+  </div>
 
   <h3 id="roomCode"></h3>
   <div id="playersList"></div>
 
-  <button id="startBtn" onclick="startGame()">НАЧАТЬ</button>
+  <button id="startBtn" onclick="startGame()">🚀 НАЧАТЬ ИГРУ</button>
 
+  <!-- ПРАВИЛА -->
   <div id="rules">
-    🎯 Цель: 70 хайпа<br>
-    🎲 Ходы по очереди<br>
-    ⚠ Скандал = минус<br>
-    🎰 Риск = шанс +/-5
+    <h3>📜 Правила</h3>
+    <p>🎯 Цель — первым набрать 70 хайпа</p>
+    <p>🎲 Каждый ход бросаешь кубик и двигаешься</p>
+    <p>➕ Клетки дают хайп</p>
+    <p>⚠ Скандал — всегда минус хайп или штраф</p>
+    <p>🎰 Риск — 1-3 (-5), 4-6 (+5)</p>
+    <p>⛔ Некоторые клетки — пропуск хода</p>
+    <p>👑 Первый достиг 70 — победил</p>
   </div>
+
 </div>
 
 <div id="game" class="hidden">
@@ -48,7 +59,7 @@
   </div>
 
   <div id="bottomUI">
-    <button onclick="roll()">🎲</button>
+    <button onclick="roll()">🎲 БРОСИТЬ</button>
     <div id="dice"></div>
   </div>
 
