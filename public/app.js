@@ -1,9 +1,9 @@
 const socket = io();
 
 let myId;
-let players = [];
 let room=null;
 let mySkin="red";
+let players=[];
 
 const cells = [
   {x:111,y:596},{x:114,y:454},{x:106,y:363},{x:91,y:239},{x:101,y:143},
@@ -12,55 +12,73 @@ const cells = [
   {x:794,y:619},{x:644,y:617},{x:513,y:617},{x:351,y:624},{x:232,y:620}
 ];
 
-function selectSkin(c,el){
-  mySkin=c;
+/* --- ВЫБОР ФИШКИ --- */
+function selectSkin(color,el){
+  mySkin=color;
   document.querySelectorAll(".skin").forEach(s=>s.classList.remove("selected"));
   el.classList.add("selected");
 }
 
+/* --- ЛОББИ --- */
 function createRoom(){
+  if(!name.value) return alert("Введите имя");
   socket.emit("createRoom",{name:name.value,skin:mySkin});
 }
 
 function joinRoom(){
+  if(!name.value || !roomInput.value) return alert("Имя и код!");
   socket.emit("joinRoom",{name:name.value,room:roomInput.value,skin:mySkin});
 }
 
-function startGame(){ socket.emit("startGame",room); }
+function startGame(){
+  socket.emit("startGame",room);
+}
 
-function roll(){ socket.emit("rollDice",room); }
+/* --- ИГРА --- */
+function roll(){
+  socket.emit("rollDice",room);
+}
 
 socket.on("connect",()=>myId=socket.id);
 
+/* --- ЛОББИ ОБНОВЛЕНИЕ --- */
 socket.on("roomData",(d)=>{
   room=d.room;
-  roomCode.innerText="КОД: "+d.room;
-  playersList.innerHTML=d.players.map(p=>p.name).join("<br>");
-  startBtn.style.display=d.isHost?"block":"none";
+
+  playersList.innerHTML =
+    "<h3>Игроки:</h3>" +
+    d.players.map(p=>`<div>● ${p.name}</div>`).join("");
+
+  startBtn.style.display = d.isHost ? "block":"none";
 });
 
+/* --- СТАРТ --- */
 socket.on("gameStart",()=>{
   lobby.classList.add("hidden");
   game.classList.remove("hidden");
 });
 
+/* --- ИГРОКИ --- */
 socket.on("updatePlayers",(p)=>{
   players=p;
   draw();
   updateHype();
 });
 
+/* --- ДВИЖЕНИЕ --- */
 socket.on("move",({id,from,to,dice})=>{
   animate(id,from,to);
   diceEl.innerText="🎲 "+dice;
 });
 
+/* --- ХОД --- */
 socket.on("turn",(id)=>{
   turn.innerText=id===myId?"🔥 ТВОЙ ХОД":"⌛ ЖДИ";
 });
 
+/* --- СОБЫТИЯ --- */
 socket.on("scandal",(t)=>show(t));
-socket.on("riskRule",()=>show("1-3 = -5\n4-6 = +5"));
+socket.on("riskRule",()=>show("1-3 = -5 / 4-6 = +5"));
 socket.on("riskResult",({roll,res})=>{
   setTimeout(()=>show(`🎲 ${roll} → ${res}`),1000);
 });
@@ -71,6 +89,7 @@ socket.on("hypeEffect",({id,value,pos})=>{
   floatText(value,p.x,p.y);
 });
 
+/* --- РЕНДЕР --- */
 function draw(){
   tokens.innerHTML="";
   players.forEach(p=>{
@@ -87,6 +106,7 @@ function draw(){
   });
 }
 
+/* --- АНИМАЦИЯ --- */
 function animate(id,from,to){
   let el=document.getElementById(id);
   let i=0;
@@ -103,6 +123,7 @@ function animate(id,from,to){
   step();
 }
 
+/* --- ХАЙП --- */
 function updateHype(){
   hype.innerHTML=players.map(p=>p.name+": "+p.hype).join("<br>");
   let me=players.find(p=>p.id===myId);
@@ -111,6 +132,7 @@ function updateHype(){
   }
 }
 
+/* --- UI --- */
 function show(t){
   modal.innerHTML="<div class='card'>"+t+"</div>";
   modal.classList.remove("hidden");
