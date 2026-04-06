@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Литвин: Путь к хайпу</title>
+<title>Игра</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,47 +12,43 @@
 
   <input id="name" placeholder="Имя">
 
-  <div>
-    <button onclick="createRoom()">Создать комнату</button>
-    <input id="roomInput" placeholder="Код комнаты">
-    <button onclick="joinRoom()">Войти</button>
+  <div id="skins">
+    <div class="skin red selected" onclick="selectSkin('red',this)"></div>
+    <div class="skin blue" onclick="selectSkin('blue',this)"></div>
+    <div class="skin yellow" onclick="selectSkin('yellow',this)"></div>
+    <div class="skin purple" onclick="selectSkin('purple',this)"></div>
   </div>
 
-  <h3 id="roomCode"></h3>
+  <button onclick="createRoom()">Создать</button>
+  <input id="roomInput" placeholder="Код">
+  <button onclick="joinRoom()">Войти</button>
 
-<div id="skins">
-  <div class="skin red selected" onclick="selectSkin('red', this)"></div>
-  <div class="skin blue" onclick="selectSkin('blue', this)"></div>
-  <div class="skin yellow" onclick="selectSkin('yellow', this)"></div>
-  <div class="skin purple" onclick="selectSkin('purple', this)"></div>
-</div>
-  
+  <h3 id="roomCode"></h3>
   <div id="playersList"></div>
 
-  <button onclick="startGame()" id="startBtn" style="display:none;">
-    🚀 НАЧАТЬ
-  </button>
+  <button id="startBtn" onclick="startGame()">НАЧАТЬ</button>
+
+  <div id="rules">
+    🎯 Цель: 70 хайпа<br>
+    🎲 Ходы по очереди<br>
+    ⚠ Скандал = минус<br>
+    🎰 Риск = шанс +/-5
+  </div>
 </div>
 
-<!-- ИГРА -->
 <div id="game" class="hidden">
 
   <img src="board.jpg" id="board">
-
   <div id="tokens"></div>
 
   <div id="topUI">
     <div id="turn"></div>
-
-    <div id="hypeBar">
-      <div id="hypeFill"></div>
-    </div>
-
+    <div id="hypeBar"><div id="hypeFill"></div></div>
     <div id="hype"></div>
   </div>
 
   <div id="bottomUI">
-    <button onclick="roll()">🎲 БРОСИТЬ</button>
+    <button onclick="roll()">🎲</button>
     <div id="dice"></div>
   </div>
 
