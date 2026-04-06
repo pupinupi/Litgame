@@ -5,120 +5,153 @@ const io = require("socket.io")(http);
 
 app.use(express.static("public"));
 
-let players = [];
-let turn = 0;
+let rooms = {};
 
 const cells = [
   "start","+3","+2","scandal","risk","+2","scandal","+3","+5","-10",
   "-8skip","+3","risk","+3","skip","+2","scandal","+8","-10","+4"
 ];
 
-io.on("connection", (socket) => {
+io.on("connection", (socket)=>{
 
-  socket.on("join", (name) => {
-    if (players.length >= 4) return;
+  socket.on("createRoom", ({name, skin})=>{
+    const code = Math.random().toString(36).substr(2,5);
 
-    players.push({
+    rooms[code] = {
+      players: [],
+      host: socket.id,
+      turn: 0
+    };
+
+    socket.join(code);
+
+    rooms[code].players.push({
       id: socket.id,
       name,
-      pos: 0,
-      hype: 0,
-      skip: false
+      skin,
+      pos:0,
+      hype:0,
+      skip:false
     });
 
-    io.emit("updatePlayers", players);
-    io.emit("turn", players[turn]?.id);
+    sendRoom(code);
   });
 
-  socket.on("rollDice", () => {
-    const player = players[turn];
-    if (!player || player.id !== socket.id) return;
+  socket.on("joinRoom", ({name, room, skin})=>{
+    if(!rooms[room]) return;
 
-    if (player.skip) {
-      player.skip = false;
-      nextTurn();
+    socket.join(room);
+
+    rooms[room].players.push({
+      id: socket.id,
+      name,
+      skin,
+      pos:0,
+      hype:0,
+      skip:false
+    });
+
+    sendRoom(room);
+  });
+
+  socket.on("startGame", (room)=>{
+    io.to(room).emit("gameStart");
+    io.to(room).emit("turn", rooms[room].players[0].id);
+  });
+
+  socket.on("rollDice", (room)=>{
+    let r = rooms[room];
+    let player = r.players[r.turn];
+
+    if(player.id !== socket.id) return;
+
+    if(player.skip){
+      player.skip=false;
+      nextTurn(r, room);
       return;
     }
 
-    const dice = Math.floor(Math.random() * 6) + 1;
-    const oldPos = player.pos;
-
+    let dice = Math.floor(Math.random()*6)+1;
+    let old = player.pos;
     player.pos = (player.pos + dice) % 20;
 
-    handleCell(player);
+    handleCell(player, r, room);
 
-    io.emit("move", {
-      id: player.id,
-      from: oldPos,
-      to: player.pos,
-      dice
-    });
+    io.to(room).emit("move",{id:player.id,from:old,to:player.pos,dice});
+    io.to(room).emit("updatePlayers", r.players);
 
-    io.emit("updatePlayers", players);
-
-    if (player.hype >= 70) {
-      io.emit("winner", player.name);
+    if(player.hype>=70){
+      io.to(room).emit("winner", player.name);
       return;
     }
 
-    setTimeout(nextTurn, 1500);
+    setTimeout(()=>nextTurn(r, room),1500);
   });
 
-  function handleCell(player) {
+  function handleCell(player, r, room){
     let cell = cells[player.pos];
 
-    if (cell.includes("+")) player.hype += parseInt(cell);
-    if (cell === "-10") player.hype -= 10;
+    if(cell.includes("+")) player.hype += parseInt(cell);
+    if(cell === "-10") player.hype -=10;
 
-    if (cell === "-8skip") {
-      player.hype -= 8;
-      player.skip = true;
+    if(cell==="skip") player.skip=true;
+
+    if(cell==="risk"){
+      io.to(room).emit("riskRule");
+
+      setTimeout(()=>{
+        let roll = Math.floor(Math.random()*6)+1;
+        let res = roll<=3 ? -5 : 5;
+        player.hype += res;
+
+        io.to(room).emit("riskResult",{roll,res});
+        io.to(room).emit("updatePlayers", r.players);
+      },1500);
     }
 
-    if (cell === "skip") player.skip = true;
-
-    if (cell === "risk") {
-
-  io.emit("riskRule");
-
-  setTimeout(()=>{
-    const roll = Math.floor(Math.random() * 6) + 1;
-    const result = roll <= 3 ? -5 : 5;
-
-    player.hype += result;
-
-    io.emit("riskResult", { roll, result });
-  }, 1500);
-}
-    
-    if (cell === "scandal") {
-      const cards = [
-        { text: "перегрел аудиторию🔥 -1", val: -1 },
-        { text: "громкий заголовок🫣 -2", val: -2 },
-        { text: "это монтаж 😱 -3", val: -3 },
-        { text: "меня взломали #️⃣ -3 всем", val: -3, all: true },
-        { text: "подписчики в шоке 😮 -4", val: -4 },
-        { text: "удаляй пока не поздно🤫 -5", val: -5 },
-        { text: "это контент 🙄 -5 + пропуск", val: -5, skip: true }
+    if(cell==="scandal"){
+      let cards = [
+        ["перегрел аудиторию🔥",-1],
+        ["громкий заголовок🫣",-2],
+        ["это монтаж😱",-3],
+        ["меня взломали #️⃣",-3,"all"],
+        ["подписчики в шоке😮",-4],
+        ["удаляй пока не поздно🤫",-5],
+        ["это контент🙄",-5,"skip"]
       ];
 
-      let c = cards[Math.floor(Math.random() * cards.length)];
+      let c = cards[Math.floor(Math.random()*cards.length)];
 
-      if (c.all) players.forEach(p => p.hype += c.val);
-      else player.hype += c.val;
+      if(c[2]==="all") r.players.forEach(p=>p.hype+=c[1]);
+      else player.hype += c[1];
 
-      if (c.skip) player.skip = true;
+      if(c[2]==="skip") player.skip=true;
 
-      io.emit("scandal", c.text);
+      io.to(room).emit("scandal", c[0]);
     }
 
-    if (player.hype < 0) player.hype = 0;
+    if(player.hype<0) player.hype=0;
+
+    io.to(room).emit("hypeEffect",{
+      id:player.id,
+      value:player.hype,
+      pos:player.pos
+    });
   }
 
-  function nextTurn() {
-    turn = (turn + 1) % players.length;
-    io.emit("turn", players[turn].id);
+  function nextTurn(r, room){
+    r.turn = (r.turn+1)%r.players.length;
+    io.to(room).emit("turn", r.players[r.turn].id);
   }
+
+  function sendRoom(room){
+    io.to(room).emit("roomData",{
+      room,
+      players: rooms[room].players,
+      isHost: rooms[room].host === socket.id
+    });
+  }
+
 });
 
-http.listen(3000, () => console.log("🚀 Server started on 3000"));
+http.listen(3000);
