@@ -36,6 +36,15 @@ socket.on("move", ({id,from,to,dice})=>{
   showDice(dice);
 });
 
+socket.on("hypeChange", ({id, value})=>{
+  let p = players.find(p=>p.id===id);
+  if(!p) return;
+
+  let pos = cells[p.pos];
+
+  showFloating(`ХАЙП: ${value}`, pos.x+500, pos.y+100);
+});
+
 socket.on("updatePlayers", (p)=>{
   players = p;
   draw();
