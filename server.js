@@ -15,27 +15,32 @@ const cells = [
 io.on("connection", (socket)=>{
 
   socket.on("createRoom", ({name, skin})=>{
-    const code = Math.random().toString(36).substr(2,5);
+  const code = Math.random().toString(36).substr(2,5);
 
-    rooms[code] = {
-      players: [],
-      host: socket.id,
-      turn: 0
-    };
+  rooms[code] = {
+    players: [],
+    host: socket.id,
+    turn:0
+  };
 
-    socket.join(code);
+  socket.join(code);
 
-    rooms[code].players.push({
-      id: socket.id,
-      name,
-      skin,
-      pos:0,
-      hype:0,
-      skip:false
-    });
-
-    sendRoom(code);
+  rooms[code].players.push({
+    id: socket.id,
+    name,
+    skin,
+    pos:0,
+    hype:0,
+    skip:false
   });
+
+  io.to(code).emit("roomData",{
+    room: code,
+    players: rooms[code].players,
+    isHost: true
+  });
+});
+
 
   socket.on("joinRoom", ({name, room, skin})=>{
     if(!rooms[room]) return;
