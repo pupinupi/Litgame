@@ -9,8 +9,9 @@ body{
 #board{
   width:1024px;
   position:absolute;
+  top:50%;
   left:50%;
-  transform:translateX(-50%);
+  transform:translate(-50%, -50%);
   filter:brightness(1.2) saturate(1.3);
   box-shadow:0 0 80px orange;
 }
@@ -55,28 +56,27 @@ body{
 
 /* --- ХАЙП БАР --- */
 #hypeBar{
-  width:320px;
-  height:22px;
+  width:380px;
+  height:28px; /* БЫЛО 22 */
   background:#111;
-  border-radius:15px;
+  border-radius:20px;
   overflow:hidden;
-  box-shadow:0 0 20px cyan;
+  box-shadow:0 0 25px cyan;
 }
 
 #hypeFill{
   height:100%;
-  width:0%;
   background:linear-gradient(90deg, cyan, blue);
-  box-shadow:0 0 30px cyan;
-  transition:0.4s;
+  box-shadow:0 0 40px cyan;
 }
 
 /* --- КНОПКА --- */
 #bottomUI{
-  position:fixed;
-  bottom:20px;
+  position:absolute;
+  top: calc(50% + 550px); /* сразу под полем */
   left:50%;
   transform:translateX(-50%);
+  text-align:center;
 }
 
 button{
@@ -162,3 +162,17 @@ button{
 }
 
 .hidden{display:none;}
+
+.floating{
+  position:absolute;
+  color:cyan;
+  font-weight:bold;
+  pointer-events:none;
+  animation:floatUp 1s forwards;
+  text-shadow:0 0 10px cyan;
+}
+
+@keyframes floatUp{
+  from{opacity:1; transform:translateY(0);}
+  to{opacity:0; transform:translateY(-40px);}
+}
