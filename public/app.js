@@ -65,6 +65,10 @@ socket.on("updatePlayers",(p)=>{
   updateHype();
 });
 
+socket.on("errorMsg",(msg)=>{
+  alert(msg);
+});
+
 /* --- ДВИЖЕНИЕ --- */
 socket.on("move",({id,from,to,dice})=>{
   animate(id,from,to);
