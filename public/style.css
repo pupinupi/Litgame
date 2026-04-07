@@ -1,24 +1,20 @@
 body{
   margin:0;
   font-family:sans-serif;
-  background:#05010a;
+  background:radial-gradient(circle,#020024,#000);
   color:white;
   text-align:center;
 }
 
 /* ЛОББИ */
-#lobby{
-  padding-top:50px;
-}
-
 h1{
   color:#c77dff;
-  text-shadow:0 0 30px #a855f7,0 0 60px #7b2cbf;
+  text-shadow:0 0 30px #a855f7,0 0 80px #7b2cbf;
 }
 
 input{
   display:block;
-  margin:12px auto;
+  margin:10px auto;
   padding:12px;
   width:260px;
   border-radius:12px;
@@ -27,7 +23,23 @@ input{
   color:white;
 }
 
-/* ФИШКИ */
+.buttons{
+  display:flex;
+  justify-content:center;
+  gap:15px;
+}
+
+button{
+  padding:14px 24px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(45deg,#00f0ff,#7b2cbf);
+  color:white;
+  cursor:pointer;
+  box-shadow:0 0 25px cyan;
+}
+
+/* ФИШКИ В ЛОББИ */
 #skins{
   display:flex;
   justify-content:center;
@@ -36,8 +48,8 @@ input{
 }
 
 .skin{
-  width:50px;
-  height:50px;
+  width:60px;
+  height:60px;
   border-radius:50%;
   opacity:0.5;
   cursor:pointer;
@@ -46,51 +58,48 @@ input{
 .skin.selected{
   opacity:1;
   transform:scale(1.3);
-  box-shadow:0 0 25px white;
+  box-shadow:0 0 30px white;
 }
 
 .red{background:#ff3b3b;}
-.blue{background:#3b8bff;}
+.blue{background:#00aaff;}
 .yellow{background:#ffd93b;}
 .purple{background:#c77dff;}
 
-button{
-  padding:12px 22px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(45deg,#7b2cbf,#00aaff);
-  color:white;
-  cursor:pointer;
-}
-
-/* ИГРА */
+/* ПОЛЕ */
 #board{
   position:relative;
   width:1024px;
-  margin:20px auto;
+  margin:30px auto;
 }
 
 #board img{
   width:100%;
-  box-shadow:0 0 60px cyan;
+  border-radius:20px;
+  box-shadow:0 0 60px cyan,0 0 120px blue;
 }
 
 /* ФИШКИ */
 .token{
-  width:22px;
-  height:22px;
+  width:32px;
+  height:32px;
   border-radius:50%;
   position:absolute;
 }
 
+.token.red{background:#ff3b3b; box-shadow:0 0 25px red;}
+.token.blue{background:#00aaff; box-shadow:0 0 25px cyan;}
+.token.yellow{background:#ffd93b; box-shadow:0 0 25px yellow;}
+.token.purple{background:#c77dff; box-shadow:0 0 25px violet;}
+
 /* ХАЙП */
 #hypeBars{
-  width:400px;
-  margin:0 auto;
+  width:450px;
+  margin:10px auto;
 }
 
 .bar{
-  height:16px;
+  height:18px;
   background:#111;
   border-radius:10px;
   margin:5px 0;
@@ -98,19 +107,56 @@ button{
 
 .fill{
   height:100%;
-  background:cyan;
+  background:linear-gradient(90deg,cyan,blue);
+  box-shadow:0 0 15px cyan;
+}
+
+/* КУБИК */
+#roll{
+  margin-top:10px;
 }
 
 /* МОДАЛ */
 #modal{
   position:fixed;
-  top:40%;
+  top:50%;
   left:50%;
   transform:translate(-50%,-50%);
+  z-index:999;
 }
 
 .card{
-  padding:20px;
-  background:red;
-  border-radius:15px;
+  padding:30px 40px;
+  border-radius:20px;
+  font-size:22px;
+  animation:pop 0.3s;
+
+  background:linear-gradient(#ff004c,#ff7b00);
+  box-shadow:0 0 80px red;
+}
+
+.card.risk{
+  background:linear-gradient(#00f0ff,#0066ff);
+  box-shadow:0 0 80px cyan;
+}
+
+@keyframes pop{
+  from{transform:scale(0.5); opacity:0;}
+  to{transform:scale(1); opacity:1;}
+}
+
+/* ПОБЕДА */
+#winScreen{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display:none;
+  background:rgba(0,0,0,0.9);
+  justify-content:center;
+  align-items:center;
+  font-size:40px;
+  color:gold;
+  text-shadow:0 0 40px gold;
 }
