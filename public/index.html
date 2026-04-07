@@ -9,11 +9,12 @@
 </head>
 <body>
 
+<!-- ЛОББИ -->
 <div id="lobby">
-  <h1>💜 ЛИТВИН: ПУТЬ К ХАЙПУ</h1>
+  <h1>🔥ЛИТВИН: ПУТЬ К ХАЙПУ🔥</h1>
 
-  <input id="name" placeholder="Введите имя">
-  <input id="room" placeholder="Код комнаты (пусто = создать)">
+  <input id="name" placeholder="Имя">
+  <input id="room" placeholder="Код комнаты">
 
   <div id="skins">
     <div class="skin red selected"></div>
@@ -22,15 +23,18 @@
     <div class="skin purple"></div>
   </div>
 
-  <button id="join">🎮 ВОЙТИ</button>
+  <div class="buttons">
+    <button id="join">ВОЙТИ</button>
+    <button id="start">🚀 НАЧАТЬ</button>
+  </div>
 
   <div id="roomCode"></div>
   <div id="players"></div>
-
-  <button id="start" style="display:none;">🚀 НАЧАТЬ ИГРУ</button>
 </div>
 
+<!-- ИГРА -->
 <div id="game" style="display:none;">
+
   <div id="hypeBars"></div>
 
   <div id="board">
@@ -41,7 +45,11 @@
   <div id="dice"></div>
 </div>
 
+<!-- МОДАЛ -->
 <div id="modal"></div>
+
+<!-- ПОБЕДА -->
+<div id="winScreen"></div>
 
 </body>
 </html>
