@@ -9,8 +9,6 @@ const nameInput=document.getElementById("name");
 const roomInput=document.getElementById("room");
 const joinBtn=document.getElementById("join");
 const startBtn=document.getElementById("start");
-const playersDiv=document.getElementById("players");
-const roomCode=document.getElementById("roomCode");
 
 const lobby=document.getElementById("lobby");
 const game=document.getElementById("game");
@@ -20,6 +18,7 @@ const rollBtn=document.getElementById("roll");
 const dice=document.getElementById("dice");
 const hypeBars=document.getElementById("hypeBars");
 const modal=document.getElementById("modal");
+const winScreen=document.getElementById("winScreen");
 
 /* координаты */
 const cells=[
@@ -59,26 +58,17 @@ startBtn.onclick=()=>{
   socket.emit("startGame",room);
 };
 
-/* лобби */
 socket.on("roomData",(d)=>{
   room=d.room;
-  roomInput.value=room;
-  roomCode.innerText="Код: "+room;
-
-  playersDiv.innerHTML=d.players.map(p=>"<div>"+p.name+"</div>").join("");
-  startBtn.style.display=d.isHost?"block":"none";
 });
 
-/* 🔥 ГЛАВНЫЙ ФИКС */
+/* старт игры */
 socket.on("gameStart",()=>{
   lobby.style.display="none";
   game.style.display="block";
-
-  // сразу рисуем старт
-  socket.emit("requestPlayers",room);
 });
 
-/* получаем игроков */
+/* игроки */
 socket.on("updatePlayers",(p)=>{
   players=p;
   draw();
@@ -103,11 +93,15 @@ socket.on("move",({id,from,to,dice:roll})=>{
 
 /* события */
 socket.on("scandal",(t)=>show(t));
-socket.on("riskRule",()=>show("1-3 -5 | 4-6 +5"));
-socket.on("riskResult",({roll,res})=>show(roll+" → "+res));
-socket.on("winner",(n)=>show("🏆 "+n));
+socket.on("riskRule",()=>show("1-3 -5 | 4-6 +5","risk"));
+socket.on("riskResult",({roll,res})=>show(roll+" → "+res,"risk"));
 
-/* --- РЕНДЕР --- */
+socket.on("winner",(n)=>{
+  winScreen.style.display="flex";
+  winScreen.innerHTML="🏆 "+n+" ПОБЕДИЛ!";
+});
+
+/* функции */
 function draw(){
   document.querySelectorAll(".token").forEach(t=>t.remove());
 
@@ -124,10 +118,9 @@ function draw(){
   });
 }
 
-/* движение */
 function move(id,from,to){
   let el=document.getElementById(id);
-  if(!el) return;
+  if(!el)return;
 
   let i=0;
   let steps=(to-from+20)%20;
@@ -140,12 +133,11 @@ function move(id,from,to){
     el.style.top=pos.y+"px";
 
     i++;
-    setTimeout(step,200);
+    setTimeout(step,180);
   }
   step();
 }
 
-/* хайп */
 function hype(){
   hypeBars.innerHTML=players.map(p=>{
     return `<div>${p.name}: ${p.hype}
@@ -154,8 +146,7 @@ function hype(){
   }).join("");
 }
 
-/* модал */
-function show(t){
-  modal.innerHTML="<div class='card'>"+t+"</div>";
+function show(t,type="scandal"){
+  modal.innerHTML=`<div class="card ${type==="risk"?"risk":""}">${t}</div>`;
   setTimeout(()=>modal.innerHTML="",2000);
 }
