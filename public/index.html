@@ -2,65 +2,45 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>🔥 Литвин: Путь к хайпу</title>
-
+<title>Литвин: Путь к хайпу</title>
 <link rel="stylesheet" href="style.css">
-
 <script src="/socket.io/socket.io.js"></script>
 <script defer src="app.js"></script>
 </head>
 <body>
 
-<!-- ЛОББИ -->
 <div id="lobby">
-  <h1 class="title">🔥 ЛИТВИН: ПУТЬ К ХАЙПУ 🔥</h1>
+  <h1>💜 ЛИТВИН: ПУТЬ К ХАЙПУ</h1>
 
-  <!-- ⚠️ ВАЖНО: ID ИСПРАВЛЕНЫ -->
-  <input id="name" placeholder="Имя">
-  <input id="roomInput" placeholder="Код комнаты">
+  <input id="name" placeholder="Введите имя">
+  <input id="room" placeholder="Код комнаты (пусто = создать)">
 
-  <div class="chips">
-    <div class="chip red selected" data-color="red"></div>
-    <div class="chip blue" data-color="blue"></div>
-    <div class="chip yellow" data-color="yellow"></div>
-    <div class="chip purple" data-color="purple"></div>
+  <div id="skins">
+    <div class="skin red selected"></div>
+    <div class="skin blue"></div>
+    <div class="skin yellow"></div>
+    <div class="skin purple"></div>
   </div>
 
-  <!-- 🔥 ОДНА КНОПКА -->
-  <div class="buttons">
-    <button id="joinBtn">ВОЙТИ</button>
-  </div>
+  <button id="join">🎮 ВОЙТИ</button>
 
-  <!-- СТАРТ ТОЛЬКО У ХОСТА -->
-  <button id="startBtn" style="display:none;">🚀 НАЧАТЬ ИГРУ</button>
+  <div id="roomCode"></div>
+  <div id="players"></div>
 
-  <div id="roomCodeDisplay"></div>
-  <div id="playersList"></div>
-
-  <div class="rules">
-    <h2>📜 Правила</h2>
-    <p>🎲 Бросай кубик</p>
-    <p>🔥 Собери 70 хайпа</p>
-    <p>💥 Скандалы уменьшают хайп</p>
-    <p>⚠️ Риск: +5 или -5</p>
-    <p>🛑 Суд: пропуск хода</p>
-  </div>
+  <button id="start" style="display:none;">🚀 НАЧАТЬ ИГРУ</button>
 </div>
 
-<!-- ИГРА -->
 <div id="game" style="display:none;">
   <div id="hypeBars"></div>
 
-  <div id="gameBoard">
+  <div id="board">
     <img src="board.jpg">
   </div>
 
-  <div id="diceResult"></div>
-
-  <button id="rollBtn">🎲 БРОСИТЬ</button>
+  <button id="roll">🎲 БРОСИТЬ</button>
+  <div id="dice"></div>
 </div>
 
-<!-- МОДАЛКА -->
 <div id="modal"></div>
 
 </body>
