@@ -188,16 +188,33 @@ function scandal(p) {
   scandalSound.currentTime = 0;
   scandalSound.play();
 
-  const val = -3;
-  p.hype = Math.max(0, p.hype + val);
-  p.skipNext = true;
+  const card = SCANDALS[Math.floor(Math.random() * SCANDALS.length)];
 
-  showModal(`💥 Скандал ${val}`);
+  if (card.all) {
+    players.forEach(pl => pl.hype = Math.max(0, pl.hype + card.value));
+  } else {
+    p.hype = Math.max(0, p.hype + card.value);
+  }
+
+  if (card.skip) p.skipNext = true;
+
+  showScandalCard(card.text);
 
   checkWin(p);
   updateServer(p);
 }
 
+function showScandalCard(text) {
+  let card = document.createElement('div');
+  card.className = 'scandalCard active';
+  card.innerText = text;
+  document.body.appendChild(card);
+
+  setTimeout(() => {
+    card.classList.remove('active');
+    card.remove();
+  }, 2000);
+}
 // --- Победа ---
 function checkWin(p) {
   if (p.hype >= 70) {
