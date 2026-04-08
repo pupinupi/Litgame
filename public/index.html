@@ -7,13 +7,15 @@
 </head>
 <body>
 
+<!-- ЛОББИ -->
 <div id="lobby">
 
   <h1>🔥 ЛИТВИН: ПУТЬ К ХАЙПУ 🔥</h1>
 
-  <input id="username" placeholder="Имя">
-  <input id="roomCode" placeholder="Код комнаты">
+  <input id="usernameInput" placeholder="Имя">
+  <input id="roomCodeInput" placeholder="Код комнаты">
 
+  <!-- ФИШКИ -->
   <div class="chips">
     <div class="chip" data-color="red" style="background:red"></div>
     <div class="chip" data-color="blue" style="background:blue"></div>
@@ -21,30 +23,34 @@
     <div class="chip" data-color="purple" style="background:purple"></div>
   </div>
 
+  <!-- КНОПКИ -->
   <div class="buttons">
     <button id="joinBtn">ВОЙТИ</button>
     <button id="startBtn">НАЧАТЬ</button>
   </div>
 
+  <!-- ПРАВИЛА -->
   <div class="rules">
     <h3>🎮 Правила игры</h3>
 
     <p>🔥 Цель: первым набрать <b>70 хайпа</b></p>
     <p>🎲 Бросай кубик и двигайся</p>
-    <p>📊 Шкала сверху показывает хайп</p>
+    <p>📊 Шкала показывает хайп</p>
     <p>🔁 За круг: +7 хайпа</p>
-    <p>💥 Скандал: -1 до -5 хайпа</p>
+    <p>💥 Скандал: -1 до -5</p>
     <p>🎲 Риск: 1–3 → -5 | 4–6 → +5</p>
-    <p>🚫 Блокировка: -10 хайпа</p>
-    <p>🚀 Старт: +10 хайпа</p>
+    <p>🚫 Блокировка: -10</p>
+    <p>🚀 Старт: +10</p>
     <p>🛑 Тюрьма: -8 + пропуск</p>
-    <p>⚖️ Суд: пропуск хода</p>
-    <p>🏆 Побеждает тот, кто набрал 70!</p>
+    <p>⚖️ Суд: пропуск</p>
+    <p>🏆 Побеждает тот, кто набрал 70</p>
   </div>
 
 </div>
 
+<!-- ИГРА -->
 <div id="game" style="display:none;">
+
   <div id="hypeBars"></div>
 
   <div id="gameBoard"></div>
@@ -53,8 +59,10 @@
     <button id="rollBtn">🎲 Бросить</button>
     <div id="diceResult"></div>
   </div>
+
 </div>
 
+<!-- МОДАЛКА -->
 <div id="modal"></div>
 
 <script src="/socket.io/socket.io.js"></script>
