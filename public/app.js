@@ -124,13 +124,27 @@ function handleCell(p){
 
 // --- UI ---
 function renderPlayers(){
-  const b=document.getElementById('gameBoard');
+  const b = document.getElementById('gameBoard');
+  const rect = b.getBoundingClientRect();
+
   players.forEach((p,i)=>{
-    let el=document.getElementById(p.id);
-    if(!el){el=document.createElement('div'); el.className='player'; el.id=p.id; el.style.background=p.color; b.appendChild(el);}
-    const c=cells[p.position];
-    el.style.left=(c.x+i*10)+'px';
-    el.style.top=c.y+'px';
+    let el = document.getElementById(p.id);
+    if(!el){
+      el = document.createElement('div');
+      el.className = 'player';
+      el.id = p.id;
+      el.style.background = p.color;
+      b.appendChild(el);
+    }
+
+    const c = cells[p.position];
+
+    // масштабируем координаты
+    const scaleX = rect.width / 1000; // 1000 — исходная ширина поля
+    const scaleY = rect.height / 600; // 600 — исходная высота поля
+
+    el.style.left = c.x * scaleX + 'px';
+    el.style.top = c.y * scaleY + 'px';
   });
 }
 
