@@ -78,20 +78,18 @@ button:hover {
 
 #gameBoard {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 90vw;       /* подгоняем под ширину экрана */
+  max-width: 1000px; /* ограничиваем слишком большим экраном */
+  height: auto;      /* высота пропорциональна ширине */
+  aspect-ratio: 16/9; /* сохраняем пропорции поля */
   background: url('board.jpg') center/cover no-repeat;
+  margin: 0 auto;
 }
 
 .player {
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  transition: all 0.3s;
+  width: 3%;   /* размер фишки относительно поля */
+  height: auto;
 }
-
 #hypeBars {
   position: absolute;
   top: 10px;
