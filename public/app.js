@@ -1,6 +1,6 @@
 const socket = io();
 
-// --- ЗВУКИ ---
+// --- Звуки ---
 const scandalSound = new Audio('scandal.mp3');
 const diceSound = new Audio('dice.mp3');
 
@@ -22,18 +22,7 @@ const gameBoard = document.getElementById('gameBoard');
 const hypeBars = document.getElementById('hypeBars');
 const modal = document.getElementById('modal');
 
-// --- СКАНДАЛ ---
-const SCANDALS = [
-  { text: "перегрел аудиторию🔥", value: -1 },
-  { text: "громкий заголовок🫣", value: -2 },
-  { text: "это монтаж 😱", value: -3 },
-  { text: "меня взломали #️⃣", all: true, value: -3 },
-  { text: "подписчики в шоке 😮", value: -4 },
-  { text: "удаляй пока не поздно🤫", value: -5 },
-  { text: "это контент🙄", value: -5, skip: true }
-];
-
-// --- ВЫБОР ФИШКИ ---
+// --- Выбор фишки ---
 document.querySelectorAll('.chip').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
@@ -42,7 +31,7 @@ document.querySelectorAll('.chip').forEach(btn => {
   };
 });
 
-// --- ВХОД ---
+// --- Вход ---
 joinBtn.onclick = () => {
   username = usernameInput.value;
   roomCode = roomCodeInput.value;
@@ -55,12 +44,12 @@ joinBtn.onclick = () => {
   socket.emit('joinRoom', { username, roomCode, color });
 };
 
-// --- СТАРТ ---
+// --- Старт ---
 startBtn.onclick = () => {
   socket.emit('startGame', roomCode);
 };
 
-// --- КУБИК ---
+// --- Кубик ---
 rollBtn.onclick = () => {
   if (gameOver || isAnimating) return;
   if (currentTurnId !== socket.id) return;
@@ -68,7 +57,7 @@ rollBtn.onclick = () => {
   socket.emit('rollDice', roomCode);
 };
 
-// --- СОКЕТЫ ---
+// --- Сокеты ---
 socket.on('updatePlayers', pl => {
   players = pl;
   renderPlayers();
@@ -107,31 +96,31 @@ socket.on('gameOver', name => {
   showModal(`🏆 Победил ${name}`);
 });
 
-// --- КЛЕТКИ (оставь свои координаты если уже есть) ---
+// --- Клетки под 1024x1024 ---
 const cells = [
-  { x: 82, y: 587, type: 'start' },
-  { x: 97, y: 464, type: 'plus', value: 3 },
-  { x: 86, y: 348, type: 'plus', value: 2 },
-  { x: 93, y: 224, type: 'scandal' },
-  { x: 87, y: 129, type: 'risk' },
-  { x: 219, y: 101, type: 'plus', value: 2 },
-  { x: 364, y: 107, type: 'scandal' },
-  { x: 494, y: 95, type: 'plus', value: 3 },
-  { x: 652, y: 96, type: 'plus', value: 5 },
-  { x: 815, y: 89, type: 'minus', value: 10 },
-  { x: 930, y: 135, type: 'minusSkip', value: 8 },
-  { x: 936, y: 247, type: 'plus', value: 3 },
-  { x: 936, y: 357, type: 'risk' },
-  { x: 941, y: 480, type: 'plus', value: 3 },
-  { x: 937, y: 610, type: 'skip' },
-  { x: 794, y: 624, type: 'plus', value: 2 },
-  { x: 636, y: 635, type: 'scandal' },
-  { x: 517, y: 627, type: 'plus', value: 8 },
-  { x: 355, y: 619, type: 'minus', value: 10 },
-  { x: 210, y: 626, type: 'plus', value: 4 }
+  { x: 82, y: 950, type: 'start' },
+  { x: 120, y: 800, type: 'plus', value: 3 },
+  { x: 100, y: 650, type: 'plus', value: 2 },
+  { x: 130, y: 500, type: 'scandal' },
+  { x: 150, y: 350, type: 'risk' },
+  { x: 300, y: 300, type: 'plus', value: 2 },
+  { x: 450, y: 320, type: 'scandal' },
+  { x: 600, y: 350, type: 'plus', value: 3 },
+  { x: 750, y: 400, type: 'plus', value: 5 },
+  { x: 880, y: 450, type: 'minus', value: 10 },
+  { x: 920, y: 550, type: 'minusSkip', value: 8 },
+  { x: 940, y: 650, type: 'plus', value: 3 },
+  { x: 950, y: 750, type: 'risk' },
+  { x: 940, y: 850, type: 'plus', value: 3 },
+  { x: 900, y: 950, type: 'skip' },
+  { x: 750, y: 960, type: 'plus', value: 2 },
+  { x: 600, y: 970, type: 'scandal' },
+  { x: 450, y: 960, type: 'plus', value: 8 },
+  { x: 300, y: 950, type: 'minus', value: 10 },
+  { x: 150, y: 940, type: 'plus', value: 4 }
 ];
 
-// --- ДВИЖЕНИЕ ---
+// --- Движение ---
 function movePlayer(steps) {
   const me = players.find(p => p.id === socket.id);
   if (!me) return;
@@ -162,7 +151,7 @@ function movePlayer(steps) {
   step();
 }
 
-// --- ОБРАБОТКА КЛЕТКИ ---
+// --- Обработка клетки ---
 function handleCell(p) {
   const cell = cells[p.position];
 
@@ -182,7 +171,7 @@ function handleCell(p) {
   updateServer(p);
 }
 
-// --- РИСК ---
+// --- Риск ---
 function risk(p) {
   const dice = Math.floor(Math.random() * 6) + 1;
   const val = dice <= 3 ? -5 : 5;
@@ -194,28 +183,22 @@ function risk(p) {
   updateServer(p);
 }
 
-// --- СКАНДАЛ ---
+// --- Скандал ---
 function scandal(p) {
   scandalSound.currentTime = 0;
   scandalSound.play();
 
-  const card = SCANDALS[Math.floor(Math.random() * SCANDALS.length)];
+  const val = -3;
+  p.hype = Math.max(0, p.hype + val);
+  p.skipNext = true;
 
-  if (card.all) {
-    players.forEach(pl => pl.hype = Math.max(0, pl.hype + card.value));
-  } else {
-    p.hype = Math.max(0, p.hype + card.value);
-  }
-
-  if (card.skip) p.skipNext = true;
-
-  showModal(`💥 ${card.text}`);
+  showModal(`💥 Скандал ${val}`);
 
   checkWin(p);
   updateServer(p);
 }
 
-// --- ПОБЕДА ---
+// --- Победа ---
 function checkWin(p) {
   if (p.hype >= 70) {
     gameOver = true;
@@ -230,7 +213,7 @@ function checkWin(p) {
   }
 }
 
-// --- ОТПРАВКА ---
+// --- Отправка ---
 function updateServer(p) {
   socket.emit('playerMoved', {
     roomCode,
@@ -255,7 +238,7 @@ function renderPlayers() {
 
     const c = cells[p.position];
     el.style.left = (c.x + i * 10) + 'px';
-    el.style.top = c.y + 'px';
+    el.style.top = (c.y + i * 10) + 'px';
   });
 }
 
