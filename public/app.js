@@ -1,28 +1,17 @@
 const socket = io();
 
-// --- Звуки ---
-const scandalSound = new Audio('scandal.mp3');
-const diceSound = new Audio('dice.mp3');
-
 let players = [];
 let currentTurnId = null;
 let username, roomCode, color;
-
 let isAnimating = false;
 let gameOver = false;
 
-// --- DOM ---
-const usernameInput = document.getElementById('usernameInput');
-const roomCodeInput = document.getElementById('roomCodeInput');
-const joinBtn = document.getElementById('joinBtn');
-const startBtn = document.getElementById('startBtn');
-const rollBtn = document.getElementById('rollBtn');
-const diceResult = document.getElementById('diceResult');
-const gameBoard = document.getElementById('gameBoard');
-const hypeBars = document.getElementById('hypeBars');
-const modal = document.getElementById('modal');
+const scandalSound = new Audio('scandal.mp3');
+scandalSound.volume = 0.8;
+const diceSound = new Audio('dice.mp3');
+diceSound.volume = 0.7;
 
-// --- Выбор фишки ---
+// --- ВЫБОР ФИШКИ ---
 document.querySelectorAll('.chip').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
@@ -31,255 +20,178 @@ document.querySelectorAll('.chip').forEach(btn => {
   };
 });
 
-// --- Вход ---
-joinBtn.onclick = () => {
-  username = usernameInput.value;
-  roomCode = roomCodeInput.value;
-
+// --- ВХОД ---
+document.getElementById('joinBtn').onclick = () => {
+  username = document.getElementById('username').value;
+  roomCode = document.getElementById('roomCode').value;
   if (!username || !roomCode || !color) {
-    alert("Заполни имя, код и выбери фишку");
+    alert("Заполни всё");
     return;
   }
-
   socket.emit('joinRoom', { username, roomCode, color });
 };
 
-// --- Старт ---
-startBtn.onclick = () => {
+// --- СТАРТ ---
+document.getElementById('startBtn').onclick = () => {
   socket.emit('startGame', roomCode);
 };
 
-// --- Кубик ---
-rollBtn.onclick = () => {
-  if (gameOver || isAnimating) return;
-  if (currentTurnId !== socket.id) return;
-
+// --- КУБИК ---
+document.getElementById('rollBtn').onclick = () => {
+  if (gameOver || isAnimating || currentTurnId !== socket.id) return;
   socket.emit('rollDice', roomCode);
 };
 
-// --- Сокеты ---
+// --- СОКЕТЫ ---
 socket.on('updatePlayers', pl => {
   players = pl;
   renderPlayers();
   renderHypeBars();
+  renderLobbyPlayers();
+});
+
+socket.on('playerSkipped', (playerId) => {
+  if(playerId === socket.id){
+    showModal('🛑 Пропуск хода!');
+    document.getElementById('rollBtn').disabled = true;
+  }
 });
 
 socket.on('gameStarted', () => {
   document.getElementById('lobby').style.display = 'none';
-  document.getElementById('game').style.display = 'flex';
+  document.getElementById('game').style.display = 'block';
 });
 
 socket.on('nextTurn', id => {
   currentTurnId = id;
-  rollBtn.classList.toggle('disabled', id !== socket.id);
+  document.getElementById('rollBtn').disabled = id !== socket.id || gameOver;
+  renderPlayers();
 });
 
 socket.on('diceRolled', ({ playerId, dice }) => {
   if (playerId !== socket.id) return;
-
-  diceSound.currentTime = 0;
-  diceSound.play();
-
-  diceResult.innerText = "🎲 " + dice;
-
+  diceSound.currentTime = 0; diceSound.play();
+  document.getElementById('diceResult').innerText = "🎲 " + dice;
   movePlayer(dice);
 });
 
-socket.on('playerSkipped', (playerId) => {
-  if (playerId === socket.id) {
-    showModal('🛑 Пропуск хода');
-  }
-});
-
-socket.on('gameOver', name => {
-  gameOver = true;
-  showModal(`🏆 Победил ${name}`);
-});
-
-// --- Клетки под 1024x1024 ---
+// --- ПОЛЕ ---
 const cells = [
-  { x: 82, y: 950, type: 'start' },
-  { x: 120, y: 800, type: 'plus', value: 3 },
-  { x: 100, y: 650, type: 'plus', value: 2 },
-  { x: 130, y: 500, type: 'scandal' },
-  { x: 150, y: 350, type: 'risk' },
-  { x: 300, y: 300, type: 'plus', value: 2 },
-  { x: 450, y: 320, type: 'scandal' },
-  { x: 600, y: 350, type: 'plus', value: 3 },
-  { x: 750, y: 400, type: 'plus', value: 5 },
-  { x: 880, y: 450, type: 'minus', value: 10 },
-  { x: 920, y: 550, type: 'minusSkip', value: 8 },
-  { x: 940, y: 650, type: 'plus', value: 3 },
-  { x: 950, y: 750, type: 'risk' },
-  { x: 940, y: 850, type: 'plus', value: 3 },
-  { x: 900, y: 950, type: 'skip' },
-  { x: 750, y: 960, type: 'plus', value: 2 },
-  { x: 600, y: 970, type: 'scandal' },
-  { x: 450, y: 960, type: 'plus', value: 8 },
-  { x: 300, y: 950, type: 'minus', value: 10 },
-  { x: 150, y: 940, type: 'plus', value: 4 }
+  {x:82,y:587,type:'start'}, {x:97,y:464,type:'plus',value:3},
+  {x:86,y:348,type:'plus',value:2}, {x:93,y:224,type:'scandal'},
+  {x:87,y:129,type:'risk'}, {x:219,y:101,type:'plus',value:2},
+  {x:364,y:107,type:'scandal'}, {x:494,y:95,type:'plus',value:3},
+  {x:652,y:96,type:'plus',value:5}, {x:815,y:89,type:'minus',value:10},
+  {x:930,y:135,type:'minusSkip',value:8}, {x:936,y:247,type:'plus',value:3},
+  {x:936,y:357,type:'risk'}, {x:941,y:480,type:'plus',value:3},
+  {x:937,y:610,type:'skip'}, {x:794,y:624,type:'plus',value:2},
+  {x:636,y:635,type:'scandal'}, {x:517,y:627,type:'plus',value:8},
+  {x:355,y:619,type:'minus',value:10}, {x:210,y:626,type:'plus',value:4}
 ];
 
-// --- Движение ---
-function movePlayer(steps) {
-  const me = players.find(p => p.id === socket.id);
-  if (!me) return;
-
-  isAnimating = true;
-  let count = 0;
-
-  function step() {
-    if (count >= steps) {
-      isAnimating = false;
-      handleCell(me);
-      return;
-    }
-
+// --- ДВИЖЕНИЕ ---
+function movePlayer(steps){
+  const me = players.find(p=>p.id===socket.id);
+  if(!me) return;
+  isAnimating = true; let count=0;
+  function step(){
+    if(count>=steps){isAnimating=false; handleCell(me); return;}
     const prev = me.position;
-    me.position = (me.position + 1) % cells.length;
-
-    if (me.position === 0 && prev !== 0) {
-      me.hype += 7;
-      showModal('🔁 +7 хайпа');
-    }
-
+    me.position=(me.position+1)%cells.length;
+    if(me.position===0 && prev!==0){me.hype+=7; showModal('🔁 +7 хайпа');}
     renderPlayers();
-    count++;
-    setTimeout(step, 300);
+    count++; setTimeout(step,300);
   }
-
   step();
 }
 
-// --- Обработка клетки ---
-function handleCell(p) {
+// --- ОБРАБОТКА КЛЕТКИ ---
+function handleCell(p){
   const cell = cells[p.position];
-
-  switch (cell.type) {
-    case 'start': p.hype += 10; break;
-    case 'plus': p.hype += cell.value; break;
-    case 'minus': p.hype -= cell.value; break;
-    case 'skip': p.skipNext = true; break;
-    case 'minusSkip': p.hype -= cell.value; p.skipNext = true; break;
-    case 'risk': return risk(p);
-    case 'scandal': return scandal(p);
+  let text='';
+  switch(cell.type){
+    case 'start': p.hype+=10; text='🚀 +10'; break;
+    case 'plus': p.hype+=cell.value; text='➕ '+cell.value; break;
+    case 'minus': p.hype=Math.max(0,p.hype-cell.value); text='➖ '+cell.value; break;
+    case 'skip': p.skipNext=true; text='🛑 Пропуск'; break;
+    case 'minusSkip': p.hype=Math.max(0,p.hype-cell.value); p.skipNext=true; text='🛑 Суд'; break;
+    case 'risk': showRiskModal(p); return;
+    case 'scandal': showScandalModal(p); return;
   }
-
-  p.hype = Math.max(0, p.hype);
-
-  checkWin(p);
-  updateServer(p);
-}
-
-// --- Риск ---
-function risk(p) {
-  const dice = Math.floor(Math.random() * 6) + 1;
-  const val = dice <= 3 ? -5 : 5;
-
-  p.hype = Math.max(0, p.hype + val);
-  showModal(`🎲 Риск ${val}`);
-
-  checkWin(p);
-  updateServer(p);
-}
-
-// --- Скандал ---
-function scandal(p) {
-  scandalSound.currentTime = 0;
-  scandalSound.play();
-
-  const card = SCANDALS[Math.floor(Math.random() * SCANDALS.length)];
-
-  if (card.all) {
-    players.forEach(pl => pl.hype = Math.max(0, pl.hype + card.value));
-  } else {
-    p.hype = Math.max(0, p.hype + card.value);
-  }
-
-  if (card.skip) p.skipNext = true;
-
-  showScandalCard(card.text);
-
-  checkWin(p);
-  updateServer(p);
-}
-
-function showScandalCard(text) {
-  let card = document.createElement('div');
-  card.className = 'scandalCard active';
-  card.innerText = text;
-  document.body.appendChild(card);
-
-  setTimeout(() => {
-    card.classList.remove('active');
-    card.remove();
-  }, 2000);
-}
-// --- Победа ---
-function checkWin(p) {
-  if (p.hype >= 70) {
-    gameOver = true;
-
-    socket.emit('playerMoved', {
-      roomCode,
-      position: p.position,
-      hype: p.hype,
-      skipNext: p.skipNext,
-      win: true
-    });
-  }
-}
-
-// --- Отправка ---
-function updateServer(p) {
-  socket.emit('playerMoved', {
-    roomCode,
-    position: p.position,
-    hype: p.hype,
-    skipNext: p.skipNext
-  });
+  renderHypeBars(); if(text) showModal(text);
+  socket.emit('playerMoved',{roomCode,position:p.position,hype:p.hype,skipNext:p.skipNext});
 }
 
 // --- UI ---
-function renderPlayers() {
-  players.forEach((p, i) => {
-    let el = document.getElementById(p.id);
-
-    if (!el) {
-      el = document.createElement('div');
-      el.className = 'player';
-      el.id = p.id;
-      el.style.background = p.color;
-      gameBoard.appendChild(el);
-    }
-
-    const c = cells[p.position];
-    el.style.left = (c.x + i * 10) + 'px';
-    el.style.top = (c.y + i * 10) + 'px';
+function renderPlayers(){
+  const b=document.getElementById('gameBoard');
+  players.forEach((p,i)=>{
+    let el=document.getElementById(p.id);
+    if(!el){el=document.createElement('div'); el.className='player'; el.id=p.id; el.style.background=p.color; b.appendChild(el);}
+    const c=cells[p.position];
+    el.style.left=(c.x+i*10)+'px';
+    el.style.top=c.y+'px';
   });
 }
 
-function renderHypeBars() {
-  hypeBars.innerHTML = '';
-
-  players.forEach(p => {
-    const bar = document.createElement('div');
-    bar.className = 'hypeBar';
-
-    const fill = document.createElement('div');
-    fill.className = 'hypeFill';
-    fill.style.width = Math.min(p.hype, 70) / 70 * 100 + '%';
-
-    bar.innerHTML = `<div>${p.username}: ${p.hype}/70</div>`;
+function renderHypeBars(){
+  const container=document.getElementById('hypeBars'); container.innerHTML='';
+  players.forEach(p=>{
+    const bar=document.createElement('div'); bar.className='hypeBar';
+    const fill=document.createElement('div'); fill.className='hypeFill';
+    fill.style.width=Math.min(p.hype,70)/70*100+'%';
+    bar.innerHTML=`<div>${p.username}: ${p.hype}/70</div>`;
     bar.appendChild(fill);
-
-    hypeBars.appendChild(bar);
+    container.appendChild(bar);
   });
 }
 
-function showModal(text) {
-  modal.innerHTML = `<div class="modalContent">${text}</div>`;
-  modal.classList.add('active');
+function renderLobbyPlayers(){
+  const list=document.getElementById('playersList');
+  list.innerHTML=players.map(p=>`<div style="color:${p.color}">${p.username}</div>`).join('');
+}
 
-  setTimeout(() => modal.classList.remove('active'), 2000);
+function showModal(text){
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="modalContent">${text}</div>`;
+  m.classList.add('active');
+  setTimeout(()=>m.classList.remove('active'),2000);
+}
+
+// --- РИСК ---
+function showRiskModal(p){
+  const dice=Math.floor(Math.random()*6)+1;
+  const val=dice<=3?-5:5;
+  p.hype=Math.max(0,p.hype+val);
+  showModal(`🎲 ${val}`);
+  renderHypeBars();
+  socket.emit('playerMoved',{roomCode,position:p.position,hype:p.hype,skipNext:p.skipNext});
+}
+
+// --- СКАНДАЛ ---
+const SCANDALS=[
+  {text:'Перегрел аудиторию 🔥',value:-1},
+  {text:'Громкий заголовок 🫣',value:-2},
+  {text:'Это монтаж 😱',value:-3},
+  {text:'Меня взломали #️⃣',value:-3,all:true},
+  {text:'Подписчики в шоке 😮',value:-4},
+  {text:'Удаляй пока не поздно 🤫',value:-5},
+  {text:'Это контент, вы не понимаете 🙄',value:-5,skip:true}
+];
+
+function showScandalModal(p){
+  scandalSound.currentTime=0; scandalSound.play();
+  const card = SCANDALS[Math.floor(Math.random()*SCANDALS.length)];
+  if(card.all) players.forEach(pl=>pl.hype=Math.max(0,pl.hype+card.value));
+  else p.hype=Math.max(0,p.hype+card.value);
+  if(card.skip) p.skipNext=true;
+  showScandalCard(card.text);
+  renderHypeBars();
+  socket.emit('playerMoved',{roomCode,position:p.position,hype:p.hype,skipNext:p.skipNext});
+}
+
+function showScandalCard(text){
+  let card=document.createElement('div'); card.className='scandalCard active'; card.innerText=text;
+  document.body.appendChild(card);
+  setTimeout(()=>{card.classList.remove('active'); card.remove();},2000);
 }
