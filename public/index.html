@@ -1,55 +1,64 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Литвин: Путь к хайпу</title>
-<link rel="stylesheet" href="style.css">
-<script src="/socket.io/socket.io.js"></script>
-<script defer src="app.js"></script>
+  <meta charset="UTF-8">
+  <title>Литвин: Путь к хайпу</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- ЛОББИ -->
 <div id="lobby">
-  <h1>🔥ЛИТВИН: ПУТЬ К ХАЙПУ🔥</h1>
 
-  <input id="name" placeholder="Имя">
-  <input id="room" placeholder="Код комнаты">
+  <h1>🔥 ЛИТВИН: ПУТЬ К ХАЙПУ 🔥</h1>
 
-  <div id="skins">
-    <div class="skin red selected"></div>
-    <div class="skin blue"></div>
-    <div class="skin yellow"></div>
-    <div class="skin purple"></div>
+  <input id="username" placeholder="Имя">
+  <input id="roomCode" placeholder="Код комнаты">
+
+  <div class="chips">
+    <div class="chip" data-color="red" style="background:red"></div>
+    <div class="chip" data-color="blue" style="background:blue"></div>
+    <div class="chip" data-color="yellow" style="background:yellow"></div>
+    <div class="chip" data-color="purple" style="background:purple"></div>
   </div>
 
   <div class="buttons">
-    <button id="join">ВОЙТИ</button>
-    <button id="start">🚀 НАЧАТЬ</button>
+    <button id="joinBtn">ВОЙТИ</button>
+    <button id="startBtn">НАЧАТЬ</button>
   </div>
 
-  <div id="roomCode"></div>
-  <div id="players"></div>
+  <div class="rules">
+    <h3>🎮 Правила игры</h3>
+
+    <p>🔥 Цель: первым набрать <b>70 хайпа</b></p>
+    <p>🎲 Бросай кубик и двигайся</p>
+    <p>📊 Шкала сверху показывает хайп</p>
+    <p>🔁 За круг: +7 хайпа</p>
+    <p>💥 Скандал: -1 до -5 хайпа</p>
+    <p>🎲 Риск: 1–3 → -5 | 4–6 → +5</p>
+    <p>🚫 Блокировка: -10 хайпа</p>
+    <p>🚀 Старт: +10 хайпа</p>
+    <p>🛑 Тюрьма: -8 + пропуск</p>
+    <p>⚖️ Суд: пропуск хода</p>
+    <p>🏆 Побеждает тот, кто набрал 70!</p>
+  </div>
+
 </div>
 
-<!-- ИГРА -->
 <div id="game" style="display:none;">
-
   <div id="hypeBars"></div>
 
-  <div id="board">
-    <img src="board.jpg">
-  </div>
+  <div id="gameBoard"></div>
 
-  <button id="roll">🎲 БРОСИТЬ</button>
-  <div id="dice"></div>
+  <div class="controls">
+    <button id="rollBtn">🎲 Бросить</button>
+    <div id="diceResult"></div>
+  </div>
 </div>
 
-<!-- МОДАЛ -->
 <div id="modal"></div>
 
-<!-- ПОБЕДА -->
-<div id="winScreen"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>
