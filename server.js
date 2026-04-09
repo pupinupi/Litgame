@@ -47,16 +47,13 @@ io.on('connection', (socket) => {
 
     if(player.id !== socket.id) return;
 
-    // пропуск
     if(player.skipNext){
       player.skipNext = false;
       io.to(roomCode).emit('playerSkipped', player.id);
-      nextTurn(roomCode);
-      return;
+      return nextTurn(roomCode);
     }
 
     const dice = Math.floor(Math.random()*6)+1;
-
     io.to(roomCode).emit('diceRolled', { playerId: player.id, dice });
   });
 
@@ -91,5 +88,4 @@ io.on('connection', (socket) => {
 
 });
 
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, ()=>console.log("🚀 Server started " + PORT));
+http.listen(3000, ()=>console.log("🚀 server running"));
