@@ -1,63 +1,60 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Литвин: путь к хайпу</title>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h1>🔥 ЛИТВИН: ПУТЬ К ХАЙПУ 🔥</h1>
-
-<!-- ЛОББИ -->
 <div id="lobby">
-  <input type="text" id="username" placeholder="Имя">
-  <input type="text" id="roomCode" placeholder="Код комнаты">
-  <div id="chips">
-    <div class="chip" data-color="red" style="background:red;"></div>
-    <div class="chip" data-color="blue" style="background:blue;"></div>
-    <div class="chip" data-color="yellow" style="background:yellow;"></div>
-    <div class="chip" data-color="purple" style="background:purple;"></div>
-  </div>
-  <div>
-    <button id="joinBtn">Войти</button>
-    <button id="startBtn">🚀 Начать</button>
+
+  <h1>🔥 ЛИТВИН: ПУТЬ К ХАЙПУ 🔥</h1>
+
+  <input id="username" placeholder="Имя">
+  <input id="roomCode" placeholder="Код комнаты">
+
+  <div class="chips">
+    <div class="chip" data-color="red" style="background:red"></div>
+    <div class="chip" data-color="blue" style="background:blue"></div>
+    <div class="chip" data-color="yellow" style="background:yellow"></div>
+    <div class="chip" data-color="purple" style="background:purple"></div>
   </div>
 
-  <div id="rules">
-    <p>🎮 Правила игры:</p>
-    <p>🔥 Цель: набрать 70 хайпа</p>
-    <p>🎲 Бросай кубик и двигайся по полю</p>
-    <p>📊 Шкала показывает твой хайп</p>
-    <p>🔁 За круг: +7 хайпа</p>
-    <p>➕ Клетки дают хайп</p>
-    <p>💥 Скандал: -1 до -5 хайпа</p>
-    <p>🎲 Риск: 1-3 → -5, 4-6 → +5</p>
-    <p>🚫 Блокировка: -10 хайпа</p>
-    <p>🚀 Старт: +10 хайпа</p>
-    <p>🚨 Тюрьма: -8 + пропуск</p>
-    <p>⚖️ Суд: пропуск хода</p>
-    <p>🏆 Побеждает тот, кто набрал 70!</p>
-  </div>
+  <button id="joinBtn">ВОЙТИ</button>
+  <button id="startBtn">НАЧАТЬ</button>
 
   <div id="playersList"></div>
+
+  <div class="rules">
+    <h3>🎮 Правила</h3>
+    <p>Цель: набрать 70 хайпа</p>
+    <p>🔁 Круг: +7</p>
+    <p>🚀 Старт: +10</p>
+    <p>💥 Скандал: -1…-5</p>
+    <p>🎲 Риск: 1-3 = -5 | 4-6 = +5</p>
+    <p>🛑 Суд: пропуск хода</p>
+  </div>
+
 </div>
 
-<!-- ИГРОВОЕ ПОЛЕ -->
 <div id="game">
+
   <div id="hypeBars"></div>
+
   <div id="gameBoard"></div>
-  <div id="diceContainer">
+
+  <div id="controls">
     <button id="rollBtn">🎲 Бросить кубик</button>
     <div id="diceResult"></div>
   </div>
+
 </div>
 
-<!-- МОДАЛ -->
 <div id="modal"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>
