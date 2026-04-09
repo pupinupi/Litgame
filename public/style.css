@@ -1,134 +1,124 @@
-/* ОБЩЕЕ */
-body {
-  margin: 0;
-  font-family: Arial;
-  background: black;
-  color: white;
-  text-align: center;
-}
-
-/* ЗАГОЛОВОК */
-h1 {
-  color: #00ffe5;
-  text-shadow: 0 0 15px #00ffe5;
+body{
+  margin:0;
+  font-family:Arial;
+  background:black;
+  color:white;
+  text-align:center;
 }
 
 /* ЛОББИ */
-#lobby {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+#lobby{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
 }
 
-input {
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
+h1{
+  color:#00ffe5;
+  text-shadow:0 0 20px #00ffe5;
 }
 
-.chip {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: inline-block;
-  margin: 5px;
-  border: 2px solid white;
+input{
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  width:200px;
 }
 
-.chip.selected {
-  box-shadow: 0 0 15px cyan;
-  transform: scale(1.2);
+.chips{
+  display:flex;
+  gap:10px;
 }
 
-button {
-  padding: 10px 20px;
-  border-radius: 15px;
-  border: none;
-  background: cyan;
-  font-weight: bold;
+.chip{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  border:3px solid white;
 }
 
-button:disabled {
-  background: gray;
+.chip.selected{
+  box-shadow:0 0 20px cyan;
+  transform:scale(1.2);
+}
+
+button{
+  padding:10px 20px;
+  border-radius:15px;
+  border:none;
+  background:cyan;
+  font-weight:bold;
 }
 
 /* ИГРА */
-#game {
-  display: none;
+#game{
+  display:none;
 }
 
 /* ПОЛЕ */
-#gameBoard {
-  position: relative;
-  width: 95vw;
-  max-width: 900px;
-  aspect-ratio: 16/10;
-  margin: auto;
-  background: url('board.jpg') center/contain no-repeat;
+#gameBoard{
+  position:relative;
+  width:95vw;
+  max-width:900px;
+  aspect-ratio:16/10;
+  background:url('board.jpg') center/contain no-repeat;
+  margin:auto;
 }
 
 /* ФИШКИ */
-.player {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid white;
-}
-
-/* КУБИК */
-#diceContainer {
-  margin-top: 10px;
-}
-
-#diceResult {
-  font-size: 22px;
+.player{
+  position:absolute;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  border:2px solid white;
 }
 
 /* ХАЙП */
-#hypeBars {
-  width: 90%;
-  margin: 10px auto;
+#hypeBars{
+  width:90%;
+  margin:auto;
 }
 
-.hypeBar {
-  background: #222;
-  border-radius: 10px;
-  margin: 5px;
-  padding: 5px;
+.hypeBar{
+  background:#222;
+  margin:5px;
+  border-radius:10px;
+  padding:5px;
 }
 
-.hypeFill {
-  height: 10px;
-  background: cyan;
-  border-radius: 10px;
+.hypeFill{
+  height:10px;
+  background:cyan;
+  border-radius:10px;
+}
+
+/* КНОПКИ */
+#controls{
+  margin-top:10px;
 }
 
 /* МОДАЛ */
-#modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+#modal{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
 }
 
-.modalContent {
-  background: #111;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 0 20px cyan;
+.modalBox{
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 0 30px red;
 }
 
 /* СКАНДАЛ */
-.scandalCard {
-  position: fixed;
-  top: 30%;
-  left: 50%;
-  transform: translateX(-50%) scale(1);
-  background: red;
-  padding: 20px;
-  border-radius: 15px;
-  color: white;
-  box-shadow: 0 0 30px red;
+.scandal{
+  background:#300;
+}
+
+/* РИСК */
+.risk{
+  background:#003;
 }
