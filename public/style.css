@@ -1,180 +1,134 @@
-/* --- ОБЩЕЕ --- */
+/* ОБЩЕЕ */
 body {
   margin: 0;
-  font-family: 'Arial', sans-serif;
-  background: #000;
-  color: #fff;
+  font-family: Arial;
+  background: black;
+  color: white;
   text-align: center;
 }
 
+/* ЗАГОЛОВОК */
 h1 {
-  font-size: 2rem;
   color: #00ffe5;
-  text-shadow: 0 0 10px #00ffe5;
-  margin-top: 10px;
+  text-shadow: 0 0 15px #00ffe5;
 }
 
-/* --- ЛОББИ --- */
+/* ЛОББИ */
 #lobby {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  margin-top: 20px;
 }
 
-input[type=text] {
-  padding: 8px;
+input {
+  padding: 10px;
   border-radius: 10px;
   border: none;
-  width: 180px;
 }
 
 .chip {
-  display: inline-block;
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  display: inline-block;
   margin: 5px;
-  cursor: pointer;
-  border: 2px solid #fff;
+  border: 2px solid white;
 }
 
 .chip.selected {
+  box-shadow: 0 0 15px cyan;
   transform: scale(1.2);
-  box-shadow: 0 0 15px #00ffe5;
 }
 
 button {
-  padding: 8px 15px;
+  padding: 10px 20px;
+  border-radius: 15px;
   border: none;
-  border-radius: 12px;
-  background: #00ffe5;
-  color: #000;
+  background: cyan;
   font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
-button:hover {
-  background: #00ccbf;
+button:disabled {
+  background: gray;
 }
 
-#rules {
-  max-width: 300px;
-  text-align: left;
-  font-size: 14px;
+/* ИГРА */
+#game {
+  display: none;
+}
+
+/* ПОЛЕ */
+#gameBoard {
+  position: relative;
+  width: 95vw;
+  max-width: 900px;
+  aspect-ratio: 16/10;
+  margin: auto;
+  background: url('board.jpg') center/contain no-repeat;
+}
+
+/* ФИШКИ */
+.player {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* КУБИК */
+#diceContainer {
   margin-top: 10px;
 }
 
-/* --- ИГРА --- */
-#game {
-  display: none;
-  position: relative;
-  width: 100%;
-  height: 80vh;
-  background: #111;
+#diceResult {
+  font-size: 22px;
 }
 
-#gameBoard {
-  position: relative;
-  width: 90vw;       /* подгоняем под ширину экрана */
-  max-width: 1000px; /* ограничиваем слишком большим экраном */
-  height: auto;      /* высота пропорциональна ширине */
-  aspect-ratio: 16/9; /* сохраняем пропорции поля */
-  background: url('board.jpg') center/cover no-repeat;
-  margin: 0 auto;
-}
-
-.player {
-  width: 3%;   /* размер фишки относительно поля */
-  height: auto;
-}
+/* ХАЙП */
 #hypeBars {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 250px;
+  width: 90%;
+  margin: 10px auto;
 }
 
 .hypeBar {
   background: #222;
-  border-radius: 8px;
-  overflow: hidden;
-  color: #fff;
-  font-size: 12px;
-  margin-bottom: 4px;
-  padding: 2px 5px;
+  border-radius: 10px;
+  margin: 5px;
+  padding: 5px;
 }
 
 .hypeFill {
-  height: 12px;
-  background: #00ffe5;
-  border-radius: 8px 0 0 8px;
+  height: 10px;
+  background: cyan;
+  border-radius: 10px;
 }
 
-/* --- КУБИК --- */
-#diceContainer {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-#diceResult {
-  margin-top: 5px;
-  font-size: 20px;
-}
-
-/* --- МОДАЛ --- */
+/* МОДАЛ */
 #modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 1000;
 }
 
 .modalContent {
   background: #111;
-  border: 2px solid #00ffe5;
-  border-radius: 12px;
-  padding: 20px 40px;
-  font-size: 18px;
-  text-align: center;
-  color: #00ffe5;
-  box-shadow: 0 0 20px #00ffe5, 0 0 40px #00ffe5;
-  animation: fadeInOut 2s forwards;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px cyan;
 }
 
-@keyframes fadeInOut {
-  0% {opacity: 0; transform: scale(0.8);}
-  10% {opacity: 1; transform: scale(1);}
-  90% {opacity: 1; transform: scale(1);}
-  100% {opacity: 0; transform: scale(0.8);}
-}
-
-/* --- СКАНДАЛ --- */
+/* СКАНДАЛ */
 .scandalCard {
   position: fixed;
-  top: 20%;
+  top: 30%;
   left: 50%;
-  transform: translateX(-50%) scale(0);
-  width: 300px;
-  padding: 20px;
-  background: linear-gradient(135deg, #ff0040, #ff7f00);
-  border-radius: 16px;
-  color: #fff;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  box-shadow: 0 0 20px #ff0040, 0 0 40px #ff7f00;
-  z-index: 1000;
-  transition: transform 0.5s ease, opacity 0.5s ease;
-}
-
-.scandalCard.active {
   transform: translateX(-50%) scale(1);
-  opacity: 1;
+  background: red;
+  padding: 20px;
+  border-radius: 15px;
+  color: white;
+  box-shadow: 0 0 30px red;
 }
